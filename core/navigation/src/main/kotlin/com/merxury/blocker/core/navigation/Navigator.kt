@@ -25,6 +25,9 @@ import androidx.navigation3.runtime.NavKey
  */
 class Navigator(val state: NavigationState) {
 
+    /** Whether [key] is the current destination in the active stack. */
+    fun isCurrent(key: NavKey): Boolean = state.currentKey == key
+
     /**
      * Navigate to a navigation key
      *

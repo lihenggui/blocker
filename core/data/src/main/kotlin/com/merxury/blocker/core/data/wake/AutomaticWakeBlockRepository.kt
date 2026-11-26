@@ -4,6 +4,7 @@
 package com.merxury.blocker.core.data.wake
 
 import com.merxury.blocker.core.data.device.PmBlockRecords
+import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository.ChangeResult
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.ComponentId
@@ -25,13 +26,15 @@ import timber.log.Timber
 import javax.inject.Inject
 
 interface AutomaticWakeBlockRepository {
+    data class ChangeResult(val outcome: WakeBlockOutcome, val changedIds: Set<String>)
+
     val blocks: Flow<List<AutomaticWakeBlock>>
 
     /** Owner-profile components disabled by protection and not also claimed by the user. */
     val ownedComponents: Flow<Set<ComponentId>>
 
     /** Changes the reviewed paths by ID and requests reconciliation. */
-    suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): WakeBlockOutcome
+    suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): ChangeResult
 
     /** Allows all reviewed paths that involve [packageName]. The completed IDs had their flags changed. */
     suspend fun allowForApp(packageName: String): WakeBlockOutcome
@@ -65,17 +68,18 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
             .toSet()
     }.distinctUntilChanged()
 
-    override suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): WakeBlockOutcome = change(blocked, pathIds) { it.pathId in pathIds }
+    override suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): ChangeResult = change(blocked, pathIds) { it.pathId in pathIds }
 
-    override suspend fun allowForApp(packageName: String): WakeBlockOutcome = change(blocked = false) { !it.disabledByUser && (it.caller == packageName || it.target == packageName) }
+    override suspend fun allowForApp(packageName: String): WakeBlockOutcome = change(blocked = false) { !it.disabledByUser && (it.caller == packageName || it.target == packageName) }.outcome
 
     private suspend fun change(
         blocked: Boolean,
         requested: Set<String>? = null,
         select: (WakeProtection) -> Boolean,
-    ): WakeBlockOutcome {
-        if (requested?.isEmpty() == true) return WakeBlockOutcome(emptySet(), null)
+    ): ChangeResult {
+        if (requested?.isEmpty() == true) return ChangeResult(WakeBlockOutcome(emptySet(), null), emptySet())
         var done = emptySet<String>()
+        var changedIds = emptySet<String>()
         val failure = try {
             lock.withLock {
                 val rows = history.readProtections().filter(select)
@@ -83,6 +87,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
                 currentCoroutineContext().ensureActive()
                 withContext(NonCancellable) {
                     if (changed.isNotEmpty()) history.putProtections(changed)
+                    changedIds = changed.mapTo(mutableSetOf()) { it.pathId }
                     done = rows.mapTo(mutableSetOf()) { it.pathId }
                     if (done.isNotEmpty()) runs.requestRun()
                 }
@@ -95,6 +100,6 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
             Timber.w(e, "Cannot change automatic wake blocks")
             WakeBlockFailure.SystemError(e.message)
         }
-        return WakeBlockOutcome(done, failure)
+        return ChangeResult(WakeBlockOutcome(done, failure), changedIds)
     }
 }

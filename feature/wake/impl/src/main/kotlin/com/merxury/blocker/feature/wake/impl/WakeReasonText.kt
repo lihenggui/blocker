@@ -40,9 +40,10 @@ internal fun WakeHeadline.reasonText(resources: Resources): String = with(resour
 
         is WakeHeadline.RanWithScreenOff -> getString(string.feature_wake_api_reason_screen_off, wakeDuration(headline.nanos))
 
-        is WakeHeadline.StartsOnSystemEvent -> when (headline.action) {
-            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_LOCKED_BOOT_COMPLETED -> getString(string.feature_wake_api_reason_boot)
-            else -> countText(plurals.feature_wake_api_reason_system_broadcast, headline.times)
+        is WakeHeadline.StartsOnSystemEvent -> if (headline.action.isWakeBootAction()) {
+            getString(string.feature_wake_api_reason_boot)
+        } else {
+            countText(plurals.feature_wake_api_reason_system_broadcast, headline.times)
         }
 
         is WakeHeadline.TimedWakeups -> countText(plurals.feature_wake_api_reason_timed, headline.times)
@@ -51,7 +52,7 @@ internal fun WakeHeadline.reasonText(resources: Resources): String = with(resour
     }
 }
 
-private fun Resources.countText(@PluralsRes id: Int, count: Long): String {
+internal fun Resources.countText(@PluralsRes id: Int, count: Long): String {
     val quantity = if (count > Int.MAX_VALUE) {
         PLURAL_QUANTITY_MODULUS + (count % PLURAL_QUANTITY_MODULUS).toInt()
     } else {
@@ -60,7 +61,7 @@ private fun Resources.countText(@PluralsRes id: Int, count: Long): String {
     return getQuantityString(id, quantity, count)
 }
 
-private fun Resources.wakeDuration(nanos: Long): String {
+internal fun Resources.wakeDuration(nanos: Long): String {
     val minutes = TimeUnit.NANOSECONDS.toMinutes(nanos).coerceAtLeast(MINIMUM_DISPLAY_MINUTES)
     val hours = TimeUnit.MINUTES.toHours(minutes)
     val remainingMinutes = minutes - TimeUnit.HOURS.toMinutes(hours)
@@ -71,3 +72,5 @@ private fun Resources.wakeDuration(nanos: Long): String {
         else -> formatter.formatMeasures(Measure(hours, MeasureUnit.HOUR), Measure(remainingMinutes, MeasureUnit.MINUTE))
     }
 }
+
+internal fun String?.isWakeBootAction(): Boolean = this == Intent.ACTION_BOOT_COMPLETED || this == Intent.ACTION_LOCKED_BOOT_COMPLETED

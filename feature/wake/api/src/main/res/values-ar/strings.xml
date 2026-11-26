@@ -106,4 +106,143 @@
     <string name="feature_wake_api_looks_for_restart">التطبيقات التي تُعيد تشغيل نفسها بعد إغلاقها</string>
     <string name="feature_wake_api_looks_for_each_other">التطبيقات التي تشغّل بعضها بعضًا</string>
     <string name="feature_wake_api_looks_for_screen_off">التطبيقات التي تواصل العمل عند إطفاء الشاشة</string>
+    <string name="feature_wake_api_status_keep_alive">يبقي نفسه قيد التشغيل</string>
+    <string name="feature_wake_api_status_attention">يتطلب الانتباه</string>
+    <string name="feature_wake_api_status_all_blocked">حُظرت جميع طرق البقاء قيد التشغيل</string>
+    <plurals name="feature_wake_api_background_starts">
+        <item quantity="zero">بدأ في الخلفية %d مرة خلال آخر 7 أيام</item>
+        <item quantity="one">بدأ في الخلفية مرة واحدة (%d) خلال آخر 7 أيام</item>
+        <item quantity="two">بدأ في الخلفية مرتين (%d) خلال آخر 7 أيام</item>
+        <item quantity="few">بدأ في الخلفية %d مرات خلال آخر 7 أيام</item>
+        <item quantity="many">بدأ في الخلفية %d مرة خلال آخر 7 أيام</item>
+        <item quantity="other">بدأ في الخلفية %d مرة خلال آخر 7 أيام</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_apps">
+        <item quantity="zero">%d تطبيق</item>
+        <item quantity="one">تطبيق واحد (%d)</item>
+        <item quantity="two">تطبيقان (%d)</item>
+        <item quantity="few">%d تطبيقات</item>
+        <item quantity="many">%d تطبيقًا</item>
+        <item quantity="other">%d تطبيق</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_more">
+        <item quantity="zero">%d تطبيق إضافي</item>
+        <item quantity="one">تطبيق إضافي واحد (%d)</item>
+        <item quantity="two">تطبيقان إضافيان (%d)</item>
+        <item quantity="few">%d تطبيقات إضافية</item>
+        <item quantity="many">%d تطبيقًا إضافيًا</item>
+        <item quantity="other">%d تطبيق إضافي</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_inbound">
+        <item quantity="zero">%1$d تطبيق يشغّل %2$s</item>
+        <item quantity="one">تطبيق واحد (%1$d) يشغّل %2$s</item>
+        <item quantity="two">تطبيقان (%1$d) يشغّلان %2$s</item>
+        <item quantity="few">%1$d تطبيقات تشغّل %2$s</item>
+        <item quantity="many">%1$d تطبيقًا يشغّل %2$s</item>
+        <item quantity="other">%1$d تطبيق يشغّل %2$s</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_outbound">
+        <item quantity="zero">يشغّل %2$s ‏%1$d تطبيق</item>
+        <item quantity="one">يشغّل %2$s تطبيقًا واحدًا (%1$d)</item>
+        <item quantity="two">يشغّل %2$s تطبيقين (%1$d)</item>
+        <item quantity="few">يشغّل %2$s ‏%1$d تطبيقات</item>
+        <item quantity="many">يشغّل %2$s ‏%1$d تطبيقًا</item>
+        <item quantity="other">يشغّل %2$s ‏%1$d تطبيق</item>
+    </plurals>
+    <string name="feature_wake_api_list_pair">%1$s، %2$s</string>
+    <string name="feature_wake_api_view_app">عرض %s</string>
+    <string name="feature_wake_api_section_relations">علاقات التشغيل</string>
+    <string name="feature_wake_api_section_methods">طرق البقاء قيد التشغيل</string>
+    <string name="feature_wake_api_relation_mutual">تشغيل متبادل مع %s</string>
+    <string name="feature_wake_api_relation_inbound">يشغّله %s</string>
+    <string name="feature_wake_api_relation_outbound">يشغّل %s</string>
+    <string name="feature_wake_api_method_restart">يعيد التشغيل بعد الإغلاق</string>
+    <string name="feature_wake_api_method_self_start">تشغّل عملياته بعضها بعضًا</string>
+    <string name="feature_wake_api_method_system_event">يبدأ عند تلقي بث من النظام</string>
+    <string name="feature_wake_api_method_timed">ينشط باستخدام مؤقت</string>
+    <string name="feature_wake_api_method_screen_off">يواصل العمل عند إطفاء الشاشة</string>
+    <string name="feature_wake_api_method_known">طريقة معروفة للبقاء قيد التشغيل</string>
+    <string name="feature_wake_api_path_meta">%1$s · آخر مرة %2$s</string>
+    <string name="feature_wake_api_blocked">محظور</string>
+    <string name="feature_wake_api_blocked_not_seen">محظور ولم يُرصد مجددًا</string>
+    <string name="feature_wake_api_blocked_automatically">حظره Blocker تلقائيًا</string>
+    <string name="feature_wake_api_fact_component">المكوّن</string>
+    <string name="feature_wake_api_fact_caller">المستدعي</string>
+    <string name="feature_wake_api_fact_action">الإجراء</string>
+    <string name="feature_wake_api_fact_component_value">%1$s (%2$s)</string>
+    <string name="feature_wake_api_fact_component_of_app">%1$s (%3$s من %2$s)</string>
+    <string name="feature_wake_api_type_activity">نشاط</string>
+    <string name="feature_wake_api_type_service">خدمة</string>
+    <string name="feature_wake_api_type_receiver">مستقبل بث</string>
+    <string name="feature_wake_api_type_provider">موفّر محتوى</string>
+    <plurals name="feature_wake_api_normal_starts">
+        <item quantity="zero">%d بدء عادي</item>
+        <item quantity="one">بدء عادي واحد (%d)</item>
+        <item quantity="two">مرتا بدء عاديتان (%d)</item>
+        <item quantity="few">%d مرات بدء عادية</item>
+        <item quantity="many">%d مرة بدء عادية</item>
+        <item quantity="other">%d مرة بدء عادية</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_opened">
+        <item quantity="zero">فُتح %d مرة</item>
+        <item quantity="one">فُتح مرة واحدة (%d)</item>
+        <item quantity="two">فُتح مرتين (%d)</item>
+        <item quantity="few">فُتح %d مرات</item>
+        <item quantity="many">فُتح %d مرة</item>
+        <item quantity="other">فُتح %d مرة</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_notification">
+        <item quantity="zero">عرض إشعارًا %d مرة</item>
+        <item quantity="one">عرض إشعارًا مرة واحدة (%d)</item>
+        <item quantity="two">عرض إشعارًا مرتين (%d)</item>
+        <item quantity="few">عرض إشعارًا %d مرات</item>
+        <item quantity="many">عرض إشعارًا %d مرة</item>
+        <item quantity="other">عرض إشعارًا %d مرة</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_push">
+        <item quantity="zero">تلقّى رسالة دفع %d مرة</item>
+        <item quantity="one">تلقّى رسالة دفع مرة واحدة (%d)</item>
+        <item quantity="two">تلقّى رسالتي دفع (%d)</item>
+        <item quantity="few">تلقّى رسائل دفع %d مرات</item>
+        <item quantity="many">تلقّى رسائل دفع %d مرة</item>
+        <item quantity="other">تلقّى رسائل دفع %d مرة</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_granted">
+        <item quantity="zero">استخدم إذنًا منحته %d مرة</item>
+        <item quantity="one">استخدم إذنًا منحته مرة واحدة (%d)</item>
+        <item quantity="two">استخدم إذنًا منحته مرتين (%d)</item>
+        <item quantity="few">استخدم إذنًا منحته %d مرات</item>
+        <item quantity="many">استخدم إذنًا منحته %d مرة</item>
+        <item quantity="other">استخدم إذنًا منحته %d مرة</item>
+    </plurals>
+    <string name="feature_wake_api_allow_background">السماح بالاستخدام في الخلفية</string>
+    <string name="feature_wake_api_block_all">حظر الكل</string>
+    <string name="feature_wake_api_view_components">عرض المكوّنات</string>
+    <string name="feature_wake_api_restore_all">استعادة جميع التغييرات</string>
+    <string name="feature_wake_api_allow_path">السماح بـ%s</string>
+    <string name="feature_wake_api_sheet_title">حظر طرق بقاء %s قيد التشغيل</string>
+    <string name="feature_wake_api_sheet_background">إيقاف «السماح بالاستخدام في الخلفية» أيضًا</string>
+    <string name="feature_wake_api_cancel">إلغاء</string>
+    <string name="feature_wake_api_block">حظر</string>
+    <plurals name="feature_wake_api_blocked_count">
+        <item quantity="zero">حُظر %d عنصر</item>
+        <item quantity="one">حُظر عنصر واحد (%d)</item>
+        <item quantity="two">حُظر عنصران (%d)</item>
+        <item quantity="few">حُظرت %d عناصر</item>
+        <item quantity="many">حُظر %d عنصرًا</item>
+        <item quantity="other">حُظر %d عنصر</item>
+    </plurals>
+    <plurals name="feature_wake_api_not_blocked_count">
+        <item quantity="zero">تعذّر حظر %d عنصر</item>
+        <item quantity="one">تعذّر حظر عنصر واحد (%d)</item>
+        <item quantity="two">تعذّر حظر عنصرين (%d)</item>
+        <item quantity="few">تعذّر حظر %d عناصر</item>
+        <item quantity="many">تعذّر حظر %d عنصرًا</item>
+        <item quantity="other">تعذّر حظر %d عنصر</item>
+    </plurals>
+    <string name="feature_wake_api_restored">استُعيدت جميع التغييرات في %s</string>
+    <string name="feature_wake_api_undo">تراجع</string>
+    <string name="feature_wake_api_undo_failed">تعذّر التراجع عن بعض التغييرات</string>
+    <string name="feature_wake_api_sender_unsupported">لا يدعم هذا النظام الحظر حسب المُرسِل</string>
+    <string name="feature_wake_api_background_not_changeable">لا يسمح Android بتغيير استخدام هذا التطبيق في الخلفية</string>
 </resources>

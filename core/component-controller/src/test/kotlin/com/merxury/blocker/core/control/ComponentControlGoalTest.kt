@@ -20,19 +20,24 @@ import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
+import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentOutcome
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
+import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -336,6 +341,8 @@ class ComponentControlGoalTest {
     private fun expectedSetting(goal: ControlGoal, enabledInManifest: Boolean, setting: PmSetting): PmSetting = when (goal) {
         ControlGoal.BLOCK -> PmSetting.DISABLED
 
+        ControlGoal.ENABLE_EXPLICIT -> PmSetting.ENABLED
+
         ControlGoal.UNBLOCK -> if (setting == PmSetting.DISABLED) PmSetting.DEFAULT else setting
 
         ControlGoal.ENABLE -> when {
@@ -343,6 +350,37 @@ class ComponentControlGoalTest {
             enabledInManifest -> PmSetting.DEFAULT
             else -> PmSetting.ENABLED
         }
+    }
+
+    @Test
+    fun givenMatchingAndChangedPmSettings_whenRestoringEnabled_thenOnlyMatchingSettingIsWritten() = runTest {
+        fixture.system.put(OWNER, MAIN.id, PmSetting.DISABLED)
+        val request = ControlRequest(OWNER, listOf(MAIN, BOOT), ControlGoal.ENABLE_EXPLICIT, PM_ONLY, expectedPm = PmSetting.DISABLED)
+
+        val events = fixture.run(request)
+
+        assertThat(events.outcomeOf(MAIN).state.pm).isEqualTo(PmSetting.ENABLED)
+        assertThat(events.outcomeOf(BOOT).state.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(events.outcomes().map { it.result }).containsExactly(ControlResult.ACHIEVED, ControlResult.ACHIEVED)
+        assertThat(events.filterIsInstance<ControlEvent.PackageDone>().single().pmWrites).containsExactly(MAIN.id)
+    }
+
+    @Test
+    fun givenDisabledComponents_whenRestoreGuardExcludesOne_thenOnlyEligibleSettingIsWritten() = runTest {
+        listOf(MAIN, BOOT).forEach { fixture.system.put(OWNER, it.id, PmSetting.DISABLED) }
+        val request = ControlRequest(OWNER, listOf(MAIN, BOOT), ControlGoal.UNBLOCK, PM_ONLY, expectedPm = PmSetting.DISABLED)
+        val observer = object : ComponentWriteObserver {
+            override suspend fun selectPmRestoreComponents(app: AppKey, components: Set<ComponentId>) = components - BOOT.id
+
+            override fun canStart() = true
+            override fun onWrite(components: Collection<ComponentId>) = Unit
+        }
+
+        val events = fixture.control.apply(request, writeObserver = observer).toList()
+
+        assertThat(events.outcomeOf(MAIN).state.pm).isEqualTo(PmSetting.DEFAULT)
+        assertThat(events.outcomeOf(BOOT).state.pm).isEqualTo(PmSetting.DISABLED)
+        assertThat(events.filterIsInstance<ControlEvent.PackageDone>().single().pmWrites).containsExactly(MAIN.id)
     }
 
     @Test

@@ -51,7 +51,12 @@ class ControlRequestTest {
         val pm = setOf(PACKAGE_MANAGER)
         val ifw = setOf(INTENT_FIREWALL)
         val both = pm + ifw
-        val receiverLayers = mapOf(ControlGoal.BLOCK to pm, ControlGoal.UNBLOCK to both, ControlGoal.ENABLE to both)
+        val receiverLayers = mapOf(
+            ControlGoal.BLOCK to pm,
+            ControlGoal.UNBLOCK to both,
+            ControlGoal.ENABLE to both,
+            ControlGoal.ENABLE_EXPLICIT to both,
+        )
         val ifwLayers = mapOf(
             ComponentType.ACTIVITY to ControlGoal.entries.associateWith { ifw },
             ComponentType.SERVICE to ControlGoal.entries.associateWith { ifw },

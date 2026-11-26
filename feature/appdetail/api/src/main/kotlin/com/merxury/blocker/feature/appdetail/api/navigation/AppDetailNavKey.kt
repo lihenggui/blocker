@@ -21,6 +21,9 @@ import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.AppDetailTabs
 import kotlinx.serialization.Serializable
 
+/** Opens the first available component list for the app. */
+const val FIRST_COMPONENT_TAB = "first-component"
+
 /**
  * The detail screen of one app for one user.
  *

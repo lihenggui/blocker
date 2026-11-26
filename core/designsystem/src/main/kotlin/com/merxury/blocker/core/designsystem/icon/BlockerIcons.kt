@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.outlined.Rule
 import androidx.compose.material.icons.automirrored.outlined.Sort
@@ -30,12 +31,14 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Checklist
@@ -53,12 +56,17 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.IosShare
+import androidx.compose.material.icons.outlined.LinkOff
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PersonOff
+import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
+import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material.icons.rounded.Autorenew
@@ -75,12 +83,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.R
+import androidx.compose.material.icons.outlined.RestartAlt as OutlinedRestartAlt
 
 /**
  * Blocker icons. Material icons are [ImageVector]s, custom icons are drawable resource IDs.
  */
 object BlockerIcons {
     val Add = Icons.Outlined.Add
+    val Alarm = Icons.Outlined.Alarm
+    val Campaign = Icons.Outlined.Campaign
+    val LinkOff = Icons.Outlined.LinkOff
+    val PowerSettingsNew = Icons.Outlined.PowerSettingsNew
+    val SettingsBackupRestore = Icons.Outlined.SettingsBackupRestore
+    val SyncAlt = Icons.Outlined.SyncAlt
+    val Widgets = Icons.Outlined.Widgets
     val Apps = Icons.Outlined.Apps
     val GeneralRule = Icons.Outlined.CollectionsBookmark
     val Sort = Icons.AutoMirrored.Outlined.Sort
@@ -98,6 +114,7 @@ object BlockerIcons {
     val List = Icons.AutoMirrored.Outlined.List
     val AutoFix = Icons.Outlined.AutoFixHigh
     val Back = Icons.AutoMirrored.Outlined.ArrowBack
+    val Forward = Icons.AutoMirrored.Outlined.ArrowForward
     val Close = Icons.Outlined.Close
     val Rule = Icons.AutoMirrored.Outlined.Rule
     val Deselect = Icons.Outlined.Deselect
@@ -130,6 +147,7 @@ object BlockerIcons {
     val Lock = Icons.Outlined.Lock
     val PersonOff = Icons.Outlined.PersonOff
     val RestartAlt = Icons.Rounded.RestartAlt
+    val RestartAltOutlined = Icons.Outlined.OutlinedRestartAlt
     val SwapHoriz = Icons.Rounded.SwapHoriz
     val Update = Icons.Rounded.Update
     val VerifiedUser = Icons.Outlined.VerifiedUser

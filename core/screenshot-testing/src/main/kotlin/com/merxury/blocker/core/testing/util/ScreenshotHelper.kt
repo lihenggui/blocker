@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DarkMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -41,6 +42,7 @@ import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.RoborazziOptions.CompareOptions
 import com.github.takahirom.roborazzi.RoborazziOptions.RecordOptions
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.github.takahirom.roborazzi.captureScreenRoboImage
 import com.github.takahirom.roborazzi.checkRoboAccessibility
 import com.google.android.apps.common.testing.accessibility.framework.AccessibilityCheckPreset
 import com.google.android.apps.common.testing.accessibility.framework.AccessibilityViewCheckResult
@@ -92,6 +94,7 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
     // TODO use Matchers.not(Matchers.anything())
     accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = Matchers.anything(),
     darkMode: Boolean = false,
+    captureAllWindows: Boolean = false,
     body: @Composable () -> Unit,
 ) {
     val (width, height, dpi) = extractSpecs(deviceSpec)
@@ -111,26 +114,35 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
         }
     }
     // Run Accessibility checks first so logging is included
+    val roots = if (captureAllWindows) {
+        val nodes = onAllNodes(isRoot())
+        nodes.fetchSemanticsNodes().indices.map { nodes[it] }
+    } else {
+        listOf(onRoot())
+    }
     val accessibilityException = try {
-        this.onRoot().checkRoboAccessibility(
-            roborazziATFAccessibilityCheckOptions = RoborazziATFAccessibilityCheckOptions(
-                failureLevel = CheckLevel.Error,
-                checker = RoborazziATFAccessibilityChecker(
-                    preset = AccessibilityCheckPreset.LATEST,
-                    suppressions = accessibilitySuppressions,
+        roots.forEach { root ->
+            root.checkRoboAccessibility(
+                roborazziATFAccessibilityCheckOptions = RoborazziATFAccessibilityCheckOptions(
+                    failureLevel = CheckLevel.Error,
+                    checker = RoborazziATFAccessibilityChecker(
+                        preset = AccessibilityCheckPreset.LATEST,
+                        suppressions = accessibilitySuppressions,
+                    ),
                 ),
-            ),
-        )
+            )
+        }
         null
     } catch (e: AccessibilityViewCheckException) {
         e
     }
 
-    this.onRoot()
-        .captureRoboImage(
-            "src/test/screenshots/${screenshotName}_$deviceName.png",
-            roborazziOptions = roborazziOptions,
-        )
+    val path = "src/test/screenshots/${screenshotName}_$deviceName.png"
+    if (captureAllWindows) {
+        captureScreenRoboImage(path, roborazziOptions)
+    } else {
+        onRoot().captureRoboImage(path, roborazziOptions)
+    }
 
     // Rethrow the Accessibility exception once screenshots have passed
     if (accessibilityException != null) {

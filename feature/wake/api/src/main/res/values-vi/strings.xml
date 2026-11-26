@@ -51,4 +51,83 @@
     <string name="feature_wake_api_looks_for_restart">Ứng dụng khởi động lại sau khi đóng</string>
     <string name="feature_wake_api_looks_for_each_other">Ứng dụng khởi chạy lẫn nhau</string>
     <string name="feature_wake_api_looks_for_screen_off">Ứng dụng tiếp tục chạy khi màn hình tắt</string>
+    <string name="feature_wake_api_status_keep_alive">Tự duy trì hoạt động</string>
+    <string name="feature_wake_api_status_attention">Cần chú ý</string>
+    <string name="feature_wake_api_status_all_blocked">Đã chặn mọi cách duy trì hoạt động</string>
+    <plurals name="feature_wake_api_background_starts">
+        <item quantity="other">Đã khởi chạy %d lần trong nền trong 7 ngày qua</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_apps">
+        <item quantity="other">%d ứng dụng</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_more">
+        <item quantity="other">Thêm %d ứng dụng</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_inbound">
+        <item quantity="other">%1$d ứng dụng khởi chạy %2$s</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_outbound">
+        <item quantity="other">%2$s khởi chạy %1$d ứng dụng</item>
+    </plurals>
+    <string name="feature_wake_api_list_pair">%1$s, %2$s</string>
+    <string name="feature_wake_api_view_app">Xem %s</string>
+    <string name="feature_wake_api_section_relations">Quan hệ khởi chạy</string>
+    <string name="feature_wake_api_section_methods">Cách duy trì hoạt động</string>
+    <string name="feature_wake_api_relation_mutual">Khởi chạy lẫn nhau với %s</string>
+    <string name="feature_wake_api_relation_inbound">Được %s khởi chạy</string>
+    <string name="feature_wake_api_relation_outbound">Khởi chạy %s</string>
+    <string name="feature_wake_api_method_restart">Khởi động lại sau khi bị đóng</string>
+    <string name="feature_wake_api_method_self_start">Các tiến trình tự khởi chạy lẫn nhau</string>
+    <string name="feature_wake_api_method_system_event">Khởi chạy khi nhận thông báo phát từ hệ thống</string>
+    <string name="feature_wake_api_method_timed">Thức dậy theo bộ hẹn giờ</string>
+    <string name="feature_wake_api_method_screen_off">Tiếp tục chạy khi tắt màn hình</string>
+    <string name="feature_wake_api_method_known">Cách duy trì hoạt động đã biết</string>
+    <string name="feature_wake_api_path_meta">%1$s · lần cuối %2$s</string>
+    <string name="feature_wake_api_blocked">Đã chặn</string>
+    <string name="feature_wake_api_blocked_not_seen">Đã chặn, chưa xảy ra lại</string>
+    <string name="feature_wake_api_blocked_automatically">Blocker đã tự động chặn</string>
+    <string name="feature_wake_api_fact_component">Thành phần</string>
+    <string name="feature_wake_api_fact_caller">Bên gọi</string>
+    <string name="feature_wake_api_fact_action">Hành động</string>
+    <string name="feature_wake_api_fact_component_value">%1$s (%2$s)</string>
+    <string name="feature_wake_api_fact_component_of_app">%1$s (%3$s của %2$s)</string>
+    <string name="feature_wake_api_type_activity">hoạt động</string>
+    <string name="feature_wake_api_type_service">dịch vụ</string>
+    <string name="feature_wake_api_type_receiver">trình nhận thông báo phát</string>
+    <string name="feature_wake_api_type_provider">trình cung cấp nội dung</string>
+    <plurals name="feature_wake_api_normal_starts">
+        <item quantity="other">%d lần khởi chạy bình thường</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_opened">
+        <item quantity="other">Đã mở ứng dụng %d lần</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_notification">
+        <item quantity="other">Đã hiện thông báo %d lần</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_push">
+        <item quantity="other">Đã nhận thông báo đẩy %d lần</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_granted">
+        <item quantity="other">Đã dùng quyền bạn cấp %d lần</item>
+    </plurals>
+    <string name="feature_wake_api_allow_background">Cho phép hoạt động trong nền</string>
+    <string name="feature_wake_api_block_all">Chặn tất cả</string>
+    <string name="feature_wake_api_view_components">Xem thành phần</string>
+    <string name="feature_wake_api_restore_all">Khôi phục mọi thay đổi</string>
+    <string name="feature_wake_api_allow_path">Cho phép %s</string>
+    <string name="feature_wake_api_sheet_title">Chặn các cách duy trì hoạt động của %s</string>
+    <string name="feature_wake_api_sheet_background">Đồng thời tắt “Cho phép hoạt động trong nền”</string>
+    <string name="feature_wake_api_cancel">Hủy</string>
+    <string name="feature_wake_api_block">Chặn</string>
+    <plurals name="feature_wake_api_blocked_count">
+        <item quantity="other">Đã chặn %d mục</item>
+    </plurals>
+    <plurals name="feature_wake_api_not_blocked_count">
+        <item quantity="other">Không thể chặn %d mục</item>
+    </plurals>
+    <string name="feature_wake_api_restored">Đã khôi phục mọi thay đổi của %s</string>
+    <string name="feature_wake_api_undo">Hoàn tác</string>
+    <string name="feature_wake_api_undo_failed">Không thể hoàn tác một số thay đổi</string>
+    <string name="feature_wake_api_sender_unsupported">Hệ thống này không hỗ trợ chặn theo nguồn gửi</string>
+    <string name="feature_wake_api_background_not_changeable">Android không cho phép thay đổi hoạt động trong nền của ứng dụng này</string>
 </resources>

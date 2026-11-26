@@ -19,11 +19,32 @@ class FakeWakeBlockRepository : WakeBlockRepository {
 
     override suspend fun block(requests: List<Pair<WakePath, WakeBlockMethod>>): WakeBlockOutcome {
         this.requests += requests
+        val previous = blocks.value.associateBy { it.pathKey }
         return restoreBlocks(
             requests.map { (path, method) ->
-                WakeBlock(path.pathKey, path.target, method, path.componentType, path.actor, path.component, path.action, 100)
+                WakeBlock(path.pathKey, path.target, method, path.componentType, path.actor, path.component, path.action, maxOf(100, (previous[path.pathKey]?.blockedAtMillis ?: 0) + 1))
             },
         )
+    }
+
+    override suspend fun blockRecordingChanges(requests: List<Pair<WakePath, WakeBlockMethod>>): Pair<WakeBlockOutcome, WakeBlockRepository.Snapshot> {
+        val before = blocks.value.associateBy { it.pathKey }
+        val outcome = block(requests)
+        val written = blocks.value.filter { it.pathKey in outcome.done }
+        return outcome to Snapshot(before.filterKeys { it in outcome.done }, written)
+    }
+
+    override suspend fun undoBlockChanges(snapshot: WakeBlockRepository.Snapshot): WakeBlockOutcome {
+        require(snapshot is Snapshot)
+        val current = blocks.value
+        val keys = snapshot.written.filter { it in current }.map { it.pathKey }
+        return change(keys) { done ->
+            blocks.value = current.filterNot { it.pathKey in done } + done.mapNotNull(snapshot.before::get)
+        }
+    }
+
+    private data class Snapshot(val before: Map<String, WakeBlock>, val written: List<WakeBlock>) : WakeBlockRepository.Snapshot {
+        override val hasChanges get() = written.isNotEmpty()
     }
 
     override suspend fun unblock(pathKeys: Collection<String>): WakeBlockOutcome = change(pathKeys) { done ->

@@ -73,4 +73,107 @@
     <string name="feature_wake_api_looks_for_restart">Les applications qui redémarrent après leur fermeture</string>
     <string name="feature_wake_api_looks_for_each_other">Les applications qui se lancent mutuellement</string>
     <string name="feature_wake_api_looks_for_screen_off">Les applications qui restent actives avec l’écran éteint</string>
+    <string name="feature_wake_api_status_keep_alive">Se maintient en cours d’exécution</string>
+    <string name="feature_wake_api_status_attention">Nécessite une attention particulière</string>
+    <string name="feature_wake_api_status_all_blocked">Toutes les méthodes de maintien en cours d’exécution sont bloquées</string>
+    <plurals name="feature_wake_api_background_starts">
+        <item quantity="one">Lancée %d fois en arrière-plan au cours des 7 derniers jours</item>
+        <item quantity="many">Lancée %d fois en arrière-plan au cours des 7 derniers jours</item>
+        <item quantity="other">Lancée %d fois en arrière-plan au cours des 7 derniers jours</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_apps">
+        <item quantity="one">%d application</item>
+        <item quantity="many">%d applications</item>
+        <item quantity="other">%d applications</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_more">
+        <item quantity="one">%d application de plus</item>
+        <item quantity="many">%d applications de plus</item>
+        <item quantity="other">%d applications de plus</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_inbound">
+        <item quantity="one">%1$d application lance %2$s</item>
+        <item quantity="many">%1$d applications lancent %2$s</item>
+        <item quantity="other">%1$d applications lancent %2$s</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_outbound">
+        <item quantity="one">%2$s lance %1$d application</item>
+        <item quantity="many">%2$s lance %1$d applications</item>
+        <item quantity="other">%2$s lance %1$d applications</item>
+    </plurals>
+    <string name="feature_wake_api_list_pair">%1$s, %2$s</string>
+    <string name="feature_wake_api_view_app">Voir %s</string>
+    <string name="feature_wake_api_section_relations">Relations de lancement</string>
+    <string name="feature_wake_api_section_methods">Méthodes de maintien en cours d’exécution</string>
+    <string name="feature_wake_api_relation_mutual">Se lance mutuellement avec %s</string>
+    <string name="feature_wake_api_relation_inbound">Lancée par %s</string>
+    <string name="feature_wake_api_relation_outbound">Lance %s</string>
+    <string name="feature_wake_api_method_restart">Redémarre après sa fermeture</string>
+    <string name="feature_wake_api_method_self_start">Ses processus se lancent mutuellement</string>
+    <string name="feature_wake_api_method_system_event">Se lance à la réception d’une diffusion système</string>
+    <string name="feature_wake_api_method_timed">Se réveille à intervalles programmés</string>
+    <string name="feature_wake_api_method_screen_off">Reste active lorsque l’écran est éteint</string>
+    <string name="feature_wake_api_method_known">Méthode de maintien connue</string>
+    <string name="feature_wake_api_path_meta">%1$s · dernière fois %2$s</string>
+    <string name="feature_wake_api_blocked">Bloqué</string>
+    <string name="feature_wake_api_blocked_not_seen">Bloqué, aucune nouvelle occurrence</string>
+    <string name="feature_wake_api_blocked_automatically">Bloqué automatiquement par Blocker</string>
+    <string name="feature_wake_api_fact_component">Composant</string>
+    <string name="feature_wake_api_fact_caller">Appelant</string>
+    <string name="feature_wake_api_fact_action">Action</string>
+    <string name="feature_wake_api_fact_component_value">%1$s (%2$s)</string>
+    <string name="feature_wake_api_fact_component_of_app">%1$s (%3$s de %2$s)</string>
+    <string name="feature_wake_api_type_activity">activité</string>
+    <string name="feature_wake_api_type_service">service</string>
+    <string name="feature_wake_api_type_receiver">récepteur de diffusion</string>
+    <string name="feature_wake_api_type_provider">fournisseur de contenu</string>
+    <plurals name="feature_wake_api_normal_starts">
+        <item quantity="one">%d lancement normal</item>
+        <item quantity="many">%d lancements normaux</item>
+        <item quantity="other">%d lancements normaux</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_opened">
+        <item quantity="one">Ouverte %d fois</item>
+        <item quantity="many">Ouverte %d fois</item>
+        <item quantity="other">Ouverte %d fois</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_notification">
+        <item quantity="one">A affiché une notification %d fois</item>
+        <item quantity="many">A affiché une notification %d fois</item>
+        <item quantity="other">A affiché une notification %d fois</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_push">
+        <item quantity="one">A reçu un message push %d fois</item>
+        <item quantity="many">A reçu des messages push %d fois</item>
+        <item quantity="other">A reçu des messages push %d fois</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_granted">
+        <item quantity="one">A utilisé une autorisation que vous avez accordée %d fois</item>
+        <item quantity="many">A utilisé une autorisation que vous avez accordée %d fois</item>
+        <item quantity="other">A utilisé une autorisation que vous avez accordée %d fois</item>
+    </plurals>
+    <string name="feature_wake_api_allow_background">Autoriser l’utilisation en arrière-plan</string>
+    <string name="feature_wake_api_block_all">Tout bloquer</string>
+    <string name="feature_wake_api_view_components">Voir les composants</string>
+    <string name="feature_wake_api_restore_all">Rétablir tous les changements</string>
+    <string name="feature_wake_api_allow_path">Autoriser %s</string>
+    <string name="feature_wake_api_sheet_title">Bloquer les méthodes de maintien de %s</string>
+    <string name="feature_wake_api_sheet_background">Désactiver aussi « Autoriser l’utilisation en arrière-plan »</string>
+    <string name="feature_wake_api_cancel">Annuler</string>
+    <string name="feature_wake_api_block">Bloquer</string>
+    <plurals name="feature_wake_api_blocked_count">
+        <item quantity="one">%d élément bloqué</item>
+        <item quantity="many">%d éléments bloqués</item>
+        <item quantity="other">%d éléments bloqués</item>
+    </plurals>
+    <plurals name="feature_wake_api_not_blocked_count">
+        <item quantity="one">%d élément n’a pas pu être bloqué</item>
+        <item quantity="many">%d éléments n’ont pas pu être bloqués</item>
+        <item quantity="other">%d éléments n’ont pas pu être bloqués</item>
+    </plurals>
+    <string name="feature_wake_api_restored">Tous les changements de %s ont été rétablis</string>
+    <string name="feature_wake_api_undo">Annuler</string>
+    <string name="feature_wake_api_undo_failed">Certaines modifications n’ont pas pu être annulées</string>
+    <string name="feature_wake_api_sender_unsupported">Ce système ne permet pas de bloquer par expéditeur</string>
+    <string name="feature_wake_api_background_not_changeable">Android ne permet pas de modifier l’utilisation en arrière-plan de cette application</string>
 </resources>

@@ -30,9 +30,15 @@ sealed interface WakeBlockFailure {
     /** These paths cannot be cut with the requested method, such as a provider through the firewall. */
     data class NotBlockable(val pathKeys: List<String>) : WakeBlockFailure
 
+    /** Android does not permit changing background usage for this app. */
+    data object BackgroundNotChangeable : WakeBlockFailure
+
     /** The system failed, with its message when it gave one. */
     data class SystemError(val message: String?) : WakeBlockFailure
 }
 
-/** What a block or unblock request changed: the paths done, and the first failure for the rest. */
-data class WakeBlockOutcome(val done: Set<String>, val failure: WakeBlockFailure?)
+/** The paths completed by a block or unblock request, and the first failure for the rest. */
+data class WakeBlockOutcome(
+    val done: Set<String>,
+    val failure: WakeBlockFailure?,
+)

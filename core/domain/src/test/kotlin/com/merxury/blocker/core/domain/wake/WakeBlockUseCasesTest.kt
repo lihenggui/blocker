@@ -16,6 +16,7 @@ import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
+import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
@@ -67,6 +68,67 @@ class WakeBlockUseCasesTest {
         ).inOrder()
         assertThat(f.manual.requests).isEmpty()
         assertThat(f.manual.unblockedPaths).isEmpty()
+    }
+
+    @Test fun givenActiveMatchAndStaleAutomaticSelection_whenUndoingBatch_thenOnlyTheManualWriteIsReversed() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val path = finding("incoming").toWakePath().copy(action = "action")
+        val active = AutomaticWakeBlock("active", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "action", active = true, allowed = false)
+        val allowed = active.copy(pathId = "allowed", action = "other", active = false, allowed = true)
+        val staleUnmatched = active.copy(pathId = "unmatched", caller = "other")
+        f.automatic.blocks.value = listOf(active, allowed, staleUnmatched)
+
+        val result = setBlocked.blockWithUndo(
+            listOf(path.state(WakePathBlock.NONE)),
+            listOf(staleUnmatched.copy(active = false, allowed = true)),
+        )
+        assertThat(result.outcome.done).containsExactly("incoming", "unmatched")
+        assertThat(f.automatic.allowedIds).containsExactly("allowed")
+        assertThat(f.manual.requests).containsExactly(path to path.blockMethod)
+        assertThat(f.manual.blocks.value).containsExactly(path.blockRow())
+
+        setBlocked.undo(result.undo)
+        assertThat(f.manual.blocks.value).isEmpty()
+        assertThat(f.automatic.allowedIds).containsExactly("allowed")
+        assertThat(f.automatic.blocks.value).containsExactly(active, allowed, staleUnmatched)
+    }
+
+    @Test fun givenLapsedComponentRowAndAllowedReview_whenBlockingAndUndoing_thenBothReturnToTheirPriorState() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val path = finding("broadcast", ReviveTrigger.PEER_BROADCAST, detail = "example.WAKE").toWakePath()
+        val original = path.blockRow(at = 10)
+        f.manual.blocks.value = listOf(original)
+        val allowed = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Other", "", active = false, allowed = true)
+        f.automatic.blocks.value = listOf(allowed)
+
+        val result = setBlocked.blockWithUndo(listOf(path.state(WakePathBlock.NONE)), listOf(allowed))
+
+        assertThat(result.outcome).isEqualTo(WakeBlockOutcome(setOf(path.pathKey, allowed.pathId), null))
+        assertThat(result.undo.hasChanges).isTrue()
+        assertThat(f.manual.requests).containsExactly(path to WakeBlockMethod.COMPONENT)
+        assertThat(f.manual.blocks.value.single()).isNotEqualTo(original)
+        assertThat(f.automatic.allowedIds).isEmpty()
+        assertThat(setBlocked.undo(result.undo)).isEqualTo(result.outcome)
+        assertThat(f.manual.blocks.value).containsExactly(original)
+        assertThat(f.automatic.blocks.value).containsExactly(allowed)
+    }
+
+    @Test fun givenManualUndoFailsWithReviewedChange_whenUndoingBatch_thenReviewedChangeIsStillReversed() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val path = finding("manual").toWakePath()
+        val allowed = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Other", "", active = false, allowed = true)
+        f.automatic.blocks.value = listOf(allowed)
+        val result = setBlocked.blockWithUndo(listOf(path.state(WakePathBlock.NONE)), listOf(allowed))
+        f.manual.excluded = setOf(path.pathKey)
+
+        val undo = setBlocked.undo(result.undo)
+
+        assertThat(undo).isEqualTo(WakeBlockOutcome(setOf(allowed.pathId), WakeBlockFailure.NotBlockable(listOf(path.pathKey))))
+        assertThat(f.manual.blocks.value).containsExactly(path.blockRow())
+        assertThat(f.automatic.blocks.value).containsExactly(allowed)
     }
 
     @Test fun givenAnUnappliedReview_whenBlockingItsPath_thenAUserBlockIsSaved() = runTest {
@@ -149,6 +211,21 @@ class WakeBlockUseCasesTest {
         ).inOrder()
     }
 
+    @Test fun givenUnsupportedBackgroundUsage_whenRestoring_thenOtherChangesSucceed() = runTest {
+        val f = WakeStateTestFixture(this)
+        val block = finding("incoming").toWakePath().blockRow()
+        f.manual.blocks.value = listOf(block)
+        val background = FakeBackgroundUsageRepository(allowed = false, failure = BackgroundUsageFailure.UNSUPPORTED)
+        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, background)
+
+        val result = restore(TEST_APP)
+
+        assertThat(result.outcome).isEqualTo(WakeBlockOutcome(setOf(block.pathKey), null))
+        assertThat(restore.undo(requireNotNull(result.undo))).isEqualTo(result.outcome)
+        assertThat(f.manual.blocks.value).containsExactly(block)
+        assertThat(background.writes).isEmpty()
+    }
+
     @Test fun givenNoRestoreChanges_whenBackgroundReadFails_thenNoUndoOrSettingWriteIsReported() = runTest {
         val f = WakeStateTestFixture(this)
         val background = FakeBackgroundUsageRepository(allowed = false, failure = BackgroundUsageFailure.NO_ACCESS)
@@ -201,7 +278,7 @@ class WakeBlockUseCasesTest {
         val reinstated = CompletableDeferred<Unit>()
         val resume = CompletableDeferred<Unit>()
         val automatic = object : AutomaticWakeBlockRepository by f.automatic {
-            override suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): WakeBlockOutcome = f.automatic.setBlocked(pathIds, blocked).also {
+            override suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): AutomaticWakeBlockRepository.ChangeResult = f.automatic.setBlocked(pathIds, blocked).also {
                 reinstated.complete(Unit)
                 resume.await()
             }

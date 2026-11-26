@@ -84,4 +84,119 @@
     <string name="feature_wake_api_looks_for_restart">Приложения, которые перезапускаются после закрытия</string>
     <string name="feature_wake_api_looks_for_each_other">Приложения, которые запускают друг друга</string>
     <string name="feature_wake_api_looks_for_screen_off">Приложения, которые продолжают работать с выключенным экраном</string>
+    <string name="feature_wake_api_status_keep_alive">Поддерживает свою работу</string>
+    <string name="feature_wake_api_status_attention">Требует внимания</string>
+    <string name="feature_wake_api_status_all_blocked">Все способы поддержания работы заблокированы</string>
+    <plurals name="feature_wake_api_background_starts">
+        <item quantity="one">Запускалось в фоновом режиме %d раз за последние 7 дней</item>
+        <item quantity="few">Запускалось в фоновом режиме %d раза за последние 7 дней</item>
+        <item quantity="many">Запускалось в фоновом режиме %d раз за последние 7 дней</item>
+        <item quantity="other">Запускалось в фоновом режиме %d раза за последние 7 дней</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_apps">
+        <item quantity="one">%d приложение</item>
+        <item quantity="few">%d приложения</item>
+        <item quantity="many">%d приложений</item>
+        <item quantity="other">%d приложения</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_more">
+        <item quantity="one">Ещё %d приложение</item>
+        <item quantity="few">Ещё %d приложения</item>
+        <item quantity="many">Ещё %d приложений</item>
+        <item quantity="other">Ещё %d приложения</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_inbound">
+        <item quantity="one">%1$d приложение запускает %2$s</item>
+        <item quantity="few">%1$d приложения запускают %2$s</item>
+        <item quantity="many">%1$d приложений запускают %2$s</item>
+        <item quantity="other">%1$d приложения запускают %2$s</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_outbound">
+        <item quantity="one">%2$s запускает %1$d приложение</item>
+        <item quantity="few">%2$s запускает %1$d приложения</item>
+        <item quantity="many">%2$s запускает %1$d приложений</item>
+        <item quantity="other">%2$s запускает %1$d приложения</item>
+    </plurals>
+    <string name="feature_wake_api_list_pair">%1$s, %2$s</string>
+    <string name="feature_wake_api_view_app">Открыть %s</string>
+    <string name="feature_wake_api_section_relations">Связи запуска</string>
+    <string name="feature_wake_api_section_methods">Способы поддержания работы</string>
+    <string name="feature_wake_api_relation_mutual">Взаимный запуск с %s</string>
+    <string name="feature_wake_api_relation_inbound">Запускается приложением %s</string>
+    <string name="feature_wake_api_relation_outbound">Запускает %s</string>
+    <string name="feature_wake_api_method_restart">Перезапускается после закрытия</string>
+    <string name="feature_wake_api_method_self_start">Собственные процессы запускают друг друга</string>
+    <string name="feature_wake_api_method_system_event">Запускается при получении системной рассылки</string>
+    <string name="feature_wake_api_method_timed">Пробуждается по таймеру</string>
+    <string name="feature_wake_api_method_screen_off">Продолжает работать при выключенном экране</string>
+    <string name="feature_wake_api_method_known">Известный способ поддержания работы</string>
+    <string name="feature_wake_api_path_meta">%1$s · последний запуск %2$s</string>
+    <string name="feature_wake_api_blocked">Заблокировано</string>
+    <string name="feature_wake_api_blocked_not_seen">Заблокировано, больше не наблюдалось</string>
+    <string name="feature_wake_api_blocked_automatically">Автоматически заблокировано в Blocker</string>
+    <string name="feature_wake_api_fact_component">Компонент</string>
+    <string name="feature_wake_api_fact_caller">Инициатор</string>
+    <string name="feature_wake_api_fact_action">Действие</string>
+    <string name="feature_wake_api_fact_component_value">%1$s (%2$s)</string>
+    <string name="feature_wake_api_fact_component_of_app">%1$s (%3$s приложения %2$s)</string>
+    <string name="feature_wake_api_type_activity">активность</string>
+    <string name="feature_wake_api_type_service">служба</string>
+    <string name="feature_wake_api_type_receiver">приёмник рассылок</string>
+    <string name="feature_wake_api_type_provider">поставщик контента</string>
+    <plurals name="feature_wake_api_normal_starts">
+        <item quantity="one">%d обычный запуск</item>
+        <item quantity="few">%d обычных запуска</item>
+        <item quantity="many">%d обычных запусков</item>
+        <item quantity="other">%d обычного запуска</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_opened">
+        <item quantity="one">Открывалось %d раз</item>
+        <item quantity="few">Открывалось %d раза</item>
+        <item quantity="many">Открывалось %d раз</item>
+        <item quantity="other">Открывалось %d раза</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_notification">
+        <item quantity="one">Показывало уведомление %d раз</item>
+        <item quantity="few">Показывало уведомление %d раза</item>
+        <item quantity="many">Показывало уведомление %d раз</item>
+        <item quantity="other">Показывало уведомление %d раза</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_push">
+        <item quantity="one">Получало push-сообщения %d раз</item>
+        <item quantity="few">Получало push-сообщения %d раза</item>
+        <item quantity="many">Получало push-сообщения %d раз</item>
+        <item quantity="other">Получало push-сообщения %d раза</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_granted">
+        <item quantity="one">Использовало выданное вами разрешение %d раз</item>
+        <item quantity="few">Использовало выданное вами разрешение %d раза</item>
+        <item quantity="many">Использовало выданное вами разрешение %d раз</item>
+        <item quantity="other">Использовало выданное вами разрешение %d раза</item>
+    </plurals>
+    <string name="feature_wake_api_allow_background">Разрешить работу в фоновом режиме</string>
+    <string name="feature_wake_api_block_all">Заблокировать всё</string>
+    <string name="feature_wake_api_view_components">Посмотреть компоненты</string>
+    <string name="feature_wake_api_restore_all">Восстановить все изменения</string>
+    <string name="feature_wake_api_allow_path">Разрешить %s</string>
+    <string name="feature_wake_api_sheet_title">Заблокировать способы поддержания работы %s</string>
+    <string name="feature_wake_api_sheet_background">Также отключить «Разрешить работу в фоновом режиме»</string>
+    <string name="feature_wake_api_cancel">Отмена</string>
+    <string name="feature_wake_api_block">Заблокировать</string>
+    <plurals name="feature_wake_api_blocked_count">
+        <item quantity="one">Заблокирован %d элемент</item>
+        <item quantity="few">Заблокировано %d элемента</item>
+        <item quantity="many">Заблокировано %d элементов</item>
+        <item quantity="other">Заблокировано %d элемента</item>
+    </plurals>
+    <plurals name="feature_wake_api_not_blocked_count">
+        <item quantity="one">Не удалось заблокировать %d элемент</item>
+        <item quantity="few">Не удалось заблокировать %d элемента</item>
+        <item quantity="many">Не удалось заблокировать %d элементов</item>
+        <item quantity="other">Не удалось заблокировать %d элемента</item>
+    </plurals>
+    <string name="feature_wake_api_restored">Все изменения для %s восстановлены</string>
+    <string name="feature_wake_api_undo">Отменить</string>
+    <string name="feature_wake_api_undo_failed">Не удалось отменить некоторые изменения</string>
+    <string name="feature_wake_api_sender_unsupported">Эта система не поддерживает блокировку по отправителю</string>
+    <string name="feature_wake_api_background_not_changeable">Android не разрешает менять работу этого приложения в фоновом режиме</string>
 </resources>

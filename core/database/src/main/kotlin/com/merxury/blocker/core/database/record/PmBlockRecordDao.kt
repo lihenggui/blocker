@@ -43,12 +43,17 @@ abstract class PmBlockRecordDao {
 
     /** Adds the [records] not stored yet, in one transaction; a stored one keeps its time. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    abstract suspend fun insertOrIgnore(records: List<PmBlockRecordEntity>)
+    abstract suspend fun insertOrIgnore(records: List<PmBlockRecordEntity>): List<Long>
 
     /** Removes the records with the keys of [records], whatever their time, in one transaction. */
     @Transaction
     open suspend fun delete(records: List<PmBlockRecordEntity>) {
         records.forEach { deleteOne(it.packageName, it.className, it.userId) }
+    }
+
+    @Transaction
+    open suspend fun deleteMatching(records: List<PmBlockRecordEntity>) {
+        records.forEach { deleteMatching(it.packageName, it.className, it.userId, it.recordedAt) }
     }
 
     /** Removes every record of [packageName] for [userId]. */
@@ -65,4 +70,7 @@ abstract class PmBlockRecordDao {
 
     @Query("DELETE FROM pm_block_record WHERE package_name = :packageName AND class_name = :className AND user_id = :userId")
     protected abstract suspend fun deleteOne(packageName: String, className: String, userId: Int)
+
+    @Query("DELETE FROM pm_block_record WHERE package_name = :packageName AND class_name = :className AND user_id = :userId AND recorded_at = :recordedAt")
+    protected abstract suspend fun deleteMatching(packageName: String, className: String, userId: Int, recordedAt: Long)
 }

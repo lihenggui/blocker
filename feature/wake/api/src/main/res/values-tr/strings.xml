@@ -62,4 +62,95 @@
     <string name="feature_wake_api_looks_for_restart">Kapatıldıktan sonra yeniden başlayan uygulamalar</string>
     <string name="feature_wake_api_looks_for_each_other">Birbirini başlatan uygulamalar</string>
     <string name="feature_wake_api_looks_for_screen_off">Ekran kapalıyken çalışmayı sürdüren uygulamalar</string>
+    <string name="feature_wake_api_status_keep_alive">Çalışmaya devam ediyor</string>
+    <string name="feature_wake_api_status_attention">Dikkat gerektiriyor</string>
+    <string name="feature_wake_api_status_all_blocked">Çalışmayı sürdürme yöntemlerinin tümü engellendi</string>
+    <plurals name="feature_wake_api_background_starts">
+        <item quantity="one">Son 7 günde arka planda %d kez başlatıldı</item>
+        <item quantity="other">Son 7 günde arka planda %d kez başlatıldı</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_apps">
+        <item quantity="one">%d uygulama</item>
+        <item quantity="other">%d uygulama</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_more">
+        <item quantity="one">%d uygulama daha</item>
+        <item quantity="other">%d uygulama daha</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_inbound">
+        <item quantity="one">%1$d uygulama %2$s uygulamasını başlatıyor</item>
+        <item quantity="other">%1$d uygulama %2$s uygulamasını başlatıyor</item>
+    </plurals>
+    <plurals name="feature_wake_api_chain_outbound">
+        <item quantity="one">%2$s %1$d uygulama başlatıyor</item>
+        <item quantity="other">%2$s %1$d uygulama başlatıyor</item>
+    </plurals>
+    <string name="feature_wake_api_list_pair">%1$s, %2$s</string>
+    <string name="feature_wake_api_view_app">%s uygulamasını görüntüle</string>
+    <string name="feature_wake_api_section_relations">Başlatma ilişkileri</string>
+    <string name="feature_wake_api_section_methods">Çalışmayı sürdürme yöntemleri</string>
+    <string name="feature_wake_api_relation_mutual">%s ile birbirini başlatıyor</string>
+    <string name="feature_wake_api_relation_inbound">%s tarafından başlatılıyor</string>
+    <string name="feature_wake_api_relation_outbound">%s uygulamasını başlatıyor</string>
+    <string name="feature_wake_api_method_restart">Kapatıldıktan sonra yeniden başlatılıyor</string>
+    <string name="feature_wake_api_method_self_start">Kendi işlemleri birbirini başlatıyor</string>
+    <string name="feature_wake_api_method_system_event">Sistem yayını alındığında başlatılıyor</string>
+    <string name="feature_wake_api_method_timed">Zamanlayıcıyla uyanıyor</string>
+    <string name="feature_wake_api_method_screen_off">Ekran kapalıyken çalışmayı sürdürüyor</string>
+    <string name="feature_wake_api_method_known">Bilinen çalışmayı sürdürme yöntemi</string>
+    <string name="feature_wake_api_path_meta">%1$s · son: %2$s</string>
+    <string name="feature_wake_api_blocked">Engellendi</string>
+    <string name="feature_wake_api_blocked_not_seen">Engellendi, bir daha gerçekleşmedi</string>
+    <string name="feature_wake_api_blocked_automatically">Blocker tarafından otomatik olarak engellendi</string>
+    <string name="feature_wake_api_fact_component">Bileşen</string>
+    <string name="feature_wake_api_fact_caller">Çağıran</string>
+    <string name="feature_wake_api_fact_action">Eylem</string>
+    <string name="feature_wake_api_fact_component_value">%1$s (%2$s)</string>
+    <string name="feature_wake_api_fact_component_of_app">%1$s (%2$s uygulamasının %3$s bileşeni)</string>
+    <string name="feature_wake_api_type_activity">etkinlik</string>
+    <string name="feature_wake_api_type_service">hizmet</string>
+    <string name="feature_wake_api_type_receiver">yayın alıcısı</string>
+    <string name="feature_wake_api_type_provider">içerik sağlayıcı</string>
+    <plurals name="feature_wake_api_normal_starts">
+        <item quantity="one">%d normal başlatma</item>
+        <item quantity="other">%d normal başlatma</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_opened">
+        <item quantity="one">%d kez açıldı</item>
+        <item quantity="other">%d kez açıldı</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_notification">
+        <item quantity="one">%d kez bildirim gösterdi</item>
+        <item quantity="other">%d kez bildirim gösterdi</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_push">
+        <item quantity="one">%d kez anlık ileti aldı</item>
+        <item quantity="other">%d kez anlık ileti aldı</item>
+    </plurals>
+    <plurals name="feature_wake_api_normal_granted">
+        <item quantity="one">Verdiğiniz bir izni %d kez kullandı</item>
+        <item quantity="other">Verdiğiniz bir izni %d kez kullandı</item>
+    </plurals>
+    <string name="feature_wake_api_allow_background">Arka planda kullanıma izin ver</string>
+    <string name="feature_wake_api_block_all">Tümünü engelle</string>
+    <string name="feature_wake_api_view_components">Bileşenleri görüntüle</string>
+    <string name="feature_wake_api_restore_all">Tüm değişiklikleri geri al</string>
+    <string name="feature_wake_api_allow_path">%s için izin ver</string>
+    <string name="feature_wake_api_sheet_title">%s uygulamasının çalışmayı sürdürme yöntemlerini engelle</string>
+    <string name="feature_wake_api_sheet_background">“Arka planda kullanıma izin ver” seçeneğini de kapat</string>
+    <string name="feature_wake_api_cancel">İptal</string>
+    <string name="feature_wake_api_block">Engelle</string>
+    <plurals name="feature_wake_api_blocked_count">
+        <item quantity="one">%d öğe engellendi</item>
+        <item quantity="other">%d öğe engellendi</item>
+    </plurals>
+    <plurals name="feature_wake_api_not_blocked_count">
+        <item quantity="one">%d öğe engellenemedi</item>
+        <item quantity="other">%d öğe engellenemedi</item>
+    </plurals>
+    <string name="feature_wake_api_restored">%s için yapılan tüm değişiklikler geri alındı</string>
+    <string name="feature_wake_api_undo">Geri al</string>
+    <string name="feature_wake_api_undo_failed">Bazı değişiklikler geri alınamadı</string>
+    <string name="feature_wake_api_sender_unsupported">Bu sistem gönderene göre engellemeyi desteklemiyor</string>
+    <string name="feature_wake_api_background_not_changeable">Android bu uygulamanın arka plan kullanımının değiştirilmesine izin vermiyor</string>
 </resources>

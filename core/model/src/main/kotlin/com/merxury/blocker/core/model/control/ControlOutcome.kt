@@ -16,10 +16,12 @@
 
 package com.merxury.blocker.core.model.control
 
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 
 /** Why one layer of a component does not show what was asked for. */
@@ -87,6 +89,12 @@ data class ComponentOutcome(
 
 /** Observes the writes of one control call. */
 interface ComponentWriteObserver {
+    /** The live settings used to plan the request, read under the package lock. */
+    fun onPmRead(settings: Map<ComponentId, PmSetting>) = Unit
+
+    /** Selects components still owned by a guarded PM restore, under the package lock. */
+    suspend fun selectPmRestoreComponents(app: AppKey, components: Set<ComponentId>): Set<ComponentId> = components
+
     /** Checked after the package has been read and immediately before its first write. */
     fun canStart(): Boolean
 

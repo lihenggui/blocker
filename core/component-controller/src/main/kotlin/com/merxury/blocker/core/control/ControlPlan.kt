@@ -42,6 +42,8 @@ internal fun ComponentDeclaration.pmChange(goal: ControlGoal, layers: Set<Contro
         // Only the block goes; an unread setting may be one, so it is cleared too.
         ControlGoal.UNBLOCK -> PmSetting.DEFAULT.takeIf { current == PmSetting.DISABLED || current == PmSetting.UNKNOWN }
 
+        ControlGoal.ENABLE_EXPLICIT -> PmSetting.ENABLED.takeIf { current != PmSetting.ENABLED }
+
         // DEFAULT leaves no override, but would keep a component the manifest disables blocked.
         ControlGoal.ENABLE -> when {
             isPmClear(current) -> null

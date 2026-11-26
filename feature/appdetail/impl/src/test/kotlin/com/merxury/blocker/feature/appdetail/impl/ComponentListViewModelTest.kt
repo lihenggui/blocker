@@ -38,6 +38,7 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.component.ComponentRow
+import com.merxury.blocker.feature.appdetail.api.navigation.FIRST_COMPONENT_TAB
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -566,6 +567,15 @@ class ComponentListViewModelTest {
         val tabs = viewModel.uiState.value.tabs
         assertThat(tabs.items).containsExactly(AppDetailTabs.Info, AppDetailTabs.Activity).inOrder()
         assertThat(tabs.selectedItem).isEqualTo(AppDetailTabs.Info)
+    }
+
+    @Test
+    fun givenFirstComponentTabRequested_whenComponentsLoad_thenOpensFirstAvailableComponentTab() = runTest {
+        fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, tab = FIRST_COMPONENT_TAB)
+        collectState()
+        fixture.sendComponents(component("Main"), component("Data", type = ComponentType.PROVIDER))
+
+        assertThat(viewModel.uiState.value.tabs.selectedItem).isEqualTo(AppDetailTabs.Activity)
     }
 
     @Test

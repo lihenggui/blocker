@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.test
 
+import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.ComponentActions
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DebloaterApk
@@ -45,6 +46,7 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.manifest.AndroidManifest
 import com.merxury.blocker.core.testing.repository.TestCatalogRepository
+import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
@@ -112,6 +114,9 @@ internal interface TestDataModule {
 
     @Binds
     fun bindsSelectedUserRepository(repository: FakeSelectedUserRepository): SelectedUserRepository
+
+    @Binds
+    fun bindsBackgroundUsageRepository(repository: FakeBackgroundUsageRepository): BackgroundUsageRepository
 
     @Binds
     fun bindsPmBlockRecordSeeder(seeder: FakePmBlockRecordSeeder): PmBlockRecordSeeder

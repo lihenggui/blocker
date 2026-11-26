@@ -76,9 +76,12 @@ internal class FakePmBlockRecordDao : PmBlockRecordDao() {
 
     override suspend fun getByPackage(packageName: String, userId: Int) = records.value.filter { it.packageName == packageName && it.userId == userId }
 
-    override suspend fun insertOrIgnore(records: List<PmBlockRecordEntity>) {
-        records.forEach { record ->
-            if (this.records.value.none { it.key == record.key }) this.records.value += record
+    override suspend fun insertOrIgnore(records: List<PmBlockRecordEntity>): List<Long> = records.map { record ->
+        if (this.records.value.any { it.key == record.key }) {
+            -1L
+        } else {
+            this.records.value += record
+            this.records.value.size.toLong()
         }
     }
 
@@ -94,6 +97,10 @@ internal class FakePmBlockRecordDao : PmBlockRecordDao() {
 
     override suspend fun deleteOne(packageName: String, className: String, userId: Int) {
         records.value = records.value.filterNot { it.key == Triple(packageName, className, userId) }
+    }
+
+    override suspend fun deleteMatching(packageName: String, className: String, userId: Int, recordedAt: Long) {
+        records.value -= PmBlockRecordEntity(packageName, className, userId, recordedAt)
     }
 
     private val PmBlockRecordEntity.key get() = Triple(packageName, className, userId)

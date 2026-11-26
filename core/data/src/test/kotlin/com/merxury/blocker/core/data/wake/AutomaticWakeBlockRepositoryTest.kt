@@ -47,17 +47,22 @@ class AutomaticWakeBlockRepositoryTest {
             assertThat(initial.active).isTrue()
             assertThat(initial.allowed).isFalse()
             val allowed = repository.setBlocked(setOf("review", "missing"), blocked = false)
-            assertThat(allowed.done).containsExactly("review")
-            assertThat(allowed.failure).isEqualTo(WakeBlockFailure.NotBlockable(listOf("missing")))
+            assertThat(allowed.outcome.done).containsExactly("review")
+            assertThat(allowed.changedIds).containsExactly("review")
+            assertThat(allowed.outcome.failure).isEqualTo(WakeBlockFailure.NotBlockable(listOf("missing")))
             assertThat(history.readProtections()).containsExactly(reviewed.copy(disabledByUser = true))
             assertThat(runs.requests).isEqualTo(1)
             val allowedRow = awaitItem().single()
             assertThat(allowedRow.active).isFalse()
             assertThat(allowedRow.allowed).isTrue()
 
-            assertThat(repository.setBlocked(setOf("review"), blocked = true).failure).isNull()
+            val unchanged = repository.setBlocked(setOf("review"), blocked = false)
+            assertThat(unchanged.outcome.done).containsExactly("review")
+            assertThat(unchanged.changedIds).isEmpty()
+
+            assertThat(repository.setBlocked(setOf("review"), blocked = true).outcome.failure).isNull()
             assertThat(history.readProtections()).containsExactly(reviewed)
-            assertThat(runs.requests).isEqualTo(2)
+            assertThat(runs.requests).isEqualTo(3)
             assertThat(awaitItem().single()).isEqualTo(initial)
         }
     }
