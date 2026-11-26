@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -84,6 +85,7 @@ import com.merxury.blocker.feature.impl.licenses.navigation.licensesEntry
 import com.merxury.blocker.feature.impl.settings.navigation.settingsEntry
 import com.merxury.blocker.feature.ruledetail.impl.navigation.ruleDetailEntry
 import com.merxury.blocker.feature.search.impl.navigation.searchEntry
+import com.merxury.blocker.feature.wake.impl.navigation.wakeAppEntry
 import com.merxury.blocker.feature.wake.impl.navigation.wakeOverviewEntry
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 
@@ -142,7 +144,8 @@ internal fun BlockerApp(
         directive = calculatePaneScaffoldDirective(windowAdaptiveInfo),
     )
 
-    val entryProvider = remember(navigator, updateIconThemingState) {
+    val density = LocalDensity.current
+    val entryProvider = remember(navigator, updateIconThemingState, density) {
         entryProvider {
             appListEntry(
                 navigator = navigator,
@@ -159,7 +162,8 @@ internal fun BlockerApp(
             ifwRuleEditorEntry(navigator)
             ruleDetailEntry(navigator)
             debloaterEntry(navigator)
-            wakeOverviewEntry(navigator)
+            wakeOverviewEntry(navigator, density)
+            wakeAppEntry(navigator, density)
             searchEntry(navigator)
             supportAndFeedbackEntry(navigator)
             licensesEntry(navigator)
