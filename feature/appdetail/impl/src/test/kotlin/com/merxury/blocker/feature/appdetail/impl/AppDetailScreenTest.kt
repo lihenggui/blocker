@@ -200,9 +200,9 @@ class AppDetailScreenTest {
     }
 
     @Test
-    fun givenOwnUserApp_whenBackgroundActivityTapped_thenOpensTheAppActivity() {
+    fun givenReadyOwnUserApp_whenBackgroundActivityTapped_thenOpensTheAppActivity() {
         var openedBackground = false
-        showInfo(LaunchMode.OWN_USER) { openedBackground = true }
+        showInfo(AppHeaderUiState(launch = LaunchMode.OWN_USER, backgroundActivityAvailable = true)) { openedBackground = true }
 
         val row = composeTestRule.onNodeWithText(text(wakeString.feature_wake_api_title))
         row.performScrollTo()
@@ -214,17 +214,25 @@ class AppDetailScreenTest {
 
     @Test
     fun givenAnotherUsersApp_whenViewingInfo_thenBackgroundActivityIsHidden() {
-        showInfo(LaunchMode.PROFILE)
+        showInfo(AppHeaderUiState(launch = LaunchMode.PROFILE, backgroundActivityAvailable = true))
 
         composeTestRule.onNodeWithTag("appDetail:summaryContent").assertExists()
         composeTestRule.onNodeWithText(text(wakeString.feature_wake_api_title)).assertDoesNotExist()
     }
 
-    private fun showInfo(launch: LaunchMode, openBackground: () -> Unit = {}) {
+    @Test
+    fun givenOwnUserAppWithUnavailableWake_whenViewingInfo_thenBackgroundActivityIsHidden() {
+        showInfo(AppHeaderUiState(launch = LaunchMode.OWN_USER))
+
+        composeTestRule.onNodeWithTag("appDetail:summaryContent").assertExists()
+        composeTestRule.onNodeWithText(text(wakeString.feature_wake_api_title)).assertDoesNotExist()
+    }
+
+    private fun showInfo(header: AppHeaderUiState, openBackground: () -> Unit = {}) {
         composeTestRule.setContent {
             BlockerTheme {
                 AppDetailContent(
-                    header = AppHeaderUiState(app = previewHeaderApp, launch = launch),
+                    header = header.copy(app = previewHeaderApp),
                     list = componentTab().copy(tabs = TabState(listOf(AppDetailTabs.Info), AppDetailTabs.Info)),
                     control = ControlUiState(),
                     actions = AppDetailActions(onShowBackgroundActivity = openBackground),
