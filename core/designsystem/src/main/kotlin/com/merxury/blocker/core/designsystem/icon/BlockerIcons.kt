@@ -57,7 +57,15 @@ import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
+import androidx.compose.material.icons.rounded.Autorenew
+import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.PersonOff
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material.icons.rounded.ViewDay
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -117,6 +125,14 @@ object BlockerIcons {
     val MoreVert = Icons.Default.MoreVert
     val ShortText = Icons.AutoMirrored.Rounded.ShortText
     val ViewDay = Icons.Rounded.ViewDay
+    val Autorenew = Icons.Rounded.Autorenew
+    val Bedtime = Icons.Rounded.Bedtime
+    val Lock = Icons.Rounded.Lock
+    val PersonOff = Icons.Rounded.PersonOff
+    val RestartAlt = Icons.Rounded.RestartAlt
+    val SwapHoriz = Icons.Rounded.SwapHoriz
+    val Update = Icons.Rounded.Update
+    val VerifiedUser = Icons.Rounded.VerifiedUser
 }
 
 /**

@@ -93,6 +93,7 @@ dependencies {
     implementation(projects.feature.applist.impl)
     implementation(projects.feature.debloater.api)
     implementation(projects.feature.debloater.impl)
+    implementation(projects.feature.wake.impl)
     implementation(projects.feature.generalrule.api)
     implementation(projects.feature.generalrule.impl)
     implementation(projects.feature.globalifwrule.api)

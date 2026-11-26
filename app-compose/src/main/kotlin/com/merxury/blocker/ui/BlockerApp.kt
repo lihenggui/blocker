@@ -84,6 +84,7 @@ import com.merxury.blocker.feature.impl.licenses.navigation.licensesEntry
 import com.merxury.blocker.feature.impl.settings.navigation.settingsEntry
 import com.merxury.blocker.feature.ruledetail.impl.navigation.ruleDetailEntry
 import com.merxury.blocker.feature.search.impl.navigation.searchEntry
+import com.merxury.blocker.feature.wake.impl.navigation.wakeOverviewEntry
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 
 @Composable
@@ -158,6 +159,7 @@ internal fun BlockerApp(
             ifwRuleEditorEntry(navigator)
             ruleDetailEntry(navigator)
             debloaterEntry(navigator)
+            wakeOverviewEntry(navigator)
             searchEntry(navigator)
             supportAndFeedbackEntry(navigator)
             licensesEntry(navigator)

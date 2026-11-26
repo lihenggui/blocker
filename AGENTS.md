@@ -15,7 +15,7 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
 - [`app-compose`](app-compose) assembles features, owns the app shell and
   navigation, and supplies app-level Hilt bindings.
 - [`feature/`](feature) contains app list, app detail, general rules, rule detail,
-  search, settings, debloater, and per-app and global IFW editors. `api` modules
+  search, settings, debloater, wake protection, and per-app and global IFW editors. `api` modules
   define navigation contracts and `impl` modules own screens and ViewModels.
 - [`core/domain`](core/domain) owns use cases and component batch orchestration.
   [`core/data`](core/data) owns repository interfaces and implementations, including
