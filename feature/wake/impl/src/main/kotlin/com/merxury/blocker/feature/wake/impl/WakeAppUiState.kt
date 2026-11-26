@@ -106,7 +106,7 @@ internal data class WakeDetailRow(
     val blocked get() = automatic?.active ?: (paths.isNotEmpty() && paths.all { it.block != WakePathBlock.NONE })
 
     fun canToggle(background: BackgroundUsage?) = hasSwitch &&
-        (background?.changeable != false || automatic != null || paths.any { it.path.blockMethod != WakeBlockMethod.BACKGROUND_RESTRICTION })
+        (background?.changeable == true || automatic != null || paths.any { it.path.blockMethod != WakeBlockMethod.BACKGROUND_RESTRICTION })
 }
 
 internal fun WakePathState.canRestrictBackground(packageName: String) = block == WakePathBlock.NONE && path.blockMethod == WakeBlockMethod.BACKGROUND_RESTRICTION && path.target == packageName

@@ -366,7 +366,7 @@ class WakeAppUiStateTest {
     }
 
     @Test
-    fun givenBackgroundRestrictionOnly_whenCheckingControls_thenAllowsUnknownOrChangeableUsageWithoutADuplicateChoice() {
+    fun givenBackgroundRestrictionOnly_whenCheckingControls_thenAllowsChangeableUsageWithoutADuplicateChoice() {
         val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
         val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer)))
         val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
@@ -375,14 +375,23 @@ class WakeAppUiStateTest {
         val protected = ui.copy(background = BackgroundUsage(allowed = true, changeable = false))
 
         assertThat(row.hasSwitch).isTrue()
-        for (available in listOf(ui, changeable)) {
-            assertThat(row.canToggle(available.background)).isTrue()
-            assertThat(available.choices.map { it.key }).containsExactly(row.key, FORCE_STOP_CHOICE).inOrder()
-            assertThat(available.canBlockAll).isTrue()
-        }
+        assertThat(row.canToggle(changeable.background)).isTrue()
+        assertThat(changeable.choices.map { it.key }).containsExactly(row.key, FORCE_STOP_CHOICE).inOrder()
+        assertThat(changeable.canBlockAll).isTrue()
         assertThat(row.canToggle(protected.background)).isFalse()
         assertThat(protected.choices).isEmpty()
         assertThat(protected.canBlockAll).isFalse()
+    }
+
+    @Test
+    fun givenApi26BackgroundUsageState_whenCheckingControls_thenTheBackgroundOnlyRowOffersNoAction() {
+        val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
+        val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer)))
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
+
+        assertThat(ui.methods.single().canToggle(ui.background)).isFalse()
+        assertThat(ui.canBlockAll).isFalse()
+        assertThat(ui.choices).isEmpty()
     }
 
     @Test
