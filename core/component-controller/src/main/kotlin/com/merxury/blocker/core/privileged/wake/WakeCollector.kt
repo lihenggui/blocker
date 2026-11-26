@@ -182,8 +182,13 @@ class WakeCollector @Inject internal constructor(
 
         suspend fun snapshot(command: WakeCommand, now: Long, profile: Int = 0) = read(command, profile) {
             val observations = WakeSystemEvidence.snapshot(command, it, now, profile)
+            val gaps = if (observations.isEmpty() && (command == WakeCommand.OVERLAYS || command == WakeCommand.AUDIO)) {
+                listOf("unrecognized ${command.name.lowercase()} dump")
+            } else {
+                emptyList()
+            }
             // An empty successful snapshot still supersedes earlier grants of this kind and action.
-            batches += WakeBatch(command.source(profile), observations.ifEmpty { listOfNotNull(command.emptyBindingSnapshot(now)) })
+            batches += WakeBatch(command.source(profile), observations.ifEmpty { listOfNotNull(command.emptyBindingSnapshot(now)) }, gaps)
         }
 
         suspend fun readRecorder(boot: String) {

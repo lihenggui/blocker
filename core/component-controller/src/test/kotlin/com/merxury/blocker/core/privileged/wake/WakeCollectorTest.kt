@@ -58,6 +58,8 @@ class WakeCollectorTest {
         WakeCommand.USERS to { "Users:\n\tUserInfo{0:Owner:c13} running\n\tUserInfo{10:Work:1030} running\n".toByteArray() },
         WakeCommand.PROCSTATS to { checkNotNull(javaClass.getResource("/wake/procstats-current.txt")).readBytes() },
         WakeCommand.REPORT to { report(reportOwner) },
+        WakeCommand.OVERLAYS to { "Window #0 Window{abc u0 example.app}:".toByteArray() },
+        WakeCommand.AUDIO to { "players:".toByteArray() },
     )
 
     private val reads: List<ReadWakeSource> get() = executor.runs.map { it.first as ReadWakeSource }
@@ -193,6 +195,19 @@ class WakeCollectorTest {
 
         assertThat(capture.batch("OVERLAYS").observations.single().attributes).containsExactly("packages", "example.app/10123")
         assertThat(capture.batch("AUDIO").observations.single().attributes).containsExactly("uids", "10123")
+    }
+
+    @Test
+    fun givenUnrecognizedOverlayAndAudioDumps_whenCapturing_thenBothSourcesRecordGaps() = runTest {
+        outputs[WakeCommand.OVERLAYS] = { "OEM window inventory".toByteArray() }
+        outputs[WakeCommand.AUDIO] = { "players:\n  OEM track inventory".toByteArray() }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+        for (source in listOf("OVERLAYS", "AUDIO")) {
+            assertThat(capture.batch(source).gaps).isNotEmpty()
+            assertThat(capture.batch(source).observations).isEmpty()
+        }
     }
 
     @Test
