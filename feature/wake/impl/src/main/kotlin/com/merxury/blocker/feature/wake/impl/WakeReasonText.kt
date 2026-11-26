@@ -5,9 +5,6 @@ package com.merxury.blocker.feature.wake.impl
 
 import android.content.Intent
 import android.content.res.Resources
-import android.icu.text.MeasureFormat
-import android.icu.util.Measure
-import android.icu.util.MeasureUnit
 import androidx.annotation.PluralsRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalResources
@@ -54,12 +51,17 @@ private fun Resources.countText(@PluralsRes id: Int, count: Long): String {
 
 private fun Resources.wakeDuration(nanos: Long): String {
     val minutes = TimeUnit.NANOSECONDS.toMinutes(nanos).coerceAtLeast(1)
-    val formatter = MeasureFormat.getInstance(configuration.locales[0], MeasureFormat.FormatWidth.SHORT)
     val hours = minutes / 60
     val remainingMinutes = minutes % 60
     return when {
-        hours == 0L -> formatter.formatMeasures(Measure(minutes, MeasureUnit.MINUTE))
-        remainingMinutes == 0L -> formatter.formatMeasures(Measure(hours, MeasureUnit.HOUR))
-        else -> formatter.formatMeasures(Measure(hours, MeasureUnit.HOUR), Measure(remainingMinutes, MeasureUnit.MINUTE))
+        hours == 0L -> countText(plurals.feature_wake_api_duration_minutes, minutes)
+
+        remainingMinutes == 0L -> countText(plurals.feature_wake_api_duration_hours, hours)
+
+        else -> getString(
+            string.feature_wake_api_duration_hours_minutes,
+            countText(plurals.feature_wake_api_duration_hours, hours),
+            countText(plurals.feature_wake_api_duration_minutes, remainingMinutes),
+        )
     }
 }

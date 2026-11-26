@@ -23,6 +23,13 @@
     <plurals name="feature_wake_api_reason_started_by_others">
         <item quantity="other">被 %1$d 個應用喚醒 %2$s</item>
     </plurals>
+    <plurals name="feature_wake_api_duration_minutes">
+        <item quantity="other">%d 分鐘</item>
+    </plurals>
+    <plurals name="feature_wake_api_duration_hours">
+        <item quantity="other">%d 小時</item>
+    </plurals>
+    <string name="feature_wake_api_duration_hours_minutes">%1$s %2$s</string>
     <string name="feature_wake_api_reason_screen_off">螢幕關閉後執行了 %s</string>
     <string name="feature_wake_api_reason_boot">開機時啟動</string>
     <plurals name="feature_wake_api_reason_system_broadcast">

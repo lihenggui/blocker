@@ -23,6 +23,13 @@
     <plurals name="feature_wake_api_reason_started_by_others">
         <item quantity="other">Được %1$d ứng dụng khởi chạy %2$s</item>
     </plurals>
+    <plurals name="feature_wake_api_duration_minutes">
+        <item quantity="other">%d phút</item>
+    </plurals>
+    <plurals name="feature_wake_api_duration_hours">
+        <item quantity="other">%d giờ</item>
+    </plurals>
+    <string name="feature_wake_api_duration_hours_minutes">%1$s %2$s</string>
     <string name="feature_wake_api_reason_screen_off">Đã chạy %s khi màn hình tắt</string>
     <string name="feature_wake_api_reason_boot">Khởi chạy khi thiết bị khởi động</string>
     <plurals name="feature_wake_api_reason_system_broadcast">

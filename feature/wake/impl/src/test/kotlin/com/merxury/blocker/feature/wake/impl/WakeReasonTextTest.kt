@@ -7,9 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
-import android.icu.text.MeasureFormat
-import android.icu.util.Measure
-import android.icu.util.MeasureUnit
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.wake.WakeHeadline
@@ -52,23 +49,28 @@ class WakeReasonTextTest {
     @Test
     fun givenScreenOffDurations_whenFormatting_thenRoundsDownWithAtLeastOneMinute() {
         val english = resources(Locale.US)
-        val formatter = MeasureFormat.getInstance(Locale.US, MeasureFormat.FormatWidth.SHORT)
         val cases = mapOf(
-            0L to arrayOf(Measure(1, MeasureUnit.MINUTE)),
-            59L to arrayOf(Measure(1, MeasureUnit.MINUTE)),
-            3599L to arrayOf(Measure(59, MeasureUnit.MINUTE)),
-            3600L to arrayOf(Measure(1, MeasureUnit.HOUR)),
-            7319L to arrayOf(Measure(2, MeasureUnit.HOUR), Measure(1, MeasureUnit.MINUTE)),
+            0L to "1 min",
+            59L to "1 min",
+            3599L to "59 min",
+            3600L to "1 hr",
+            7319L to "2 hr 1 min",
         )
-        cases.forEach { (seconds, measures) ->
+        cases.forEach { (seconds, duration) ->
             val headline = WakeHeadline.RanWithScreenOff(TimeUnit.SECONDS.toNanos(seconds))
-            assertThat(headline.reasonText(english)).isEqualTo("Ran for ${formatter.formatMeasures(*measures)} with the screen off")
+            assertThat(headline.reasonText(english)).isEqualTo("Ran for $duration with the screen off")
         }
+    }
+
+    @Test
+    fun givenChineseScreenOffDurations_whenFormatting_thenSeparatesNumbersAndUnitsWithSpaces() {
         val chinese = resources(Locale.SIMPLIFIED_CHINESE)
-        val chineseDuration = MeasureFormat.getInstance(Locale.SIMPLIFIED_CHINESE, MeasureFormat.FormatWidth.SHORT)
-            .formatMeasures(Measure(2, MeasureUnit.HOUR), Measure(1, MeasureUnit.MINUTE))
-        assertThat(WakeHeadline.RanWithScreenOff(TimeUnit.SECONDS.toNanos(7319)).reasonText(chinese))
-            .isEqualTo("熄屏后运行 $chineseDuration")
+        assertThat(WakeHeadline.RanWithScreenOff(TimeUnit.MINUTES.toNanos(52)).reasonText(chinese))
+            .isEqualTo("熄屏后运行 52 分钟")
+        assertThat(WakeHeadline.RanWithScreenOff(TimeUnit.MINUTES.toNanos(120)).reasonText(chinese))
+            .isEqualTo("熄屏后运行 2 小时")
+        assertThat(WakeHeadline.RanWithScreenOff(TimeUnit.MINUTES.toNanos(130)).reasonText(chinese))
+            .isEqualTo("熄屏后运行 2 小时 10 分钟")
     }
 
     @Test

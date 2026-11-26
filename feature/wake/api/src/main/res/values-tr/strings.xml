@@ -29,6 +29,15 @@
         <item quantity="one">%1$d uygulama tarafından %2$s başlatıldı</item>
         <item quantity="other">%1$d uygulama tarafından %2$s başlatıldı</item>
     </plurals>
+    <plurals name="feature_wake_api_duration_minutes">
+        <item quantity="one">%d dk.</item>
+        <item quantity="other">%d dk.</item>
+    </plurals>
+    <plurals name="feature_wake_api_duration_hours">
+        <item quantity="one">%d sa.</item>
+        <item quantity="other">%d sa.</item>
+    </plurals>
+    <string name="feature_wake_api_duration_hours_minutes">%1$s %2$s</string>
     <string name="feature_wake_api_reason_screen_off">Ekran kapalıyken %s çalıştı</string>
     <string name="feature_wake_api_reason_boot">Cihaz açılırken başlıyor</string>
     <plurals name="feature_wake_api_reason_system_broadcast">

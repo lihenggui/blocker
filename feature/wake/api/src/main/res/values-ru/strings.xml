@@ -41,6 +41,19 @@
         <item quantity="many">Запущено %2$s %1$d другими приложениями</item>
         <item quantity="other">Запущено %2$s %1$d другими приложениями</item>
     </plurals>
+    <plurals name="feature_wake_api_duration_minutes">
+        <item quantity="one">%d мин</item>
+        <item quantity="few">%d мин</item>
+        <item quantity="many">%d мин</item>
+        <item quantity="other">%d мин</item>
+    </plurals>
+    <plurals name="feature_wake_api_duration_hours">
+        <item quantity="one">%d ч</item>
+        <item quantity="few">%d ч</item>
+        <item quantity="many">%d ч</item>
+        <item quantity="other">%d ч</item>
+    </plurals>
+    <string name="feature_wake_api_duration_hours_minutes">%1$s %2$s</string>
     <string name="feature_wake_api_reason_screen_off">Работало %s с выключенным экраном</string>
     <string name="feature_wake_api_reason_boot">Запускается при включении устройства</string>
     <plurals name="feature_wake_api_reason_system_broadcast">
