@@ -24,6 +24,7 @@ import com.merxury.blocker.core.privileged.wake.ManagedComponentState
 import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
 import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
+import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.core.ifw.ManagedWakeRules
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -56,7 +57,7 @@ class WakeProtectionManagerTest {
     private val userBlocks = FakePmBlockRecordDao()
     private val lock = WakeRuleLock()
     private val userFirewall = mock<UserWakeFirewall>()
-    private val protection = WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, PmBlockRecords(userBlocks), userFirewall, lock)
+    private val protection = WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, PmBlockRecords(userBlocks), userFirewall, lock, FakeComponentStatusRepository())
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
         protection,

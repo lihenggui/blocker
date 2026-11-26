@@ -18,4 +18,13 @@ interface WakeBlockRepository {
 
     /** Removes the blocks of [pathKeys]. Connects the privileged channel, which may prompt. */
     suspend fun unblock(pathKeys: Collection<String>): WakeBlockOutcome
+
+    /** Allows paths, including components switched off outside the wake screens. */
+    suspend fun unblockPaths(paths: List<WakePath>): WakeBlockOutcome
+
+    /** Removes the app's stored blocks and returns the original rows for completed or partial changes. */
+    suspend fun removeAppBlocks(packageName: String, outboundPathKeys: Set<String>): Pair<WakeBlockOutcome, List<WakeBlock>>
+
+    /** Reapplies the removed rows with their original block times. */
+    suspend fun restoreBlocks(blocks: List<WakeBlock>): WakeBlockOutcome
 }

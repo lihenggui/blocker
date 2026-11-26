@@ -4,13 +4,17 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.pm.PackageManager
+import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.database.wake.WakeProtection
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.wake.ManagedComponentState
 import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
@@ -52,6 +56,7 @@ class WakeProtectionRepository @Inject constructor(
     private val userBlocks: PmBlockRecords,
     private val userFirewall: UserWakeFirewall,
     private val lock: WakeRuleLock,
+    private val componentStatus: ComponentStatusRepository,
 ) {
     /**
      * What this run may change, from the channel acquired without a prompt: background work must
@@ -157,6 +162,7 @@ class WakeProtectionRepository @Inject constructor(
                     check(restored)
                 }
             }
+            refreshComponentStatus(old.target)
             ownership.save(old.copy(configured = false, pendingChange = false))
         }
         for (candidate in desired) {
@@ -203,7 +209,15 @@ class WakeProtectionRepository @Inject constructor(
                 ownership.save(saved.copy(configured = false, pendingChange = false, disabledByUser = true))
             } else {
                 check(confirmed)
+                refreshComponentStatus(path.target)
             }
+        }
+    }
+
+    private suspend fun refreshComponentStatus(target: String) {
+        when (val result = componentStatus.refreshIfReadable(AppKey(target, WAKE_USER), FirewallRead.KEEP_CACHED)) {
+            is ReadResult.Success -> Unit
+            is ReadResult.Failure -> Timber.w("Cannot refresh wake component status for %s: %s", target, result.reason)
         }
     }
 
