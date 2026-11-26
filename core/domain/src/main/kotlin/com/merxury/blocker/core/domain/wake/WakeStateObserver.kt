@@ -16,11 +16,13 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AppWakeActivity
 import com.merxury.blocker.core.model.wake.AppWakeState
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
+import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
@@ -64,8 +66,8 @@ internal class WakeStateObserver @Inject constructor(
         ) { blocks, automaticBlocks, owned, components, backgroundStates ->
             val byApp = automaticBlocks.filter { it.active || it.allowed }.groupByApp()
             activities.zip(paths) { activity, blockable ->
-                state(activity, blockable, blocks, byApp[activity.packageName].orEmpty(), backgroundStates) { path ->
-                    isUserComponentBlock(componentIds.getValue(path), components, owned)
+                state(activity, blockable, blocks, byApp[activity.packageName].orEmpty(), backgroundStates, owned) { path ->
+                    componentIds.getValue(path).map(components::get)
                 }
             }
         }.distinctUntilChanged().flowOn(io)
@@ -109,7 +111,7 @@ internal class WakeStateObserver @Inject constructor(
 
     private fun resolveComponentIds(paths: List<WakePath>): Map<WakePath, List<ComponentId>> {
         val byAction = mutableMapOf<Pair<String, String>, List<ComponentId>>()
-        return paths.asSequence().filter { it.blockMethod == WakeBlockMethod.COMPONENT }.distinct().associateWith { path ->
+        return paths.asSequence().filter { it.blockMethod == WakeBlockMethod.COMPONENT || it.supportsLegacyComponentBlock }.distinct().associateWith { path ->
             val component = path.component
             val action = path.action
             when {
@@ -146,7 +148,8 @@ internal class WakeStateObserver @Inject constructor(
         blocks: Map<Pair<String, WakeBlockMethod>, WakeBlock>,
         automatic: List<AutomaticWakeBlock>,
         backgroundStates: Map<String, BackgroundUsage?>,
-        isUserComponentBlock: (WakePath) -> Boolean,
+        owned: Set<ComponentId>,
+        componentStatuses: (WakePath) -> List<ComponentStatus?>,
     ): AppWakeState {
         val protections = AutomaticWakeBlockIndex(automatic)
         val matches = activity.allPaths().filter { it.blockMethod != WakeBlockMethod.BACKGROUND_RESTRICTION }.associateWith(protections::matching)
@@ -155,10 +158,17 @@ internal class WakeStateObserver @Inject constructor(
                 val block = if (backgroundStates[path.target]?.allowed == false) WakePathBlock.USER else WakePathBlock.NONE
                 return@associate path.pathKey to WakePathState(path, block, blockedAtMillis = null, seenSinceBlock = false)
             }
-            val saved = blocks[path.pathKey to path.blockMethod]
-            val userBlocked = when (path.blockMethod) {
+            val legacy = if (path.supportsLegacyComponentBlock) blocks[path.pathKey to WakeBlockMethod.COMPONENT] else null
+            val saved = blocks[path.pathKey to path.blockMethod] ?: legacy
+            val method = saved?.method ?: path.blockMethod
+            val statuses = if (method == WakeBlockMethod.COMPONENT) componentStatuses(path) else emptyList()
+            val userBlocked = when (method) {
                 WakeBlockMethod.FIREWALL_RULE -> saved != null
-                WakeBlockMethod.COMPONENT -> isUserComponentBlock(path)
+
+                WakeBlockMethod.COMPONENT -> statuses.isNotEmpty() && statuses.all { status ->
+                    status?.isSwitchOn == false && (status.declaration.id !in owned || status.state.ifw == IfwBlock.BLOCKED)
+                }
+
                 else -> false
             }
             val block = when {
@@ -167,7 +177,14 @@ internal class WakeStateObserver @Inject constructor(
                 else -> WakePathBlock.NONE
             }
             val blockedAt = saved?.blockedAtMillis?.takeIf { userBlocked }
-            path.pathKey to WakePathState(path, block, blockedAt, blockedAt != null && path.lastSeenMillis > blockedAt)
+            val reEnabled = saved != null && !userBlocked && statuses.any { it != null && it.state.pm != PmSetting.UNKNOWN && it.isSwitchOn }
+            path.pathKey to WakePathState(
+                if (method == path.blockMethod) path else path.copy(blockMethod = method),
+                block,
+                blockedAt,
+                blockedAt != null && path.lastSeenMillis > blockedAt,
+                reEnabled,
+            )
         }
         val matchedIds = matches.values.asSequence().flatten().mapTo(mutableSetOf()) { it.pathId }
         val unmatched = automatic.filterNot { it.pathId in matchedIds }
@@ -175,15 +192,6 @@ internal class WakeStateObserver @Inject constructor(
         val allBlocked = !hasUnblockable && (paths.isNotEmpty() || unmatched.isNotEmpty()) &&
             paths.values.all { it.block != WakePathBlock.NONE } && unmatched.all { it.active }
         return AppWakeState(activity, paths, unmatched, allBlocked)
-    }
-
-    private fun isUserComponentBlock(
-        ids: List<ComponentId>,
-        components: Map<ComponentId, ComponentStatus>,
-        owned: Set<ComponentId>,
-    ): Boolean = ids.isNotEmpty() && ids.all { id ->
-        val status = components[id]
-        status?.isSwitchOn == false && (id !in owned || status.state.ifw == IfwBlock.BLOCKED)
     }
 }
 
@@ -198,3 +206,7 @@ internal fun AppWakeActivity.outboundPaths(): Sequence<WakePath> = peers.asSeque
 private fun AppWakeActivity.allPaths(): Sequence<WakePath> = outboundPaths() + peers.asSequence().flatMap { it.inbound } + own.asSequence().flatMap { it.paths }
 
 private val WakePath.isBlockable get() = blockMethod != WakeBlockMethod.NONE
+
+// These paths used PackageManager before the user firewall file supported their component types.
+private val WakePath.supportsLegacyComponentBlock get() = blockMethod == WakeBlockMethod.FIREWALL_RULE &&
+    trigger == ReviveTrigger.PEER_ACTIVITY

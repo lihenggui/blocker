@@ -17,7 +17,6 @@
 package com.merxury.core.ifw.xml
 
 import android.util.Xml
-import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwRule
 import com.merxury.core.ifw.model.IfwRules
@@ -71,7 +70,9 @@ class IfwXmlSerializer {
      * @param rules the domain model to serialize
      * @return the XML string representation
      */
-    fun serialize(rules: IfwRules): String {
+    fun serialize(rules: IfwRules): String = serializeInOrder(rules.rules.sortedBy(IfwRule::componentType))
+
+    internal fun serializeInOrder(rules: List<IfwRule>): String {
         val writer = StringWriter()
         val serializer = Xml.newSerializer()
         serializer.setOutput(writer)
@@ -79,12 +80,9 @@ class IfwXmlSerializer {
         serializer.text("\n")
         serializer.startTag(null, TAG_RULES)
 
-        for (componentType in IfwComponentType.entries) {
-            val rulesOfType = rules.rulesFor(componentType)
-            for (rule in rulesOfType) {
-                serializer.text("\n  ")
-                serializeRule(serializer, rule)
-            }
+        for (rule in rules) {
+            serializer.text("\n  ")
+            serializeRule(serializer, rule)
         }
 
         serializer.text("\n")

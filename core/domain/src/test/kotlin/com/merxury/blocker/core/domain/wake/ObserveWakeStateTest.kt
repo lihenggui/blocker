@@ -81,9 +81,12 @@ class ObserveWakeStateTest {
         val f = WakeStateTestFixture(this)
         val incoming = receiver(TEST_APP, "Wake")
         val outgoing = receiver(TEST_PEER, "Wake")
-        val inside = finding("in", ReviveTrigger.PEER_BROADCAST, detail = "$TEST_APP/.Wake")
-        val outside = finding("out", ReviveTrigger.PEER_BROADCAST, TEST_PEER, TEST_APP, "$TEST_PEER/.Wake")
+        val action = "example.WAKE"
+        val inside = finding("in", ReviveTrigger.PEER_BROADCAST, detail = action)
+        val outside = finding("out", ReviveTrigger.PEER_BROADCAST, TEST_PEER, TEST_APP, action)
         f.findings.value = listOf(inside, outside)
+        f.receivers[TEST_APP to action] = listOf(incoming)
+        f.receivers[TEST_PEER to action] = listOf(outgoing)
         f.status(incoming, off = true)
         f.status(outgoing, off = true, user = UserId(10))
         f.state(TEST_APP).test {
@@ -128,10 +131,13 @@ class ObserveWakeStateTest {
         val f = WakeStateTestFixture(this)
         val incoming = receiver(TEST_APP, "Wake")
         val outgoing = receiver(TEST_PEER, "Wake")
+        val action = "example.WAKE"
         f.findings.value = listOf(
-            finding("in", ReviveTrigger.PEER_BROADCAST, detail = "$TEST_APP/.Wake"),
-            finding("out", ReviveTrigger.PEER_BROADCAST, TEST_PEER, TEST_APP, "$TEST_PEER/.Wake"),
+            finding("in", ReviveTrigger.PEER_BROADCAST, detail = action),
+            finding("out", ReviveTrigger.PEER_BROADCAST, TEST_PEER, TEST_APP, action),
         )
+        f.receivers[TEST_APP to action] = listOf(incoming)
+        f.receivers[TEST_PEER to action] = listOf(outgoing)
         f.status(incoming, off = true)
         f.status(outgoing, off = true)
         val checked = mutableListOf<ComponentId>()
@@ -157,7 +163,6 @@ class ObserveWakeStateTest {
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenBroadcastAction_whenZeroSomeOrAllReceiversAreOff_thenOnlyAllOffWithAReceiverBlocks() = runTest {
         val f = WakeStateTestFixture(this)
@@ -176,20 +181,23 @@ class ObserveWakeStateTest {
             f.status(first, off = true)
             f.status(second, off = false)
             f.manual.blocks.value = listOf(path.toWakePath().blockRow(99))
-            runCurrent()
-            expectNoEvents()
+            assertThat(awaitItem().paths.getValue("action").reEnabledByApp).isTrue()
 
             f.status(second, off = true)
             val blocked = awaitItem()
             assertThat(blocked.paths.keys).containsExactly("action")
             assertThat(blocked.paths.getValue("action").block).isEqualTo(WakePathBlock.USER)
             assertThat(blocked.paths.getValue("action").seenSinceBlock).isTrue()
+            assertThat(blocked.paths.getValue("action").reEnabledByApp).isFalse()
             assertThat(blocked.allBlocked).isFalse()
 
             f.status(first, off = false)
             val partlyOff = awaitItem()
             assertThat(partlyOff.paths.getValue("action").block).isEqualTo(WakePathBlock.NONE)
             assertThat(partlyOff.paths.getValue("action").blockedAtMillis).isNull()
+            assertThat(partlyOff.paths.getValue("action").reEnabledByApp).isTrue()
+            f.manual.blocks.value = emptyList()
+            assertThat(awaitItem().paths.getValue("action").reEnabledByApp).isFalse()
         }
     }
 
@@ -199,7 +207,7 @@ class ObserveWakeStateTest {
         val incoming = finding("incoming")
         val alarm = finding("alarm", ReviveTrigger.ALARM, actor = null, detail = null)
         val wakelock = alarm.copy(pathKey = "wakelock", trigger = null, hold = HoldCause.WAKELOCK.name, screenOffNanos = 100)
-        val broadcast = finding("broadcast", ReviveTrigger.PEER_BROADCAST, detail = "$TEST_APP/.Receiver")
+        val broadcast = finding("broadcast", ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "$TEST_APP/.Receiver")
         val automatic = AutomaticWakeBlock("known", TEST_PEER, TEST_APP, "$TEST_APP.Known", "", active = true, allowed = false)
         f.findings.value = listOf(incoming, alarm, wakelock, broadcast)
         f.verdicts.value = listOf(verdict(TEST_APP, WakeVerdict.KEEP_ALIVE))
@@ -307,6 +315,7 @@ class ObserveWakeStateTest {
         val named = receiver(TEST_APP, "Wake")
         val incoming = finding("in", ReviveTrigger.PEER_BROADCAST, detail = "$TEST_APP/.Wake")
         f.findings.value = listOf(incoming)
+        f.manual.blocks.value = listOf(incoming.toWakePath().blockRow(method = WakeBlockMethod.COMPONENT))
         f.status(named, off = true)
         f.automatic.blocks.value = listOf(AutomaticWakeBlock("pm", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false))
         f.automatic.ownedComponents.value = setOf(named.id)
@@ -317,15 +326,49 @@ class ObserveWakeStateTest {
         }
     }
 
+    @Test fun givenAnExistingPeerActivityPmBlock_whenTheAppReEnablesIt_thenTheBlockCanBeReappliedOrRemoved() = runTest {
+        val f = WakeStateTestFixture(this)
+        val wake = receiver(TEST_APP, "Wake").copy(type = com.merxury.blocker.core.model.ComponentType.ACTIVITY)
+        val incoming = finding("peer", ReviveTrigger.PEER_ACTIVITY, detail = "$TEST_APP/.Wake")
+        f.findings.value = listOf(incoming)
+        f.manual.blocks.value = listOf(incoming.toWakePath().blockRow(method = WakeBlockMethod.COMPONENT))
+        f.status(wake, off = true)
+
+        f.state(TEST_APP).test {
+            val blocked = awaitItem().paths.getValue("peer")
+            assertThat(blocked.path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+            assertThat(blocked.block).isEqualTo(WakePathBlock.USER)
+            assertThat(blocked.reEnabledByApp).isFalse()
+
+            f.status(wake, off = false)
+            val enabled = awaitItem().paths.getValue("peer")
+            assertThat(enabled.path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+            assertThat(enabled.block).isEqualTo(WakePathBlock.NONE)
+            assertThat(enabled.reEnabledByApp).isTrue()
+
+            f.status(wake, off = true)
+            assertThat(awaitItem().paths.getValue("peer").reEnabledByApp).isFalse()
+            f.status(wake, off = false)
+            assertThat(awaitItem().paths.getValue("peer").reEnabledByApp).isTrue()
+            f.manual.blocks.value = emptyList()
+            val removed = awaitItem().paths.getValue("peer")
+            assertThat(removed.path.blockMethod).isEqualTo(WakeBlockMethod.FIREWALL_RULE)
+            assertThat(removed.block).isEqualTo(WakePathBlock.NONE)
+            assertThat(removed.reEnabledByApp).isFalse()
+        }
+    }
+
     @Test fun givenOverviewVerdicts_whenUnmatchedProtectionIsAllowed_thenOnlyNonNormalFullyBlockedAppsAreMarked() = runTest {
         val f = WakeStateTestFixture(this)
         val away = receiver(TEST_PEER, "Wake")
         val normal = receiver(TEST_OTHER, "Wake")
         val extra = AutomaticWakeBlock("extra", TEST_PEER, TEST_APP, "$TEST_APP.Extra", "", active = true, allowed = false)
+        val outgoing = finding("out", ReviveTrigger.PEER_BROADCAST, target = TEST_PEER, actor = TEST_APP, detail = "$TEST_PEER/.Wake")
         f.findings.value = listOf(
-            finding("out", ReviveTrigger.PEER_BROADCAST, target = TEST_PEER, actor = TEST_APP, detail = "$TEST_PEER/.Wake"),
+            outgoing,
             finding("normal", ReviveTrigger.SYSTEM_BROADCAST, target = TEST_OTHER, actor = "android", detail = "$TEST_OTHER/.Wake"),
         )
+        f.manual.blocks.value = listOf(outgoing.toWakePath().blockRow(method = WakeBlockMethod.COMPONENT))
         f.verdicts.value = listOf(verdict(TEST_APP, WakeVerdict.SUSPICIOUS), verdict(TEST_PEER, WakeVerdict.KEEP_ALIVE), verdict(TEST_OTHER, WakeVerdict.NORMAL))
         f.status(away, off = true)
         f.status(normal, off = true)

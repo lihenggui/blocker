@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
+import com.merxury.blocker.core.testing.repository.device.FakeAppRestrictionRepository
 import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
@@ -83,7 +84,8 @@ class WakeAppViewModelTest {
         val details = mock<ComponentDetailRepository> { on { getLocalComponentDetails(any()) } doReturn flowOf(emptyMap()) }
         WakeAppViewModel(
             DETAIL_PACKAGE, state, availability, FakeInstalledAppRepository(), FakeSelectedUserRepository(), details,
-            background, SetWakePathsBlockedUseCase(manualBatch, automatic, background), RestoreAppWakeChangesUseCase(activity, manual, automatic, background),
+            background, SetWakePathsBlockedUseCase(manualBatch, automatic, background),
+            RestoreAppWakeChangesUseCase(activity, manual, automatic, background, FakeAppRestrictionRepository()),
         )
     }
 

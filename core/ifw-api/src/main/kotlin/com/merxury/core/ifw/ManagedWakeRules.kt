@@ -129,7 +129,7 @@ internal fun withoutWakePackage(xml: String, target: String): String? {
         }
     }
     if (remaining.size == original.rules.size) return xml
-    return if (remaining.isEmpty()) null else IfwXmlSerializer().serialize(IfwRules(remaining))
+    return if (remaining.isEmpty()) null else IfwXmlSerializer().serializeInOrder(remaining)
 }
 
 /**

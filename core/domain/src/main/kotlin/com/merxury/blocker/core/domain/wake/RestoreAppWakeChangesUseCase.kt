@@ -3,6 +3,10 @@
 
 package com.merxury.blocker.core.domain.wake
 
+import com.merxury.blocker.core.data.device.AppRestrictionFailure
+import com.merxury.blocker.core.data.device.AppRestrictionRepository
+import com.merxury.blocker.core.data.device.AppRestrictionRestoreResult
+import com.merxury.blocker.core.data.device.AppRestrictionResult
 import com.merxury.blocker.core.data.device.BackgroundUsageFailure
 import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.BackgroundUsageResult
@@ -26,14 +30,17 @@ class RestoreAppWakeChangesUseCase @Inject constructor(
     private val user: WakeBlockRepository,
     private val automatic: AutomaticWakeBlockRepository,
     private val backgroundUsage: BackgroundUsageRepository,
+    private val appRestriction: AppRestrictionRepository,
 ) {
     data class Result(val outcome: WakeBlockOutcome, val undo: Undo?)
 
     /** The changes completed by one restore, including a partially successful restore. */
     class Undo internal constructor(
+        internal val app: AppKey,
         internal val blocks: List<WakeBlock>,
         internal val automaticIds: Set<String>,
-        internal val backgroundApp: AppKey?,
+        internal val restoredBackgroundUsage: Boolean,
+        internal val deepRestrictionRestore: AppRestrictionRestoreResult.Restored?,
     )
 
     /** Restores wake changes and returns the undo token once the writes have started. */
@@ -53,13 +60,20 @@ class RestoreAppWakeChangesUseCase @Inject constructor(
                     WakeBlockOutcome(emptySet(), setting.reason.asBlockFailure())
                 }
             }
-            val backgroundApp = app.takeIf { background.done.isNotEmpty() }
-            val undo = if (blocks.isNotEmpty() || reviewed.done.isNotEmpty() || backgroundApp != null) {
-                Undo(blocks, reviewed.done, backgroundApp)
+            val restore = appRestriction.restoreOwned(app)
+            val deep = when (restore) {
+                AppRestrictionRestoreResult.NotOwned -> emptyOutcome
+                is AppRestrictionRestoreResult.Restored -> deepOutcome(app)
+                is AppRestrictionRestoreResult.Failure -> WakeBlockOutcome(emptySet(), restore.reason.asBlockFailure())
+            }
+            val restoredBackground = background.done.isNotEmpty()
+            val restoredDeep = restore as? AppRestrictionRestoreResult.Restored
+            val undo = if (blocks.isNotEmpty() || reviewed.done.isNotEmpty() || restoredBackground || restoredDeep != null) {
+                Undo(app, blocks, reviewed.done, restoredBackground, restoredDeep)
             } else {
                 null
             }
-            Result(manual + reviewed + background, undo)
+            Result(manual + reviewed + background + deep, undo)
         }
     }
 
@@ -69,8 +83,14 @@ class RestoreAppWakeChangesUseCase @Inject constructor(
         return withContext(NonCancellable) {
             val manual = user.restoreBlocks(changes.blocks)
             val reviewed = automatic.setBlocked(changes.automaticIds, blocked = true).outcome
-            val background = changes.backgroundApp?.let { setBackgroundUsage(it, allowed = false) } ?: emptyOutcome
-            manual + reviewed + background
+            val background = if (changes.restoredBackgroundUsage) setBackgroundUsage(changes.app, allowed = false) else emptyOutcome
+            val deep = changes.deepRestrictionRestore?.let { restore ->
+                when (val result = appRestriction.reapplyOwned(changes.app, restore.reapply, restore.baseline, restore.firstInstallTime)) {
+                    is AppRestrictionResult.Success -> deepOutcome(changes.app)
+                    is AppRestrictionResult.Failure -> WakeBlockOutcome(emptySet(), result.reason.asBlockFailure())
+                }
+            } ?: emptyOutcome
+            manual + reviewed + background + deep
         }
     }
 
@@ -86,6 +106,8 @@ class RestoreAppWakeChangesUseCase @Inject constructor(
             is BackgroundUsageResult.Failure -> WakeBlockOutcome(emptySet(), result.reason.asBlockFailure())
         }
     }
+
+    private fun deepOutcome(app: AppKey) = WakeBlockOutcome(setOf("deep-background:${app.packageName}"), null)
 }
 
 private val emptyOutcome = WakeBlockOutcome(emptySet(), null)
@@ -93,5 +115,11 @@ private val emptyOutcome = WakeBlockOutcome(emptySet(), null)
 private fun BackgroundUsageFailure.asBlockFailure(): WakeBlockFailure = when (this) {
     BackgroundUsageFailure.NO_ACCESS -> WakeBlockFailure.NoAccess
     BackgroundUsageFailure.NOT_CHANGEABLE -> WakeBlockFailure.BackgroundNotChangeable
+    else -> WakeBlockFailure.SystemError(name)
+}
+
+private fun AppRestrictionFailure.asBlockFailure(): WakeBlockFailure = when (this) {
+    AppRestrictionFailure.NO_ACCESS -> WakeBlockFailure.NoAccess
+    AppRestrictionFailure.NOT_CHANGEABLE -> WakeBlockFailure.BackgroundNotChangeable
     else -> WakeBlockFailure.SystemError(name)
 }

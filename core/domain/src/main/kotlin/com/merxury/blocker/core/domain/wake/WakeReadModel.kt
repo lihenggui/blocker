@@ -269,6 +269,9 @@ private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?
 
     hold == HoldCause.BOUND_BY_PEER && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
+    trigger == ReviveTrigger.PEER_ACTIVITY &&
+        actor.isAppPackage() && actor != target && component != null -> WakeBlockMethod.FIREWALL_RULE
+
     (trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST || trigger == ReviveTrigger.PUSH_TRANSPORT) &&
         (component != null || action != null) -> WakeBlockMethod.COMPONENT
 

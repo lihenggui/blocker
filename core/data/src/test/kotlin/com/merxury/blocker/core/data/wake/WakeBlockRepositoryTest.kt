@@ -4,6 +4,8 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.os.Build
 import android.provider.Settings
 import app.cash.turbine.test
@@ -55,6 +57,8 @@ import com.merxury.blocker.core.testing.util.TestWakeRunRequester
 import com.merxury.core.ifw.ManagedWakeRules
 import com.merxury.core.ifw.WakeRuleFileKind
 import com.merxury.core.ifw.WakeRuleWriter
+import com.merxury.core.ifw.model.IfwComponentType
+import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -75,11 +79,13 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.io.IOException
 
 private const val TARGET = "target.pkg"
 private const val PEER = "peer.pkg"
+private const val PEER_UID = 12345
 private const val SERVICE = "$TARGET.Service"
 private const val OTHER_SERVICE = "$TARGET.OtherService"
 private const val RECEIVER = "$TARGET.Receiver"
@@ -113,6 +119,8 @@ class WakeBlockRepositoryTest {
         claimRecords: PmBlockRecords? = null,
         protections: AutomaticWakeBlockRepository = automatic,
     ): WakeBlockRepository {
+        installSender(PEER, PEER_UID)
+        installSender("sender.pkg", PEER_UID + 1)
         val resolver = context.contentResolver
         Settings.Global.putInt(resolver, Settings.Global.BOOT_COUNT, 5)
         check(
@@ -133,7 +141,21 @@ class WakeBlockRepositoryTest {
         val records = claimRecords ?: mock<PmBlockRecords>().also {
             whenever(it.recordsFor(AppKey(TARGET, UserId.SYSTEM))).thenReturn(emptyList())
         }
-        return LocalWakeBlockRepository(dao, firewall, rules, componentRepository, receivers, privilegedChannel, lock, StandardTestDispatcher(testScheduler), protections, records)
+        return LocalWakeBlockRepository(dao, firewall, rules, componentRepository, receivers, privilegedChannel, lock, StandardTestDispatcher(testScheduler), protections, records, context)
+    }
+
+    private fun installSender(sender: String, senderUid: Int) {
+        val pm = shadowOf(context.packageManager)
+        pm.installPackage(
+            PackageInfo().apply {
+                packageName = sender
+                applicationInfo = ApplicationInfo().apply {
+                    packageName = sender
+                    uid = senderUid
+                }
+            },
+        )
+        pm.setPackagesForUid(senderUid, sender)
     }
 
     @Test fun givenKnownTriggersAndHolds_whenBlocking_thenStoredSendersMatchTheWakePaths() = runTest {
@@ -175,6 +197,56 @@ class WakeBlockRepositoryTest {
         val outcome = repository.block(paths.map { it to FIREWALL })
         assertThat(outcome.failure).isEqualTo(WakeBlockFailure.NotBlockable(paths.map(WakePath::pathKey)))
         assertThat(outcome.done).isEmpty()
+        assertThat(writer.userWrites).isEmpty()
+    }
+
+    @Test fun givenNamedPeerBroadcastAndActivity_whenBlocking_thenOnlyTheActivityIsSenderScoped() = runTest {
+        val repository = repository()
+        val broadcast = path("receiver", trigger = ReviveTrigger.PEER_BROADCAST, component = RECEIVER, action = ACTION, method = COMPONENT)
+        val activity = path("activity", trigger = ReviveTrigger.PEER_ACTIVITY, component = ACTIVITY)
+
+        assertThat(repository.block(listOf(broadcast to COMPONENT, activity to FIREWALL)))
+            .isEqualTo(WakeBlockOutcome(setOf("receiver", "activity"), null))
+        assertThat(dao.all().associate { it.pathKey to it.method })
+            .containsExactly("receiver", COMPONENT.name, "activity", FIREWALL.name)
+        assertThat(writer.firewallRules().single().filters).containsExactly(
+            IfwFilter.ComponentFilter("$TARGET/$ACTIVITY"),
+            IfwFilter.SenderPackage(PEER),
+        )
+
+        assertThat(repository.unblockPaths(listOf(broadcast))).isEqualTo(WakeBlockOutcome(setOf("receiver"), null))
+        assertThat(writer.firewallRules().single().componentType).isEqualTo(IfwComponentType.ACTIVITY)
+        assertThat(repository.unblockPaths(listOf(activity))).isEqualTo(WakeBlockOutcome(setOf("activity"), null))
+        assertThat(writer.userWrites.last()).isNull()
+        assertThat(dao.all()).isEmpty()
+    }
+
+    @Test fun givenPeerSharesItsUid_whenBlocking_thenNoSenderPackageRuleIsWritten() = runTest {
+        val repository = repository()
+        shadowOf(context.packageManager).setPackagesForUid(PEER_UID, PEER, "another.package")
+
+        assertThat(repository.block(listOf(path("service") to FIREWALL)))
+            .isEqualTo(WakeBlockOutcome(emptySet(), WakeBlockFailure.NotBlockable(listOf("service"))))
+        assertThat(writer.userWrites).isEmpty()
+        assertThat(dao.all()).isEmpty()
+    }
+
+    @Test fun givenPeerBroadcastOrActivityWithoutValidSenderAndComponent_whenBlocking_thenRejectThePath() = runTest {
+        val repository = repository()
+        val broadcast = path("broadcast", trigger = ReviveTrigger.PEER_BROADCAST, component = RECEIVER)
+        val activity = path("activity", trigger = ReviveTrigger.PEER_ACTIVITY, component = ACTIVITY)
+        val invalid = listOf(
+            broadcast.copy(pathKey = "action-only", component = null, action = ACTION),
+            broadcast.copy(pathKey = "wrong-type", component = ACTIVITY),
+            broadcast.copy(pathKey = "invalid-sender", actor = "android"),
+            activity.copy(pathKey = "self", actor = TARGET),
+            activity.copy(pathKey = "unknown", actor = null),
+            activity.copy(pathKey = "wrong-class", component = ".Activity"),
+        )
+
+        assertThat(repository.block(invalid.map { it to FIREWALL }))
+            .isEqualTo(WakeBlockOutcome(emptySet(), WakeBlockFailure.NotBlockable(invalid.map { it.pathKey })))
+        assertThat(dao.all()).isEmpty()
         assertThat(writer.userWrites).isEmpty()
     }
 
@@ -855,7 +927,7 @@ class WakeBlockRepositoryTest {
         assertThat(writer.userWrites.last()).isNull()
     }
 
-    @Test fun givenBroadcastRowsFromAnEarlierBuild_whenSyncing_thenOnlySupportedServiceRulesRemain() = runTest {
+    @Test fun givenNamedAndActionOnlyBroadcastRows_whenSyncing_thenLegacyBroadcastRulesAreRetired() = runTest {
         val service = firewallRow("service", TARGET)
         val action = service.copy(pathKey = "action", componentType = ComponentType.RECEIVER.name, component = null, action = ACTION)
         val receiver = action.copy(pathKey = "receiver", component = RECEIVER)
@@ -865,12 +937,12 @@ class WakeBlockRepositoryTest {
         lock.withLock { firewall.sync() }
 
         assertThat(dao.all()).containsExactly(service)
-        assertThat(writer.firewallRules()).hasSize(1)
+        assertThat(writer.firewallRules().map { it.componentType }).containsExactly(IfwComponentType.SERVICE)
     }
 
     @Test fun givenObsoleteFirewallRows_whenBlockingOrUnblocking_thenRowsArePrunedWithEachWrite() = runTest {
         val repository = repository()
-        val outdated = firewallRow("outdated", TARGET).copy(componentType = ComponentType.RECEIVER.name)
+        val outdated = firewallRow("outdated", TARGET).copy(componentType = ComponentType.RECEIVER.name, component = null, action = ACTION)
         dao.upsert(listOf(outdated))
 
         assertThat(repository.block(listOf(path("service") to FIREWALL)).done).containsExactly("service")
