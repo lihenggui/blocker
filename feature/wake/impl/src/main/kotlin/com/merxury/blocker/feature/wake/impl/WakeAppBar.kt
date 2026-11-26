@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -105,8 +106,9 @@ private fun WakeAppMenu(
     val visibility = remember { androidx.compose.animation.core.MutableTransitionState(false) }
     visibility.targetState = open
     if (!visibility.currentState && visibility.isIdle && !open) return
+    val extraEndInset = with(LocalDensity.current) { 4.dp.roundToPx() }
     Popup(
-        popupPositionProvider = WakeMenuPosition,
+        popupPositionProvider = remember(extraEndInset) { WakeMenuPosition(extraEndInset) },
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = open),
     ) {
@@ -142,14 +144,18 @@ private fun WakeMenuItem(label: Int, icon: ImageVector, onClick: () -> Unit, ena
     )
 }
 
-private object WakeMenuPosition : PopupPositionProvider {
+private class WakeMenuPosition(private val extraEndInset: Int) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
         layoutDirection: LayoutDirection,
         popupContentSize: IntSize,
     ): IntOffset {
-        val x = if (layoutDirection == LayoutDirection.Ltr) anchorBounds.right - popupContentSize.width else anchorBounds.left
+        val x = if (layoutDirection == LayoutDirection.Ltr) {
+            anchorBounds.right - extraEndInset - popupContentSize.width
+        } else {
+            anchorBounds.left + extraEndInset
+        }
         return IntOffset(x.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0)), anchorBounds.bottom)
     }
 }

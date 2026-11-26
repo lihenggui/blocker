@@ -48,8 +48,8 @@ class WakeAppScreenScreenshotTest {
             WakePeerLink(
                 "example.notes",
                 WakeDirection.MUTUAL,
-                listOf(detailPath("in", actor = "example.notes", count = 4, last = lastWake)),
-                listOf(detailPath("out", target = "example.notes", count = 2, last = lastWake, component = component.name)),
+                listOf(detailPath("in", actor = "example.notes", count = 4, last = lastWake, component = null)),
+                listOf(detailPath("out", target = "example.notes", count = 2, last = lastWake, component = component.name, action = "example.notes.SYNC")),
             ),
         ),
         own = listOf(

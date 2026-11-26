@@ -14,11 +14,30 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.scene.Scene
+import androidx.navigation3.scene.SceneStrategy
+import androidx.navigation3.scene.SceneStrategyScope
+import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+
+private const val WAKE_DESTINATION = "com.merxury.blocker.feature.wake.destination"
+
+// In a single pane, distinct scenes let NavDisplay seek the entry transitions on Back.
+object CompactWakeSceneStrategy : SceneStrategy<NavKey> {
+    private val singlePane = SinglePaneSceneStrategy<NavKey>()
+
+    override fun SceneStrategyScope<NavKey>.calculateScene(entries: List<NavEntry<NavKey>>): Scene<NavKey>? {
+        if (entries.lastOrNull()?.metadata?.get(WAKE_DESTINATION) != true) return null
+        return with(singlePane) { calculateScene(entries) }
+    }
+}
 
 internal fun wakeSceneTransitions(density: Density): Map<String, Any> {
     val distance = with(density) { 30.dp.roundToPx() }
-    return NavDisplay.transitionSpec { wakeTransition(distance) } +
+    return mapOf(WAKE_DESTINATION to true) +
+        NavDisplay.transitionSpec { wakeTransition(distance) } +
         NavDisplay.popTransitionSpec { wakeTransition(-distance) } +
         NavDisplay.predictivePopTransitionSpec { _ -> wakeTransition(-distance) }
 }

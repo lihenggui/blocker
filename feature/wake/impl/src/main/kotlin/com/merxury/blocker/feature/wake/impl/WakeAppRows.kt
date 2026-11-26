@@ -12,6 +12,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -37,10 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.collapse
 import androidx.compose.ui.semantics.expand
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
@@ -158,24 +161,33 @@ private fun WakeRowIcon(row: WakeDetailRow) {
 @Composable
 private fun WakeRowFacts(row: WakeDetailRow, onPeerClick: (String) -> Unit) {
     val style = MaterialTheme.typography.bodyMedium
-    Column(Modifier.padding(start = 68.dp, end = 16.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        row.facts.forEach { fact ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    stringResource(fact.label),
-                    Modifier.width(64.dp),
-                    style = style,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(fact.value.resolve(), Modifier.weight(1f), style = style, color = MaterialTheme.colorScheme.onSurface)
-            }
+    val labels = row.facts.map { stringResource(it.label) }
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    BoxWithConstraints(Modifier.padding(start = 68.dp, end = 16.dp, bottom = 12.dp)) {
+        val labelWidth = with(density) {
+            val widest = labels.maxOfOrNull { measurer.measure(it, style, maxLines = 1).size.width } ?: 0
+            maxOf(64.dp, widest.toDp()).coerceAtMost(maxWidth * 0.45f)
         }
-        row.peer?.let { peer ->
-            TextButton(
-                onClick = { onPeerClick(peer.packageName) },
-                contentPadding = PaddingValues(end = 12.dp),
-            ) {
-                Text(stringResource(string.feature_wake_api_view_app, peer.label))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            row.facts.forEachIndexed { index, fact ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        labels[index],
+                        Modifier.width(labelWidth),
+                        style = style,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(fact.value.resolve(), Modifier.weight(1f), style = style, color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+            row.peer?.let { peer ->
+                TextButton(
+                    onClick = { onPeerClick(peer.packageName) },
+                    contentPadding = PaddingValues(end = 12.dp),
+                ) {
+                    Text(stringResource(string.feature_wake_api_view_app, peer.label))
+                }
             }
         }
     }
