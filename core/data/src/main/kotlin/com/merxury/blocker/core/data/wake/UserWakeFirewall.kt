@@ -14,6 +14,7 @@ import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.core.ifw.UserWakeRule
 import com.merxury.core.ifw.WakeRuleFileKind
 import com.merxury.core.ifw.WakeRuleWriter
+import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.renderUserWakeRules
 import timber.log.Timber
 import javax.inject.Inject
@@ -31,10 +32,13 @@ class UserWakeFirewall @Inject constructor(
     ) {
         val replaced = removed.toSet() + added.map { it.pathKey }
         val desired = current.filterNot { it.pathKey in replaced } + added
-        val (services, obsolete) = desired.filter { it.isFirewallBlock }.partition { it.isServiceRule }
-        val rules = services.map { UserWakeRule(requireNotNull(it.sender), it.target, requireNotNull(it.component)) }
+        val rules = mutableListOf<UserWakeRule>()
+        val obsoleteKeys = mutableSetOf<String>()
+        desired.filter { it.isFirewallBlock }.forEach { block ->
+            val rule = block.toUserWakeRule()
+            if (rule == null) obsoleteKeys += block.pathKey else rules += rule
+        }
         writer.write(WakeRuleFileKind.USER, renderUserWakeRules(rules))
-        val obsoleteKeys = obsolete.mapTo(mutableSetOf()) { it.pathKey }
         dao.update(added.filterNot { it.pathKey in obsoleteKeys }, removed + obsoleteKeys)
     }
 
@@ -59,4 +63,18 @@ class UserWakeFirewall @Inject constructor(
 
 internal val WakeBlockEntity.isFirewallBlock: Boolean get() = method == WakeBlockMethod.FIREWALL_RULE.name
 
-private val WakeBlockEntity.isServiceRule: Boolean get() = componentType == ComponentType.SERVICE.name && component != null && sender != null
+internal fun WakeBlockEntity.toUserWakeRule(): UserWakeRule? {
+    val component = component ?: return null
+    val sender = sender ?: return null
+    val type = when (componentType) {
+        ComponentType.SERVICE.name -> IfwComponentType.SERVICE
+        ComponentType.ACTIVITY.name -> IfwComponentType.ACTIVITY
+        else -> return null
+    }
+    if (type != IfwComponentType.SERVICE && sender == target) return null
+    return try {
+        UserWakeRule(sender, target, component, type)
+    } catch (_: IllegalArgumentException) {
+        null
+    }
+}

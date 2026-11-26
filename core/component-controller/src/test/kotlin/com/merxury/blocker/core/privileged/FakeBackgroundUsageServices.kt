@@ -11,13 +11,14 @@ import com.android.internal.app.IAppOpsService
 internal class FakeAppOpsService(private val changes: MutableList<String>) : IAppOpsService {
     val modes = mutableMapOf<Triple<Int, Int, String>, Int>()
     var writeFailure: Exception? = null
+    var ignoredWriteCode: Int? = null
 
     override fun checkOperation(code: Int, uid: Int, packageName: String): Int = modes[Triple(code, uid, packageName)] ?: MODE_ALLOWED
 
     override fun setMode(code: Int, uid: Int, packageName: String, mode: Int) {
         writeFailure?.let { throw it }
         changes += "mode $code $uid $packageName $mode"
-        modes[Triple(code, uid, packageName)] = mode
+        if (code != ignoredWriteCode) modes[Triple(code, uid, packageName)] = mode
     }
 
     override fun asBinder(): IBinder = error("No binder")

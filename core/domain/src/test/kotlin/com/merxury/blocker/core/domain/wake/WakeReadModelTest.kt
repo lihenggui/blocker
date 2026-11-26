@@ -264,8 +264,9 @@ class WakeReadModelTest {
         assertThat(buildAppWakeActivity(PEER, 10, 11, findings, emptyList()).peers.single().direction).isEqualTo(WakeDirection.OUTBOUND)
         for (path in own.paths + peer.inbound) {
             assertThat(path.componentType).isEqualTo(ComponentType.ACTIVITY)
-            assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
         }
+        assertThat(own.paths.single().blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+        assertThat(peer.inbound.single().blockMethod).isEqualTo(WakeBlockMethod.FIREWALL_RULE)
     }
 
     @Test fun givenOverlayHold_whenBuildingActivity_thenScreenOffTimeOffersBackgroundRestriction() {

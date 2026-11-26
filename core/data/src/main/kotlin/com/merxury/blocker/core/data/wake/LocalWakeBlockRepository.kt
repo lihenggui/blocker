@@ -3,6 +3,8 @@
 
 package com.merxury.blocker.core.data.wake
 
+import android.content.Context
+import android.content.pm.PackageManager.NameNotFoundException
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.PmBlockClaimObserver
@@ -44,7 +46,7 @@ import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.privileged.withoutPermissionPrompts
 import com.merxury.blocker.core.utils.currentUserId
 import com.merxury.core.ifw.ManagedWakeRules
-import com.merxury.core.ifw.isWakePackageName
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
@@ -69,6 +71,7 @@ internal class LocalWakeBlockRepository @Inject constructor(
     @Dispatcher(IO) private val io: CoroutineDispatcher,
     private val automatic: AutomaticWakeBlockRepository,
     private val pmBlocks: PmBlockRecords,
+    @ApplicationContext private val context: Context,
 ) : WakeBlockRepository {
     override val blocks = dao.observeAll().map { rows -> rows.map(WakeBlockEntity::toModel) }
 
@@ -312,23 +315,32 @@ internal class LocalWakeBlockRepository @Inject constructor(
 
     private fun buildFirewallBlock(path: WakePath, blockedAt: Long): WakeBlockEntity? {
         val component = path.component ?: return null
-        val sender = when {
-            path.trigger == ReviveTrigger.SELF_PROCESS -> path.target
-
-            path.trigger == ReviveTrigger.PEER_SERVICE || path.hold == HoldCause.BOUND_BY_PEER ->
-                path.actor?.takeIf(::isWakePackageName) ?: return null
-
+        val sender = if (path.trigger == ReviveTrigger.SELF_PROCESS) path.target else path.actor ?: return null
+        val type = when {
+            path.trigger == ReviveTrigger.PEER_ACTIVITY && sender != path.target -> ComponentType.ACTIVITY
+            path.trigger == ReviveTrigger.PEER_SERVICE || path.trigger == ReviveTrigger.SELF_PROCESS || path.hold == HoldCause.BOUND_BY_PEER -> ComponentType.SERVICE
             else -> return null
         }
         val action = path.action?.takeIf(String::isNotBlank)
-        return WakeBlockEntity(path.pathKey, path.target, WakeBlockMethod.FIREWALL_RULE.name, ComponentType.SERVICE.name, sender, component, action, blockedAt)
+        return WakeBlockEntity(path.pathKey, path.target, WakeBlockMethod.FIREWALL_RULE.name, type.name, sender, component, action, blockedAt)
     }
 
     private suspend fun isValidFirewallBlock(block: WakeBlockEntity): Boolean {
-        val app = AppKey(block.target, UserId.SYSTEM)
-        val component = block.component ?: return false
-        return isWakePackageName(block.target) && block.sender?.let(::isWakePackageName) == true &&
-            !components.isProtectedFromBlocking(app) && declaration(app, component)?.type == ComponentType.SERVICE
+        val rule = block.toUserWakeRule() ?: return false
+        val app = AppKey(rule.target, UserId.SYSTEM)
+        if (rule.sender != rule.target && !isExclusiveSender(rule.sender)) return false
+        return !components.isProtectedFromBlocking(app) && declaration(app, rule.component)?.type?.name == block.componentType
+    }
+
+    private fun isExclusiveSender(sender: String): Boolean {
+        val pm = context.packageManager
+        val uid = try {
+            pm.getApplicationInfo(sender, 0).uid
+        } catch (_: NameNotFoundException) {
+            return false
+        }
+        // The firewall matches a sender-package against every package belonging to the UID.
+        return pm.getPackagesForUid(uid)?.singleOrNull() == sender
     }
 
     private suspend fun blockComponent(

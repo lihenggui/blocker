@@ -4,6 +4,7 @@
 package com.merxury.blocker.core.domain.wake
 
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.device.AppRestrictionFailure
 import com.merxury.blocker.core.data.device.BackgroundUsageFailure
 import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.BackgroundUsageResult
@@ -11,7 +12,10 @@ import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository
 import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.CallFailure
+import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.system.BackgroundUsage
+import com.merxury.blocker.core.model.system.DeepRestrictionSnapshot
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlock
@@ -30,6 +34,49 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class WakeBlockUseCasesTest {
+    @Test fun givenPartialBatchSuccess_whenBlockingAndUndoing_thenNoAppsAreStopped() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
+        val paths = listOf(
+            finding("one").toWakePath(),
+            finding("two").toWakePath(),
+            finding("failed", target = TEST_OTHER).toWakePath(),
+            finding("already", target = TEST_OTHER).toWakePath(),
+        )
+        val reviewed = AutomaticWakeBlock("reviewed", TEST_APP, TEST_PEER, "$TEST_PEER.Wake", "", active = false, allowed = true)
+        f.manual.excluded = setOf("failed")
+        f.automatic.blocks.value = listOf(reviewed)
+        f.appControl.running[UserId.SYSTEM] = mutableSetOf(TEST_APP, TEST_PEER, TEST_OTHER)
+        f.appControl.running[UserId(10)] = mutableSetOf(TEST_APP)
+        val states = paths.map { it.state(if (it.pathKey == "already") WakePathBlock.USER else WakePathBlock.NONE) }
+
+        val result = setBlocked.blockWithUndo(states, listOf(reviewed))
+
+        assertThat(result.outcome.done).containsExactly("one", "two", "reviewed")
+        assertThat(result.outcome.failure).isEqualTo(WakeBlockFailure.NotBlockable(listOf("failed")))
+        assertThat(f.appControl.calls).isEmpty()
+        assertThat(f.appControl.running[UserId.SYSTEM]).containsExactly(TEST_APP, TEST_PEER, TEST_OTHER)
+        assertThat(f.appControl.running[UserId(10)]).containsExactly(TEST_APP)
+        assertThat(setBlocked.undo(result.undo).done).containsExactly("one", "two", "reviewed")
+    }
+
+    @Test fun givenAppsRunningInTwoProfiles_whenForceStopping_thenOnlyTheRequestedOwnerAppStops() = runTest {
+        val f = WakeStateTestFixture(this)
+        val forceStop = ForceStopAppUseCase(f.appControl)
+        f.appControl.running[UserId.SYSTEM] = mutableSetOf(TEST_APP, TEST_PEER)
+        f.appControl.running[UserId(10)] = mutableSetOf(TEST_APP)
+
+        assertThat(forceStop(TEST_APP)).isEqualTo(CallResult.Success(Unit))
+        assertThat(f.appControl.calls).containsExactly("forceStop ${AppKey(TEST_APP, UserId.SYSTEM)}")
+        assertThat(f.appControl.running[UserId.SYSTEM]).containsExactly(TEST_PEER)
+        assertThat(f.appControl.running[UserId(10)]).containsExactly(TEST_APP)
+
+        val failure = CallFailure.SystemError("force stop refused")
+        f.appControl.failures["forceStop"] = failure
+        assertThat(forceStop(TEST_PEER)).isEqualTo(CallResult.Failure(failure))
+        assertThat(f.appControl.running[UserId.SYSTEM]).containsExactly(TEST_PEER)
+    }
+
     @Test fun givenUserPaths_whenBlockingAndAllowing_thenEachUsesItsOwnMethod() = runTest {
         val f = WakeStateTestFixture(this)
         val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
@@ -267,7 +314,7 @@ class WakeBlockUseCasesTest {
     @Test fun givenAnAppWithStoredAndAutomaticBlocks_whenRestoringAndUndoing_thenOnlyCompletedChangesAreReversed() = runTest {
         val f = WakeStateTestFixture(this)
         val background = FakeBackgroundUsageRepository(allowed = false)
-        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, background)
+        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, background, f.restriction)
         val outbound = finding("outbound", target = TEST_PEER, actor = TEST_APP)
         f.findings.value = listOf(outbound)
         val incoming = finding("no-longer-observed").toWakePath().blockRow(at = 10)
@@ -305,7 +352,7 @@ class WakeBlockUseCasesTest {
         val block = finding("incoming").toWakePath().blockRow()
         f.manual.blocks.value = listOf(block)
         val background = FakeBackgroundUsageRepository(allowed = false, failure = BackgroundUsageFailure.UNSUPPORTED)
-        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, background)
+        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, background, f.restriction)
 
         val result = restore(TEST_APP)
 
@@ -315,10 +362,57 @@ class WakeBlockUseCasesTest {
         assertThat(background.writes).isEmpty()
     }
 
+    @Test fun givenOwnedAndUnownedDeepRestrictions_whenRestoringAndUndoing_thenOnlyOwnedValuesChange() = runTest {
+        val f = WakeStateTestFixture(this)
+        val app = AppKey(TEST_APP, UserId.SYSTEM)
+        val unowned = AppKey(TEST_PEER, UserId.SYSTEM)
+        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, f.background, f.restriction)
+        val baseline = DeepRestrictionSnapshot(30, 0, 1)
+        val restricted = DeepRestrictionSnapshot(45, 1, 1)
+        val partlyRestricted = restricted.copy(standbyBucket = 20)
+        f.restriction.sendSnapshot(app, baseline)
+        f.restriction.sendSnapshot(unowned, restricted)
+        f.restriction.setDeepRestricted(app, true)
+        f.restriction.sendSnapshot(app, partlyRestricted)
+
+        assertThat(restore(TEST_PEER).undo).isNull()
+        assertThat(f.restriction.snapshot(unowned)).isEqualTo(restricted)
+
+        val result = restore(TEST_APP)
+
+        assertThat(result.outcome).isEqualTo(WakeBlockOutcome(setOf("deep-background:$TEST_APP"), null))
+        assertThat(f.restriction.snapshot(app)).isEqualTo(baseline.copy(standbyBucket = 20))
+        val undo = requireNotNull(result.undo)
+        assertThat(undo.deepRestrictionRestore?.reapply).isEqualTo(partlyRestricted)
+        assertThat(restore.undo(undo)).isEqualTo(result.outcome)
+        assertThat(f.restriction.snapshot(app)).isEqualTo(partlyRestricted)
+        assertThat(f.restriction.writes).containsExactly(app to true, app to false, app to true).inOrder()
+        assertThat(f.background.writes).isEmpty()
+    }
+
+    @Test fun givenDeepRestrictionRestoreFails_whenOtherBlocksAreRemoved_thenUndoOnlyRecordsCompletedChanges() = runTest {
+        val f = WakeStateTestFixture(this)
+        val app = AppKey(TEST_APP, UserId.SYSTEM)
+        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, f.background, f.restriction)
+        f.restriction.setDeepRestricted(app, true)
+        f.restriction.writes.clear()
+        f.restriction.writeFailure = AppRestrictionFailure.SYSTEM_ERROR
+        f.manual.blocks.value = listOf(finding("path").toWakePath().blockRow())
+
+        val result = restore(TEST_APP)
+
+        assertThat(result.outcome.done).containsExactly("path")
+        assertThat(result.outcome.failure).isInstanceOf(WakeBlockFailure.SystemError::class.java)
+        val undo = requireNotNull(result.undo)
+        assertThat(undo.deepRestrictionRestore).isNull()
+        assertThat(restore.undo(undo)).isEqualTo(WakeBlockOutcome(setOf("path"), null))
+        assertThat(f.restriction.writes).containsExactly(app to false)
+    }
+
     @Test fun givenNoRestoreChanges_whenBackgroundReadFails_thenNoUndoOrSettingWriteIsReported() = runTest {
         val f = WakeStateTestFixture(this)
         val background = FakeBackgroundUsageRepository(allowed = false, failure = BackgroundUsageFailure.NO_ACCESS)
-        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, background)
+        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, f.automatic, background, f.restriction)
 
         val result = restore(TEST_APP)
 
@@ -341,7 +435,7 @@ class WakeBlockUseCasesTest {
                 resume.await()
             }
         }
-        val restore = RestoreAppWakeChangesUseCase(f.activity, manual, f.automatic, background)
+        val restore = RestoreAppWakeChangesUseCase(f.activity, manual, f.automatic, background, f.restriction)
         var result: RestoreAppWakeChangesUseCase.Result? = null
         val caller = launch { result = restore(TEST_APP) }
 
@@ -372,7 +466,7 @@ class WakeBlockUseCasesTest {
                 resume.await()
             }
         }
-        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, automatic, background)
+        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, automatic, background, f.restriction)
         val restored = restore(TEST_APP)
         var outcome: WakeBlockOutcome? = null
         val caller = launch { outcome = restore.undo(requireNotNull(restored.undo)) }

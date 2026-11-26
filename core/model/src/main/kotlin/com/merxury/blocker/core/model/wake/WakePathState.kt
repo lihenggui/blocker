@@ -13,6 +13,8 @@ data class WakePathState(
     val blockedAtMillis: Long?,
     /** Whether the path started again after [blockedAtMillis]. */
     val seenSinceBlock: Boolean,
+    /** Whether a saved component block has a component that is now enabled. */
+    val reEnabledByApp: Boolean = false,
 )
 
 /** A path reviewed by automatic wake protection and its current state. */

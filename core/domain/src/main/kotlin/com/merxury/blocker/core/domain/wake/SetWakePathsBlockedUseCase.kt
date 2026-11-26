@@ -46,9 +46,11 @@ class SetWakePathsBlockedUseCase @Inject constructor(
     suspend fun blockWithUndo(paths: List<WakePathState>, blocks: Collection<AutomaticWakeBlock>): BatchResult {
         currentCoroutineContext().ensureActive()
         return withContext(NonCancellable) {
+            val allowedPaths = paths.filter { it.block == WakePathBlock.NONE }
+            val allowedBlocks = blocks.filter { it.allowed }
             change(
-                paths.filter { it.block == WakePathBlock.NONE },
-                blocks.filter { it.allowed }.mapTo(mutableSetOf()) { it.pathId },
+                allowedPaths,
+                allowedBlocks.mapTo(mutableSetOf()) { it.pathId },
                 blocked = true,
                 recordUndo = true,
             )

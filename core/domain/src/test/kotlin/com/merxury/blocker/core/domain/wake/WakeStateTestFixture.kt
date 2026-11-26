@@ -25,6 +25,8 @@ import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakeVerdict
+import com.merxury.blocker.core.testing.controller.FakeAppControl
+import com.merxury.blocker.core.testing.repository.device.FakeAppRestrictionRepository
 import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.wake.FakeAutomaticWakeBlockRepository
@@ -53,6 +55,8 @@ internal class WakeStateTestFixture(scope: TestScope) {
     val manual = FakeWakeBlockRepository()
     val automatic = FakeAutomaticWakeBlockRepository()
     val background = FakeBackgroundUsageRepository()
+    val restriction = FakeAppRestrictionRepository()
+    val appControl = FakeAppControl()
     val components = FakeComponentStatusRepository()
     val receivers = mutableMapOf<Pair<String, String>, List<ComponentDeclaration>>()
     val receiverQueries = mutableListOf<Pair<String, String>>()

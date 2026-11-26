@@ -42,11 +42,26 @@ class UserWakeRulesTest {
         )
     }
 
+    @Test fun givenPeerRuleForEachType_whenRendering_thenEachTagHasAComponentAndSenderPackage() {
+        for (type in IfwComponentType.entries) {
+            val rule = service.copy(componentType = type)
+            val xml = requireNotNull(renderUserWakeRules(listOf(rule)))
+
+            assertThat(xml).contains("<${type.xmlTag} ")
+            assertThat(xml).contains("<component-filter name=\"target.pkg/target.pkg.Remote\"")
+            assertThat(xml).contains("<sender-package name=\"peer.pkg\"")
+            assertThat(parse(rule)).isEqualTo(parse(service).copy(componentType = type))
+        }
+    }
+
     @Test fun givenRepeatedAndShuffledRules_whenRendering_thenXmlIsStableAndRulesAreUnique() {
-        val original = listOf(service, ownService)
+        val activity = service.copy(componentType = IfwComponentType.ACTIVITY, component = "target.pkg.ZActivity")
+        val broadcast = service.copy(componentType = IfwComponentType.BROADCAST, component = "target.pkg.Receiver")
+        val other = service.copy(target = "other.pkg", component = "other.pkg.Service")
+        val original = listOf(other, activity, broadcast, service, ownService)
         val xml = requireNotNull(renderUserWakeRules(original))
         assertThat(renderUserWakeRules(original.reversed() + service + ownService)).isEqualTo(xml)
-        assertThat(IfwXmlDeserializer().deserialize(xml).rules).containsExactly(parse(service), parse(ownService)).inOrder()
+        assertThat(IfwXmlDeserializer().deserialize(xml).rules).containsExactlyElementsIn(original.map(::parse)).inOrder()
         assertThat(renderUserWakeRules(emptyList())).isNull()
     }
 
@@ -71,6 +86,10 @@ class UserWakeRulesTest {
         assertThrows(IllegalArgumentException::class.java) { service.copy(target = "../bad") }
         assertThrows(IllegalArgumentException::class.java) { service.copy(sender = "invalid") }
         assertThrows(IllegalArgumentException::class.java) { service.copy(component = ".Remote") }
+        for (type in IfwComponentType.entries) {
+            assertThrows(IllegalArgumentException::class.java) { service.copy(componentType = type, component = " ") }
+            assertThrows(IllegalArgumentException::class.java) { service.copy(componentType = type, component = "other.pkg/other.pkg.Remote") }
+        }
     }
 
     private fun parse(rule: UserWakeRule): IfwRule = IfwXmlDeserializer().deserialize(requireNotNull(renderUserWakeRules(listOf(rule)))).rules.single()
