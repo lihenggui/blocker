@@ -29,7 +29,6 @@ android {
 dependencies {
     implementation(projects.feature.wake.api)
     implementation(projects.feature.appdetail.api)
-    implementation(libs.androidx.navigation3.ui)
     implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.domain)

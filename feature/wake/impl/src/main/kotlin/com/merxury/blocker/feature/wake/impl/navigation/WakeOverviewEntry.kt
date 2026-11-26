@@ -13,8 +13,8 @@ import com.merxury.blocker.feature.wake.api.navigation.navigateToWakeApp
 import com.merxury.blocker.feature.wake.impl.WakeOverviewRoute
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.wakeOverviewEntry(navigator: Navigator, transitions: WakeTransitions) {
-    entry<WakeOverviewNavKey>(metadata = ListDetailSceneStrategy.listPane() + transitions.metadata) {
+fun EntryProviderScope<NavKey>.wakeOverviewEntry(navigator: Navigator) {
+    entry<WakeOverviewNavKey>(metadata = ListDetailSceneStrategy.listPane()) {
         WakeOverviewRoute(onAppClick = navigator::navigateToWakeApp)
     }
 }
