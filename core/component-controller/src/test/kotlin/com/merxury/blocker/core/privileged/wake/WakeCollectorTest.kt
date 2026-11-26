@@ -156,6 +156,25 @@ class WakeCollectorTest {
     }
 
     @Test
+    fun givenReportReadFailure_whenTheLeaseHasExpired_thenRenewalAndTheGapAreRecorded() = runTest {
+        collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(WakeStatsCodec.LEASE_SECONDS + 1))
+        executor.runs.clear()
+        executor.answer = { call ->
+            if ((call as ReadWakeSource).command == WakeCommand.REPORT) {
+                CallResult.Failure(CallFailure.SystemError("REPORT read failed"))
+            } else {
+                answer(call)
+            }
+        }
+
+        val statsd = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT).batch("statsd")
+
+        assertThat(reads.map { it.command }).containsAtLeast(WakeCommand.REPORT, WakeCommand.RENEW).inOrder()
+        assertThat(statsd.gaps).containsExactly("REPORT read failed", "statsd: lease expired")
+    }
+
+    @Test
     fun givenStealthSnapshots_whenCapturing_thenOnlyCompactEvidenceIsCollected() = runTest {
         outputs[WakeCommand.OVERLAYS] = {
             """

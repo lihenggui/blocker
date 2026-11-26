@@ -20,6 +20,7 @@ import com.merxury.blocker.core.privileged.uid
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
+import java.io.IOException
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -309,15 +310,28 @@ class WakeCollector @Inject internal constructor(
         }
         if (metadata.getString(installedKey, if (legacyOwner) metadata.getString("key", null) else null) != configKey) install()
         suspend fun report(): WakeBatch {
-            val bytes = reads.bytes(WakeCommand.REPORT)
+            val read = try {
+                Result.success(reads.bytes(WakeCommand.REPORT))
+            } catch (e: IOException) {
+                Result.failure(e)
+            }
             val elapsed = SystemClock.elapsedRealtimeNanos()
             val origin = System.currentTimeMillis() * 1_000_000 - elapsed
-            val batch = WakeStatsCodec.decode(bytes, origin, elapsed, owner, id)
+            val batch = read.fold(
+                onSuccess = { WakeStatsCodec.decode(it, origin, elapsed, owner, id) },
+                onFailure = { WakeBatch("statsd", emptyList(), listOf(it.message ?: it.javaClass.simpleName)) },
+            )
             val lastRenewed = metadata.getLong(lastRenewedElapsedKey, -1L)
             val expired = metadata.getString(lastRenewedBootKey, null) == boot && lastRenewed >= 0 &&
                 elapsed - lastRenewed > WakeStatsCodec.LEASE_SECONDS * 1_000_000_000L
-            renew()
-            return if (expired) batch.copy(gaps = batch.gaps + "statsd: lease expired") else batch
+            val renewalGap = try {
+                renew()
+                null
+            } catch (e: IOException) {
+                "statsd: renewal failed: ${e.message ?: e.javaClass.simpleName}"
+            }
+            val gaps = batch.gaps + listOfNotNull("statsd: lease expired".takeIf { expired }, renewalGap)
+            return batch.copy(gaps = gaps)
         }
         return try {
             report()
