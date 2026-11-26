@@ -96,7 +96,7 @@ private val TAB_ORDER = listOf(
  * the matched rules while loading or when there are any. [requested] is selected while shown,
  * otherwise the app info.
  */
-internal fun tabsOf(components: ComponentsUiState, rules: MatchedRulesUiState, requested: AppDetailTabs): TabState<AppDetailTabs> {
+internal fun tabsOf(components: ComponentsUiState, rules: MatchedRulesUiState, requested: AppDetailTabs?): TabState<AppDetailTabs> {
     val counts = buildMap {
         put(AppDetailTabs.Info, 1)
         if (components is ComponentsUiState.Loaded) {
@@ -111,5 +111,6 @@ internal fun tabsOf(components: ComponentsUiState, rules: MatchedRulesUiState, r
             else -> components is ComponentsUiState.Loading || tab in counts
         }
     }
-    return TabState(items = visible, selectedItem = requested.takeIf { it in visible } ?: AppDetailTabs.Info, itemCount = counts)
+    val preferred = requested ?: visible.firstOrNull { it.listsComponents }
+    return TabState(items = visible, selectedItem = preferred?.takeIf { it in visible } ?: AppDetailTabs.Info, itemCount = counts)
 }

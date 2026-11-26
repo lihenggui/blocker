@@ -74,7 +74,7 @@ private fun readyOverview(
         rows += WakeAppRow(
             packageName = summary.packageName,
             label = app.label,
-            icon = ApkIcon(summary.packageName, app.apkPath, app.versionCode, app.uid),
+            icon = app.wakeIcon(),
             headline = summary.headline,
         )
     }
@@ -88,3 +88,5 @@ private fun readyOverview(
         checking = checking,
     )
 }
+
+internal fun InstalledApp.wakeIcon() = ApkIcon(key.packageName, apkPath, versionCode, uid)

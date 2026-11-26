@@ -44,6 +44,7 @@ import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.component.ComponentRow
 import com.merxury.blocker.core.ui.component.toRow
+import com.merxury.blocker.feature.appdetail.api.navigation.FIRST_COMPONENT_TAB
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -102,7 +103,7 @@ class ComponentListViewModel @AssistedInject constructor(
 
     /** The current field text. Null when component search is closed. */
     val searchQuery: StateFlow<String?> = typedQuery.asStateFlow()
-    private val requestedTab = MutableStateFlow(tabOf(tab))
+    private val requestedTab = MutableStateFlow(if (tab == FIRST_COMPONENT_TAB) null else tabOf(tab))
     private val selection = MutableStateFlow(Selection())
     private val refresh = MutableStateFlow<RefreshStatus?>(null)
 
