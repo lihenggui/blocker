@@ -4,6 +4,7 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.os.Build
@@ -423,6 +424,20 @@ class WakeBlockRepositoryTest {
         assertThat(row.method).isEqualTo(COMPONENT)
         assertThat(row.component).isNull()
         assertThat(row.action).isEqualTo(ACTION)
+        assertThat(writer.userWrites).isEmpty()
+    }
+
+    @Test fun givenThePackageActionResolvesOneReceiver_whenChangingThePath_thenOnlyThatReceiverIsChanged() = runTest {
+        val repository = repository()
+        val action = Intent.ACTION_PACKAGE_ADDED
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        receivers.matches[TARGET to action] = listOf(receiver)
+        receivers.matches[TARGET to Intent.ACTION_PACKAGE_REMOVED] = listOf(declaration(OTHER_RECEIVER, ComponentType.RECEIVER))
+        val path = actionPath("package-added").copy(action = action)
+
+        assertThat(repository.block(listOf(path to COMPONENT)).done).containsExactly(path.pathKey)
+        assertThat(repository.unblockPaths(listOf(path)).done).containsExactly(path.pathKey)
+        assertThat(components.requests.map { it.components }).containsExactly(listOf(receiver), listOf(receiver))
         assertThat(writer.userWrites).isEmpty()
     }
 
