@@ -4,6 +4,7 @@
 package com.merxury.blocker.core.privileged.wake
 
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.wake.WakeObservation
 import org.junit.Test
 
 class WakeSystemEvidenceTest {
@@ -216,6 +217,27 @@ class WakeSystemEvidenceTest {
             val dump = "players:\n  ID:124 -- u/pid:10124/457 state:started\n$row"
             assertThat(WakeSystemEvidence.snapshot(WakeCommand.AUDIO, dump, 8)).isEmpty()
         }
+    }
+
+    @Test fun givenLegacyAlarmDump_whenParsing_thenThePendingAlarmIsCaptured() {
+        val dump = """
+            Current Alarm Manager state:
+              Pending alarm batches: 1
+                RTC_WAKEUP #0: Alarm{123 type 0 when 1533371951093 example.app}
+                  operation=PendingIntent{abc: PendingIntentRecord{beef example.app broadcastIntent}}
+        """.trimIndent()
+
+        val alarm = WakeSystemEvidence.snapshot(WakeCommand.ALARMS, dump, 7).single()
+
+        assertThat(alarm.kind).isEqualTo("PendingAlarm")
+        assertThat(alarm.callerPackage).isEqualTo("example.app")
+        assertThat(alarm.attributes).containsExactly("record", "beef", "creator_package", "example.app")
+    }
+
+    @Test fun givenRecognizedEmptyAlarmDump_whenParsing_thenAnEmptySnapshotSupersedesOlderAlarms() {
+        val dump = "Current Alarm Manager state:\n  Pending alarm batches: 0"
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.ALARMS, dump, 7)).containsExactly(WakeObservation("PendingAlarm", 7))
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.ALARMS, "alarm service unavailable", 7)).isEmpty()
     }
 
     @Test fun givenRoleAndJobDumps_whenDispatchingSnapshots_thenEachParserUsesOnlyItsOwnFields() {

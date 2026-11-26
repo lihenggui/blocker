@@ -419,11 +419,17 @@ internal object WakeSystemEvidence {
         }
     }
 
+    private val alarmSnapshotHeaders = listOf("Alarm Manager", "Pending alarm batches", "Next wake from idle", "Pending intent")
+
+    // ICU, which backs java.util.regex on Android, rejects an unescaped closing brace.
+    private val pendingAlarmHost = Regex("""(?:whenElapsed|when)\s+\d+\s+([\w.]+)\}""")
+
     private fun pendingAlarms(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
         var host: String? = null
+        var sawAlarmHeader = false
         for (text in lines) {
-            // ICU, which backs java.util.regex on Android, rejects an unescaped closing brace.
-            if ("Alarm{" in text) host = Regex("""whenElapsed\s+\d+\s+([\w.]+)\}""").find(text)?.groupValues?.get(1)
+            if (alarmSnapshotHeaders.any { text.contains(it, ignoreCase = true) }) sawAlarmHeader = true
+            if ("Alarm{" in text) host = pendingAlarmHost.find(text)?.groupValues?.get(1)
             if (text.startsWith("operation=") && host != null) {
                 val operation = pendingRecord.find(text)
                 this += WakeObservation(
@@ -435,6 +441,7 @@ internal object WakeSystemEvidence {
                 host = null
             }
         }
+        if (isEmpty() && sawAlarmHeader) add(WakeObservation("PendingAlarm", now))
     }
 
     private fun companionAssociations(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {

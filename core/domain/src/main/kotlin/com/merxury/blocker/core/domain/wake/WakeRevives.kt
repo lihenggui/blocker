@@ -23,6 +23,18 @@ import com.merxury.blocker.core.privileged.wake.WAKE_START_INFO_SLEEP
  */
 internal data class Detected(val finding: WakeFinding, val screenOffNanos: Long = 0, val root: WakeFinding? = null)
 
+internal data class WakeTrigger(
+    val trigger: ReviveTrigger,
+    val confidence: Confidence,
+    val actor: String? = null,
+    val detail: String? = null,
+    val actorInBackground: Boolean? = null,
+    // The joined cold-start request this classification came from. It can take part in a chain.
+    val requestId: String? = null,
+)
+
+internal data class ReviveResult(val detected: List<Detected>, val claimedRequestIds: Set<String>)
+
 /** One cold start, merged from every source that reported it. */
 internal class ColdStart(val boot: String, val uid: Int, var process: String?, var elapsed: Long) {
     var info: WakeRecord? = null
@@ -48,6 +60,7 @@ internal object WakeRevives {
     const val JOIN_WINDOW = 5_000_000_000L
     const val KILL_WINDOW = 600_000_000_000L
     const val PRODUCTIVE_WINDOW = 10_000_000_000L
+    private const val EARLY_BOOT_WINDOW = 180_000_000_000L
 
     // Continuations are ordered in time, so a longer walk means corrupt links rather than a real chain.
     const val MAX_CHAIN_DEPTH = 8
@@ -87,19 +100,6 @@ internal object WakeRevives {
         "ProviderAcquisitionEventReported" to "client_process_state",
     )
 
-    // NotificationRecordLogger.NotificationReportedEvent: POSTED and UPDATED. ADJUSTED comes from the assistant.
-    private val appNotificationEvents = setOf(162L, 163L)
-
-    private data class Trigger(
-        val trigger: ReviveTrigger,
-        val confidence: Confidence,
-        val actor: String? = null,
-        val detail: String? = null,
-        val actorInBackground: Boolean? = null,
-        // The joined request this classification came from. Only such revives take part in chains.
-        val requestId: String? = null,
-    )
-
     fun coldStarts(index: WakeEvidenceIndex): List<ColdStart> = with(index) {
         val starts = mutableMapOf<Pair<String, Int>, MutableList<ColdStart>>()
         val events = kind("am_proc_start").filter { it.source == SYSTEM_WAKE_EVENTS }
@@ -121,7 +121,7 @@ internal object WakeRevives {
         for (record in kind("ProcessStartTime").filter { it.source == "statsd" && it.startType != 1 && it.startType != 2 }) {
             val uid = record.targetUid?.takeIf(::isRegularAppUid) ?: continue
             if (record.number("hosting_type_id") == ZYGOTE_HOSTING_TYPE_ID) continue
-            val actual = record.number("process_start_time_millis")?.takeIf { it >= 0 }?.times(1_000_000) ?: record.elapsedNanos
+            val actual = record.processStartElapsed()
             fun near(time: Long) = kotlin.math.abs(time - actual) <= MERGE_WINDOW
             if (isolatedPids[record.boot to record.pid].orEmpty().any(::near)) continue
             val group = starts.getOrPut(record.boot to uid) { mutableListOf() }
@@ -176,7 +176,13 @@ internal object WakeRevives {
         }
     }
 
-    fun detect(index: WakeEvidenceIndex): List<Detected> = chain(classify(index), index.evidence.continuations)
+    fun detect(index: WakeEvidenceIndex, coldStarts: List<ColdStart>): ReviveResult {
+        val classified = classify(index, coldStarts)
+        return ReviveResult(
+            chain(classified, index.evidence.continuations),
+            classified.mapNotNullTo(mutableSetOf()) { it.second },
+        )
+    }
 
     private fun WakeEvidenceIndex.userVisibleActivity(
         record: WakeRecord,
@@ -208,14 +214,14 @@ internal object WakeRevives {
         component: String?,
         request: WakeRecord?,
         bal: WakeRecord?,
-    ): Trigger {
+    ): WakeTrigger {
         val uid = bal?.balEffectiveCallerUid() ?: request?.callerUid?.takeIf(::isApp)
         val pkg = packageOf(uid)
             ?: bal?.callerPackage?.takeIf { bal.callerUid == uid }
             ?: request?.callerPackage?.takeIf { bal == null || request.callerUid == uid }
         val self = uid == start.uid || pkg == target || (uid == null && pkg == null)
         // Keep the activity type for component blocking even when the app started itself.
-        return Trigger(
+        return WakeTrigger(
             ReviveTrigger.PEER_ACTIVITY,
             if (self && bal == null) Confidence.DIRECT else Confidence.JOINED,
             if (self) target else pkg ?: uid.toString(),
@@ -255,8 +261,7 @@ internal object WakeRevives {
         }
     }
 
-    private fun classify(index: WakeEvidenceIndex): List<Pair<Detected, String?>> = with(index) {
-        val starts = coldStarts(index)
+    private fun classify(index: WakeEvidenceIndex, coldStarts: List<ColdStart>): List<Pair<Detected, String?>> = with(index) {
         val requestsByStart = evidence.relations.groupBy({ it.processId }, { byId[it.requestId] }).mapValues { it.value.filterNotNull() }
         fun requestFor(start: ColdStart) = start.stats?.let { requestsByStart[it.id] }?.singleOrNull { it.kind in peerTriggers }
         fun callerOf(request: WakeRecord?) = request?.let { it.callerPackage ?: packageOf(it.callerUid) }
@@ -266,14 +271,9 @@ internal object WakeRevives {
         fun isLauncherStart(start: ColdStart, request: WakeRecord?) = start.info?.attr("reason") in launcherReasons ||
             request?.number("source_type") == SOURCE_TYPE_LAUNCHER || isLauncher(callerOf(request))
 
-        val coldActivityTimes = starts.filter { isActivity(it) && !isLauncherStart(it, requestFor(it)) }
+        val coldActivityTimes = coldStarts.filter { isActivity(it) && !isLauncherStart(it, requestFor(it)) }
             .groupBy({ it.boot }, { it.elapsed })
         val restarts = kind("am_schedule_service_restart").filter { it.source == SYSTEM_WAKE_EVENTS }.groupBy { it.boot }
-        val jobs = byUid("ScheduledJobStateChanged") { record -> record.chainUid().takeIf { record.number("state") == 1L } }
-        val syncs = byUid("SyncStateChanged") { record -> record.chainUid().takeIf { record.number("state") == 1L } }
-        val wakeups = byUid("WakeupAlarmOccurred") { it.chainUid() }
-        val batches = kind("AlarmBatchDelivered").groupBy { it.boot }
-        val notifications = byUid("NotificationReported") { record -> record.targetUid.takeIf { record.number("event_id") in appNotificationEvents } }
         // An activity launch, or any start record of the uid hosting an activity.
         val shown = (
             kind("AppStartOccurred") +
@@ -289,7 +289,7 @@ internal object WakeRevives {
         val kills = kind("am_kill").filter { it.source == SYSTEM_WAKE_EVENTS }.groupBy { Triple(it.boot, it.attr("user")?.toIntOrNull(), it.processName) }
         val deaths = kind("AppProcessDied").groupBy { Triple(it.boot, it.targetUid, it.processName) }
 
-        starts.mapNotNull { start ->
+        coldStarts.mapNotNull { start ->
             val reference = start.reference
             val request = requestFor(start)
             val target = target(start, request) ?: return@mapNotNull null
@@ -309,37 +309,24 @@ internal object WakeRevives {
                 null
             }
             val stealthActivity = activity && (isScreenOff(start.boot, start.elapsed) || bal != null)
-            val window = (start.elapsed - JOIN_WINDOW)..(start.elapsed + JOIN_WINDOW)
+            fun correlated() = scheduledWake(start.boot, start.uid, target, start.elapsed, component)
 
-            fun correlated(): Trigger? {
-                val key = start.boot to start.uid
-                jobs[key]?.lastOrNull { it.elapsedNanos in window }?.let {
-                    return Trigger(ReviveTrigger.JOB, Confidence.JOINED, "android", component ?: it.attr("job_name"))
-                }
-                syncs[key]?.lastOrNull { it.elapsedNanos in window }?.let { return Trigger(ReviveTrigger.SYNC, Confidence.JOINED, "android", component) }
-                wakeups[key]?.lastOrNull { it.elapsedNanos in window }?.let { return Trigger(ReviveTrigger.ALARM, Confidence.JOINED, "android", it.attr("tag")) }
-                batches[start.boot]?.lastOrNull { batch ->
-                    batch.elapsedNanos in window && batch.attr("uids")?.split(',')?.any { it.toIntOrNull() == start.uid } == true
-                }?.let { return Trigger(ReviveTrigger.ALARM, Confidence.JOINED, "android", component) }
-                return null
-            }
-
-            fun systemCaller(request: WakeRecord): Trigger = when (request.kind) {
-                "BroadcastDeliveryEventReported" -> Trigger(ReviveTrigger.SYSTEM_BROADCAST, Confidence.JOINED, "android", request.action)
+            fun systemCaller(request: WakeRecord): WakeTrigger = when (request.kind) {
+                "BroadcastDeliveryEventReported" -> WakeTrigger(ReviveTrigger.SYSTEM_BROADCAST, Confidence.JOINED, "android", request.action)
 
                 "ServiceRequestEventReported" -> if (grantedSpecialAccess(target, component)) {
-                    Trigger(ReviveTrigger.SYSTEM_BIND, Confidence.JOINED, "android", component)
+                    WakeTrigger(ReviveTrigger.SYSTEM_BIND, Confidence.JOINED, "android", component)
                 } else {
-                    correlated() ?: Trigger(ReviveTrigger.UNKNOWN, Confidence.JOINED, "android", component)
+                    correlated() ?: WakeTrigger(ReviveTrigger.UNKNOWN, Confidence.JOINED, "android", component)
                 }
 
-                else -> correlated() ?: Trigger(ReviveTrigger.UNKNOWN, Confidence.JOINED, "android", component ?: request.action)
+                else -> correlated() ?: WakeTrigger(ReviveTrigger.UNKNOWN, Confidence.JOINED, "android", component ?: request.action)
             }
 
-            fun joined(request: WakeRecord): Trigger {
+            fun joined(request: WakeRecord): WakeTrigger {
                 val caller = request.callerUid
                 return when {
-                    (caller != null && caller == start.uid) || (caller == null && request.callerPackage == target) -> Trigger(
+                    (caller != null && caller == start.uid) || (caller == null && request.callerPackage == target) -> WakeTrigger(
                         ReviveTrigger.SELF_PROCESS,
                         Confidence.JOINED,
                         target,
@@ -351,12 +338,12 @@ internal object WakeRevives {
                         val namedComponent = (component ?: qualifiedWakeComponent(target, request.component))?.let { "$target/$it" }
                         val pushAction = request.action ?: action
                         val detail = if (request.kind == "BroadcastDeliveryEventReported") pushAction ?: namedComponent else namedComponent ?: pushAction
-                        Trigger(ReviveTrigger.PUSH_TRANSPORT, Confidence.JOINED, callerPackage, detail)
+                        WakeTrigger(ReviveTrigger.PUSH_TRANSPORT, Confidence.JOINED, callerPackage, detail)
                     }
 
                     caller != null && !isApp(caller) -> systemCaller(request)
 
-                    caller != null || request.callerPackage != null -> Trigger(
+                    caller != null || request.callerPackage != null -> WakeTrigger(
                         peerTriggers.getValue(request.kind),
                         Confidence.JOINED,
                         callerPackage ?: caller.toString(),
@@ -364,7 +351,7 @@ internal object WakeRevives {
                         requesterInBackground(requesterState[request.kind]?.let { request.number(it)?.toInt() }),
                     )
 
-                    else -> correlated() ?: Trigger(ReviveTrigger.UNKNOWN, Confidence.JOINED, null, component ?: action)
+                    else -> correlated() ?: WakeTrigger(ReviveTrigger.UNKNOWN, Confidence.JOINED, null, component ?: action)
                 }.copy(requestId = request.id)
             }
 
@@ -375,11 +362,11 @@ internal object WakeRevives {
                     qualifiedWakeComponent(target, schedule.component) == component
             }
             val classified = when {
-                restart != null -> Trigger(ReviveTrigger.STICKY_RESTART, Confidence.JOINED, target, component)
+                restart != null -> WakeTrigger(ReviveTrigger.STICKY_RESTART, Confidence.JOINED, target, component)
 
                 stealthActivity -> stealthActivityTrigger(start, target, component, request, bal)
 
-                activity -> Trigger(
+                activity -> WakeTrigger(
                     ReviveTrigger.PEER_ACTIVITY,
                     Confidence.DIRECT,
                     request?.let { it.callerPackage ?: packageOf(it.callerUid) ?: it.callerUid?.toString() },
@@ -390,14 +377,14 @@ internal object WakeRevives {
                 (reason == "PUSH" || statsTrigger == ReviveTrigger.PUSH_TRANSPORT) && request != null &&
                     WakePushTransports.matches(callerPackage, request.action) -> joined(request)
 
-                reason in directReasons -> Trigger(
+                reason in directReasons -> WakeTrigger(
                     directReasons.getValue(reason!!),
                     Confidence.DIRECT,
                     if (reason == "BOOT COMPLETE") "android" else null,
                     if (reason == "BOOT COMPLETE") action ?: "android.intent.action.BOOT_COMPLETED" else component ?: action,
                 )
 
-                statsTrigger != null -> Trigger(
+                statsTrigger != null -> WakeTrigger(
                     statsTrigger,
                     Confidence.DIRECT,
                     null,
@@ -406,23 +393,24 @@ internal object WakeRevives {
 
                 // Only the holder of com.google.android.c2dm.permission.SEND can deliver this action to an FCM receiver.
                 WakePushTransports.matches(GMS, action) && request == null ->
-                    Trigger(ReviveTrigger.PUSH_TRANSPORT, Confidence.DIRECT, GMS, action)
+                    WakeTrigger(ReviveTrigger.PUSH_TRANSPORT, Confidence.DIRECT, GMS, action)
 
                 request != null -> joined(request)
 
                 reason == "SERVICE" && grantedSpecialAccess(target, component) ->
-                    Trigger(ReviveTrigger.SYSTEM_BIND, Confidence.SNAPSHOT, "android", component)
+                    WakeTrigger(ReviveTrigger.SYSTEM_BIND, Confidence.SNAPSHOT, "android", component)
 
                 // Only the platform may send a protected broadcast (`dumpsys package protected-broadcasts`).
                 reason == "BROADCAST" && start.info?.attr("protected_broadcast") == "true" && action != null ->
-                    Trigger(ReviveTrigger.SYSTEM_BROADCAST, Confidence.DIRECT, "android", action)
+                    WakeTrigger(ReviveTrigger.SYSTEM_BROADCAST, Confidence.DIRECT, "android", action)
 
-                else -> correlated() ?: Trigger(
-                    ReviveTrigger.UNKNOWN,
-                    Confidence.DIRECT,
-                    null,
-                    if (reason == "BROADCAST" || start.event?.attr("hosting_type") == "broadcast") action ?: component else component ?: action,
-                )
+                else -> correlated() ?: fallback(start, target, component, action, reason)
+            }.let { cause ->
+                if (cause.trigger == ReviveTrigger.ALARM && cause.confidence == Confidence.DIRECT) {
+                    alarmWake(start.boot, start.uid, target, start.elapsed, component, direct = cause) ?: cause
+                } else {
+                    cause
+                }
             }
 
             // A process started by another process of the same app while that one is visible is not a revive.
@@ -436,7 +424,7 @@ internal object WakeRevives {
             val justification = when {
                 userInitiated -> Justification.USER_INITIATED
                 classified.trigger == ReviveTrigger.SYSTEM_BIND && grantedSpecialAccess(target, component) -> Justification.USER_GRANTED_ROLE
-                within(notifications[start.boot to start.uid], start.elapsed, after).isNotEmpty() -> Justification.PRODUCTIVE
+                postedNotification(start.boot, start.uid, target, start.elapsed) -> Justification.PRODUCTIVE
                 else -> Justification.NONE
             }
             val killWindow = (start.elapsed - KILL_WINDOW) until start.elapsed
@@ -455,6 +443,26 @@ internal object WakeRevives {
                     killed, justification, classified.confidence, startWall,
                 ),
             ) to classified.requestId
+        }
+    }
+
+    private fun WakeEvidenceIndex.fallback(start: ColdStart, target: String, component: String?, action: String?, reason: String?): WakeTrigger {
+        val hosting = start.event?.attr("hosting_type")
+        val broadcast = hosting == "broadcast" || reason == "BROADCAST"
+        val named = component?.let { "$target/$it" }
+        return when {
+            broadcast && named != null -> WakeTrigger(
+                ReviveTrigger.SYSTEM_BROADCAST,
+                Confidence.SNAPSHOT,
+                "android".takeIf { start.elapsed <= EARLY_BOOT_WINDOW },
+                named,
+            )
+
+            hosting == "content provider" && named != null -> WakeTrigger(ReviveTrigger.PEER_PROVIDER, Confidence.SNAPSHOT, detail = named)
+
+            hosting == "service" && named != null -> WakeTrigger(ReviveTrigger.UNKNOWN, Confidence.DIRECT, detail = named)
+
+            else -> WakeTrigger(ReviveTrigger.UNKNOWN, Confidence.DIRECT, detail = if (broadcast) action ?: component else component ?: action)
         }
     }
 }

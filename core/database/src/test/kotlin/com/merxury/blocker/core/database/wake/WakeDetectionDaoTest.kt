@@ -130,6 +130,17 @@ class WakeDetectionDaoTest {
         assertThat(dao.detectionRecords(5_000).map { it.kind }).containsExactlyElementsIn(kinds).inOrder()
     }
 
+    @Test fun givenWarmWakeAndAlarmEvidence_whenQueryingDetectionRecords_thenOnlyInWindowRowsAreIncluded() = runTest {
+        val kinds = listOf("am_proc_died", "AppFreezeChanged", "AlarmScheduled", "PendingAlarm", "PendingIntentRegistration")
+        val records = kinds.mapIndexed { index, kind ->
+            WakeRecord(kind, "7", index.toLong(), 5_000, "source", kind, null, null, null, null, null, null, null, null, null, "{}")
+        }
+        val older = records.map { it.copy(id = "old-${it.id}", wallMillis = 4_999) }
+        db.history().importRecords(records.reversed() + older, 0)
+
+        assertThat(dao.detectionRecords(5_000)).containsExactlyElementsIn(records).inOrder()
+    }
+
     private fun finding(day: Long, id: String = "f$day", target: String = "pkg", actor: String? = null) = WakeFindingDay(id, day, target, "UNKNOWN|${actor.orEmpty()}|$target|", "UNKNOWN", null, actor, null, null, null, "NONE", "DIRECT", null, 0, 1, 0, 0, day, 0)
 
     private fun verdict(day: Long) = WakeVerdictDay(day, "pkg", "NORMAL", 1, 1, 0, 0, 0, 0, 0, 0)
