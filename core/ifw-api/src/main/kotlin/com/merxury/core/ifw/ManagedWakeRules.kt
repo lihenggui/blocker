@@ -20,6 +20,7 @@ import java.io.File
 import javax.inject.Inject
 
 private const val AUTOMATIC_FILE = "blocker-managed-wake"
+private const val USER_FILE = "blocker-user-wake"
 private const val PROBE_FILE = "blocker-wake-capability-probe"
 data class WakeServiceFilter(val caller: String, val target: String, val service: String, val action: String)
 
@@ -39,8 +40,11 @@ interface WakeRuleWriter {
     /** Replaces the [kind] file with [xml], or deletes it when [xml] is null. */
     suspend fun write(kind: WakeRuleFileKind, xml: String?)
 
-    /** Removes the rules for [packageName] from the managed file, or both files when null. */
+    /** Removes the rules for [packageName] from the managed and user files, or deletes all files when null. */
     suspend fun reset(packageName: String?)
+
+    /** Removes [packageName] from the given wake rule file. */
+    suspend fun removeTarget(kind: WakeRuleFileKind, packageName: String)
 }
 
 class ManagedWakeRules @Inject constructor(
@@ -48,6 +52,8 @@ class ManagedWakeRules @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
     suspend fun reset(packageName: String?) = writer.reset(packageName)
+
+    suspend fun removeTarget(packageName: String) = writer.removeTarget(WakeRuleFileKind.MANAGED, packageName)
 
     suspend fun supportsPeerFilter(): Boolean = testPeerFilter(context, writer)
 
@@ -68,23 +74,27 @@ internal fun renderWakeRules(paths: Collection<WakeServiceFilter>, forcePackageF
             filters = listOf(
                 IfwFilter.ComponentFilter("${it.target}/${it.service}"),
                 IfwFilter.Action(if (it.action.isEmpty()) StringMatcher.IsNull(true) else StringMatcher.Equals(it.action)),
-            ) + if (it.caller == it.target && !forcePackageFilter) {
-                listOf(IfwFilter.Sender(SenderType.USER_ID), IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM)))
-            } else {
-                listOf(IfwFilter.SenderPackage(it.caller))
-            },
+            ) + wakeSenderFilters(it.caller, it.target, forcePackageFilter),
         )
     }
     return if (rules.isEmpty()) null else IfwXmlSerializer().serialize(IfwRules(rules))
 }
 
-/** The two Intent Firewall files the wake feature owns per installation, kept outside `IfwStore`. */
+internal fun wakeSenderFilters(sender: String, target: String, forcePackageFilter: Boolean = false): List<IfwFilter> = when {
+    sender == target && !forcePackageFilter -> listOf(IfwFilter.Sender(SenderType.USER_ID), IfwFilter.Not(IfwFilter.Sender(SenderType.SYSTEM)))
+    else -> listOf(IfwFilter.SenderPackage(sender))
+}
+
+/** The Intent Firewall files the wake feature owns per installation, kept outside `IfwStore`. */
 enum class WakeRuleFileKind {
     /** The rules the wake feature applies. */
     MANAGED,
 
     /** The temporary rule that tests whether the system honours a sender package filter. */
     PROBE,
+
+    /** The rules the user chose for individual wake paths. */
+    USER,
 }
 
 /**
@@ -98,6 +108,7 @@ fun wakeRuleFileName(owner: String, kind: WakeRuleFileKind): String {
     val base = when (kind) {
         WakeRuleFileKind.MANAGED -> AUTOMATIC_FILE
         WakeRuleFileKind.PROBE -> PROBE_FILE
+        WakeRuleFileKind.USER -> USER_FILE
     }
     // Keep the production file name across upgrades. Other installations own separate files.
     return if (owner == "com.merxury.blocker") base else "$base-$owner"
@@ -108,12 +119,14 @@ private val PACKAGE_NAME = Regex("""[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+""")
 /** Whether [name] is a package name as the wake rule files accept it, for an owner or a target. */
 fun isWakePackageName(name: String): Boolean = name.matches(PACKAGE_NAME)
 
-internal fun isManagedWakeName(name: String): Boolean = name == AUTOMATIC_FILE || name == PROBE_FILE || name.startsWith("$AUTOMATIC_FILE-") || name.startsWith("$PROBE_FILE-")
+internal fun isManagedWakeName(name: String): Boolean = listOf(AUTOMATIC_FILE, PROBE_FILE, USER_FILE).any { name == it || name.startsWith("$it-") }
 
 internal fun withoutWakePackage(xml: String, target: String): String? {
     val original = IfwXmlDeserializer().deserialize(xml)
     val remaining = original.rules.filterNot { rule ->
-        rule.filters.filterIsInstance<IfwFilter.ComponentFilter>().singleOrNull()?.name?.substringBefore('/') == target
+        rule.filters.any { filter ->
+            filter is IfwFilter.ComponentFilter && filter.name.substringBefore('/') == target
+        }
     }
     if (remaining.size == original.rules.size) return xml
     return if (remaining.isEmpty()) null else IfwXmlSerializer().serialize(IfwRules(remaining))
@@ -136,7 +149,7 @@ fun writeWakeRuleFile(owner: String, kind: WakeRuleFileKind, xml: String?, direc
 }
 
 /**
- * Removes the rules for services of package [target] from [owner]'s [kind] file in [directory],
+ * Removes the rules for package [target] from [owner]'s [kind] file in [directory],
  * and the file once no rule is left. A missing file, or one without such rules, stays as it is.
  */
 fun removeWakeRuleTarget(owner: String, kind: WakeRuleFileKind, target: String, directory: File = File(IfwStorageUtils.ifwFolder)) {

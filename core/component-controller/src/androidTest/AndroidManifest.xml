@@ -5,6 +5,10 @@
             android:name="com.merxury.blocker.core.privileged.wake.WakeFixtureService"
             android:exported="false"
             android:process=":wake_fixture" />
+        <service
+            android:name="com.merxury.blocker.core.privileged.wake.UserWakeFixtureService"
+            android:exported="true"
+            tools:ignore="ExportedService" />
         <activity
             android:name="com.merxury.blocker.core.privileged.IfwFixtureActivity"
             android:exported="true" />

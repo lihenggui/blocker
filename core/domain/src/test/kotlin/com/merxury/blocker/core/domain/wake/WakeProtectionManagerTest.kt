@@ -7,11 +7,14 @@ import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
+import com.merxury.blocker.core.data.wake.UserWakeFirewall
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.data.wake.WakeImport
 import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
+import com.merxury.blocker.core.data.wake.WakeRuleLock
+import com.merxury.blocker.core.data.wake.WakeWrites
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
@@ -30,14 +33,17 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import java.io.IOException
 import kotlin.coroutines.startCoroutine
 
 class WakeProtectionManagerTest {
@@ -48,9 +54,13 @@ class WakeProtectionManagerTest {
     private val components = mock<ManagedComponentState>()
     private val channel = FakePrivilegedChannel()
     private val userBlocks = FakePmBlockRecordDao()
+    private val lock = WakeRuleLock()
+    private val userFirewall = mock<UserWakeFirewall>()
+    private val protection = WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, PmBlockRecords(userBlocks), userFirewall, lock)
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, PmBlockRecords(userBlocks)),
+        protection,
+        lock,
         StandardTestDispatcher(testScheduler),
     )
     private val path = WakeProtection(
@@ -360,8 +370,8 @@ class WakeProtectionManagerTest {
 
         assertThat(manager.reconcile()).isFalse()
 
-        verify(rules).reset(stale.target)
-        verify(rules, never()).reset(current.target)
+        verify(rules).removeTarget(stale.target)
+        verify(rules, never()).removeTarget(current.target)
         verify(repository).saveProtections(listOf(stale.copy(configured = false)))
         verify(repository, never()).resetFirewall(any())
     }
@@ -374,6 +384,25 @@ class WakeProtectionManagerTest {
         order.verify(repository).saveDetection(any(), any(), any(), any(), any())
         order.verify(rules).replace(emptyList())
         verify(repository).reportStatus(argThat { source == "detection" && status == "OK" })
+    }
+
+    @Test fun givenUserFirewallWriteFailure_whenReconciling_thenProtectionContinuesAndTheNextRunRetries() = runTest {
+        authorizedWith()
+        val candidate = path.copy(caller = "target", method = "IFW", pendingChange = false, previousState = null)
+        whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(candidate))
+        val failingProtection = spy(protection)
+        val manager = WakeProtectionManager(repository, failingProtection, lock, StandardTestDispatcher(testScheduler))
+        doAnswer { throw IOException("cannot write user rules") }.doCallRealMethod().whenever(failingProtection).syncUserFirewallRules(WakeWrites.Enforce)
+
+        assertThat(manager.reconcile()).isTrue()
+        verify(repository).reportStatus(argThat { source == "user firewall" && status == "cannot write user rules" })
+        verify(repository).collect(any(), eq(PrivilegedIdentity.ROOT))
+        verify(repository).saveDetection(any(), any(), any(), any(), any())
+        verify(rules).replace(argThat { single().service == "target.Wake" })
+
+        assertThat(manager.reconcile()).isTrue()
+        verify(failingProtection, times(2)).syncUserFirewallRules(WakeWrites.Enforce)
+        verify(repository).reportStatus(argThat { source == "user firewall" && status == "OK" })
     }
 
     @Test fun givenDetectionFailure_whenReconciling_thenItIsReportedAndEnforcementContinues() = runTest {

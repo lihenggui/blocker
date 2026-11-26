@@ -127,11 +127,11 @@ class WakeReadModelTest {
         val none = WakeBlockMethod.NONE
         val revives = listOf(
             revive(ReviveTrigger.PEER_SERVICE, actor = PEER, detail = ".Service") to firewall,
-            revive(ReviveTrigger.PEER_BROADCAST, actor = PEER, detail = "test.BOOT") to firewall,
-            revive(ReviveTrigger.PEER_BROADCAST, actor = PEER, detail = "$APP/.Receiver") to firewall,
-            revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "test.BOOT") to firewall,
+            revive(ReviveTrigger.PEER_BROADCAST, actor = PEER, detail = "test.BOOT") to component,
+            revive(ReviveTrigger.PEER_BROADCAST, actor = PEER, detail = "$APP/.Receiver") to component,
+            revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "test.BOOT") to component,
             revive(ReviveTrigger.SELF_PROCESS, actor = APP, detail = ".Service") to firewall,
-            revive(ReviveTrigger.SELF_PROCESS, actor = APP, detail = "custom/WAKE") to firewall,
+            revive(ReviveTrigger.SELF_PROCESS, actor = APP, detail = "custom/WAKE") to component,
             revive(ReviveTrigger.PEER_PROVIDER, actor = PEER, detail = ".Provider") to component,
             revive(ReviveTrigger.STICKY_RESTART, detail = ".Service") to component,
             revive(ReviveTrigger.ALARM) to background,
@@ -143,7 +143,7 @@ class WakeReadModelTest {
             revive(ReviveTrigger.PEER_BROADCAST, actor = PEER) to none,
             revive(ReviveTrigger.PEER_PROVIDER, actor = PEER) to none,
             revive(ReviveTrigger.STICKY_RESTART) to none,
-            revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "$APP/.Receiver") to none,
+            revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "$APP/.Receiver") to component,
             revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android") to none,
             revive(ReviveTrigger.SELF_PROCESS, actor = APP) to none,
             revive(ReviveTrigger.UNKNOWN, afterKill = "empty") to none,
@@ -155,7 +155,7 @@ class WakeReadModelTest {
             hold(HoldCause.FOREGROUND_SERVICE, screenOff = 2) to background,
             hold(HoldCause.WAKELOCK, screenOff = 2) to background,
             hold(HoldCause.RUNNING_JOB, screenOff = 2) to background,
-            hold(HoldCause.BOUND_BY_PEER, actor = APP, detail = ".Service", screenOff = 2) to none,
+            hold(HoldCause.BOUND_BY_PEER, actor = APP, detail = ".Service", screenOff = 2) to firewall,
             hold(HoldCause.BOUND_BY_PEER, actor = PEER) to none,
             hold(HoldCause.PROVIDER_CLIENT, actor = PEER) to none,
         )
@@ -165,6 +165,14 @@ class WakeReadModelTest {
             val paths = result.own.flatMap { it.paths } + result.peers.flatMap { it.inbound }
             assertThat(paths.single().blockMethod).isEqualTo(expected)
         }
+    }
+
+    @Test fun givenNamedPeerServiceAndNonAppActor_whenMappingWakePath_thenNoBlockMethodIsOffered() {
+        val actorsWithoutAPackage = listOf(null, "android", "10035")
+        val paths = actorsWithoutAPackage.map { actor -> revive(ReviveTrigger.PEER_SERVICE, actor = actor, detail = ".Service").toWakePath() }
+
+        assertThat(paths.map { it.component }).containsExactlyElementsIn(actorsWithoutAPackage.map { "$APP.Service" })
+        assertThat(paths.map { it.blockMethod }.toSet()).containsExactly(WakeBlockMethod.NONE)
     }
 
     @Test fun givenComponentAndBroadcastDetails_whenBuildingActivity_thenTheyRetainTheirTypesAndIdentities() {

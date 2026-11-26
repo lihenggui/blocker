@@ -182,7 +182,8 @@ private fun String?.isAppPackage(): Boolean = this != null && isNotBlank() && th
 private val WakePath.isPeerPath get() =
     (trigger in peerTriggers || hold in peerHolds) && actor != target && actor.isAppPackage() && target.isAppPackage()
 
-private fun WakeFindingDay.toWakePath(): WakePath {
+/** Maps a stored detection finding to a wake path and its available block method. */
+internal fun WakeFindingDay.toWakePath(): WakePath {
     val trigger = trigger?.let(ReviveTrigger::valueOf)
     val hold = hold?.let(HoldCause::valueOf)
     val broadcast = trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST
@@ -219,15 +220,16 @@ private fun WakeFindingDay.toWakePath(): WakePath {
 }
 
 private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?, component: String?, action: String?): WakeBlockMethod = when {
-    trigger == ReviveTrigger.PEER_SERVICE && component != null -> WakeBlockMethod.FIREWALL_RULE
+    trigger == ReviveTrigger.PEER_SERVICE && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
-    hold == HoldCause.BOUND_BY_PEER && actor != target && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
+    hold == HoldCause.BOUND_BY_PEER && actor.isAppPackage() && component != null -> WakeBlockMethod.FIREWALL_RULE
 
-    trigger == ReviveTrigger.PEER_BROADCAST && (action != null || component != null) -> WakeBlockMethod.FIREWALL_RULE
+    (trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST) &&
+        (component != null || action != null) -> WakeBlockMethod.COMPONENT
 
-    trigger == ReviveTrigger.SYSTEM_BROADCAST && action != null -> WakeBlockMethod.FIREWALL_RULE
+    trigger == ReviveTrigger.SELF_PROCESS && component != null -> WakeBlockMethod.FIREWALL_RULE
 
-    trigger == ReviveTrigger.SELF_PROCESS && (component != null || action != null) -> WakeBlockMethod.FIREWALL_RULE
+    trigger == ReviveTrigger.SELF_PROCESS && action != null -> WakeBlockMethod.COMPONENT
 
     (trigger == ReviveTrigger.PEER_PROVIDER || hold == HoldCause.PROVIDER_CLIENT) && component != null -> WakeBlockMethod.COMPONENT
 

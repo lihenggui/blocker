@@ -314,14 +314,15 @@ abstract class WakeHistoryDao {
 @Database(
     entities = [
         WakeRecord::class, WakeIdentity::class, WakeRelation::class, WakeContinuation::class, WakeSourceStatus::class, WakeProtection::class, WakeDailyTotal::class, ImportedWakeId::class,
-        WakeHoldPeriod::class, WakeHoldProcess::class, WakeHoldAssociation::class, WakeStartInfoSeen::class, WakeFindingDay::class, WakeVerdictDay::class, WakeExemption::class,
+        WakeHoldPeriod::class, WakeHoldProcess::class, WakeHoldAssociation::class, WakeStartInfoSeen::class, WakeFindingDay::class, WakeVerdictDay::class, WakeExemption::class, WakeBlockEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class WakeHistoryDatabase : RoomDatabase() {
     abstract fun history(): WakeHistoryDao
     abstract fun detection(): WakeDetectionDao
+    abstract fun blocks(): WakeBlockDao
 }
 
 /** Version 2 adds the detection tables. Existing history is kept. */
@@ -346,17 +347,33 @@ internal val WAKE_DETECTION_TABLES = listOf(
     "CREATE TABLE IF NOT EXISTS `WakeExemption` (`target` TEXT NOT NULL, `idleWhitelist` TEXT, `standbyBucket` INTEGER, `backgroundRestricted` INTEGER, `checkedAt` INTEGER NOT NULL, PRIMARY KEY(`target`))",
 )
 
+/** Version 3 stores user wake blocks separately from automatic protection. */
+val WAKE_HISTORY_MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        for (statement in WAKE_BLOCK_TABLES) db.execSQL(statement)
+    }
+}
+
+// Copied from the exported schema 3.json.
+internal val WAKE_BLOCK_TABLES = listOf(
+    "CREATE TABLE IF NOT EXISTS `WakeBlock` (`pathKey` TEXT NOT NULL, `target` TEXT NOT NULL, `method` TEXT NOT NULL, `componentType` TEXT, `sender` TEXT, `component` TEXT, `action` TEXT, `blockedAt` INTEGER NOT NULL, PRIMARY KEY(`pathKey`))",
+    "CREATE INDEX IF NOT EXISTS `index_WakeBlock_target` ON `WakeBlock` (`target`)",
+)
+
 @Module
 @InstallIn(SingletonComponent::class)
 object WakeDatabaseModule {
     @Provides
     @Singleton
     fun database(@ApplicationContext context: Context): WakeHistoryDatabase = Room.databaseBuilder(context, WakeHistoryDatabase::class.java, "wake_history")
-        .addMigrations(WAKE_HISTORY_MIGRATION_1_2).build()
+        .addMigrations(WAKE_HISTORY_MIGRATION_1_2, WAKE_HISTORY_MIGRATION_2_3).build()
 
     @Provides
     fun history(database: WakeHistoryDatabase): WakeHistoryDao = database.history()
 
     @Provides
     fun detection(database: WakeHistoryDatabase): WakeDetectionDao = database.detection()
+
+    @Provides
+    fun blocks(database: WakeHistoryDatabase): WakeBlockDao = database.blocks()
 }
