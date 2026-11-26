@@ -80,6 +80,7 @@ import com.merxury.blocker.core.ui.R.string as uiString
 fun AppListScreen(
     navigateToAppDetail: (packageName: String, userId: Int?) -> Unit,
     navigateToAppSlimming: () -> Unit,
+    navigateToFirewallRules: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     snackbarHostState: SnackbarHostState,
@@ -106,6 +107,7 @@ fun AppListScreen(
         onAction = { app, action -> viewModel.perform(action, app) },
         countServices = viewModel::countServices,
         navigateToAppSlimming = navigateToAppSlimming,
+        navigateToFirewallRules = navigateToFirewallRules,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         modifier = modifier,
@@ -137,6 +139,7 @@ fun AppListScreen(
     onAction: (AppKey, AppAction) -> Unit = { _, _ -> },
     countServices: suspend (AppKey) -> Unit = {},
     navigateToAppSlimming: () -> Unit = {},
+    navigateToFirewallRules: () -> Unit = {},
     navigateToSettings: () -> Unit = {},
     navigateToSupportAndFeedback: () -> Unit = {},
 ) {
@@ -165,6 +168,7 @@ fun AppListScreen(
             showSort = uiState.apps is AppsUiState.Loaded,
             onSortClick = { showSortSheet = true },
             navigateToAppSlimming = navigateToAppSlimming,
+            navigateToFirewallRules = navigateToFirewallRules,
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         )
@@ -207,6 +211,7 @@ private fun AppListTopBar(
     showSort: Boolean,
     onSortClick: () -> Unit,
     navigateToAppSlimming: () -> Unit,
+    navigateToFirewallRules: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
 ) {
@@ -224,6 +229,7 @@ private fun AppListTopBar(
             }
             TopAppBarMoreMenu(
                 navigateToAppSlimming = navigateToAppSlimming,
+                navigateToFirewallRules = navigateToFirewallRules,
                 navigateToSettings = navigateToSettings,
                 navigateToFeedback = navigateToSupportAndFeedback,
             )

@@ -27,8 +27,12 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.outlined.Rule
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.automirrored.rounded.ShortText
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CollectionsBookmark
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Alarm
@@ -37,6 +41,7 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.Check
@@ -98,7 +103,11 @@ object BlockerIcons {
     val SyncAlt = Icons.Outlined.SyncAlt
     val Widgets = Icons.Outlined.Widgets
     val Apps = Icons.Outlined.Apps
+    val AppsFilled = Icons.Filled.Apps
+    val Bolt = Icons.Outlined.Bolt
+    val BoltFilled = Icons.Filled.Bolt
     val GeneralRule = Icons.Outlined.CollectionsBookmark
+    val GeneralRuleFilled = Icons.Filled.CollectionsBookmark
     val Sort = Icons.AutoMirrored.Outlined.Sort
     val Clear = Icons.Outlined.Clear
     val SelectAll = Icons.Outlined.SelectAll
@@ -109,6 +118,7 @@ object BlockerIcons {
     val CheckCircle = Icons.Outlined.CheckCircle
     val Folder = Icons.Outlined.Folder
     val Search = Icons.Outlined.Search
+    val SearchFilled = Icons.Filled.Search
     val BugReport = Icons.Outlined.BugReport
     val Log = Icons.Outlined.FilePresent
     val List = Icons.AutoMirrored.Outlined.List

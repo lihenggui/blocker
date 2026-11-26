@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">Activité en arrière-plan</string>
+    <string name="feature_wake_api_app_detail_summary">Voir quelles applications lancent cette application et comment elle continue de fonctionner</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="one">%d application reste active</item>
         <item quantity="many">%d applications restent actives</item>

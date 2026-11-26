@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">النشاط في الخلفية</string>
+    <string name="feature_wake_api_app_detail_summary">معرفة التطبيقات التي تشغّل هذا التطبيق وكيف يواصل العمل</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="zero">لا توجد تطبيقات تبقي نفسها قيد التشغيل (%d)</item>
         <item quantity="one">تطبيق واحد يبقي نفسه قيد التشغيل (%d)</item>

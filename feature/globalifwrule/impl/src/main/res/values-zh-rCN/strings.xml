@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_globalifwrule_impl_title">防火墙</string>
+    <string name="feature_globalifwrule_impl_title">防火墙规则</string>
     <string name="feature_globalifwrule_impl_empty">暂无 IFW 拦截规则</string>
     <string name="feature_globalifwrule_impl_empty_desc">你创建的规则将显示在这里</string>
     <string name="feature_globalifwrule_impl_add_rule">添加规则</string>

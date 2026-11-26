@@ -83,6 +83,7 @@ fun AppDetailScreen(
     modifier: Modifier = Modifier,
     navigateToRuleDetail: (Int) -> Unit = {},
     navigateToIfwRuleEditor: (ComponentRow) -> Unit = {},
+    onShowBackgroundActivity: () -> Unit = {},
     showBackButton: Boolean = true,
 ) {
     val header by headerViewModel.uiState.collectAsStateWithLifecycle()
@@ -117,7 +118,13 @@ fun AppDetailScreen(
     val rowActions = rememberRowActions(listViewModel, controlViewModel, { detailOf = it.id.className }, navigateToIfwRuleEditor) { text ->
         scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(text, text))) }
     }
-    val actions = rememberAppDetailActions(headerViewModel, listViewModel, controlViewModel, navigateToRuleDetail) {
+    val actions = rememberAppDetailActions(
+        headerViewModel,
+        listViewModel,
+        controlViewModel,
+        navigateToRuleDetail,
+        onShowBackgroundActivity,
+    ) {
         header.app?.let { context.showInLibChecker(it.packageName) }
     }
     AppDetailContent(
@@ -228,16 +235,19 @@ private fun rememberAppDetailActions(
     listViewModel: ComponentListViewModel,
     controlViewModel: ComponentControlViewModel,
     navigateToRuleDetail: (Int) -> Unit,
+    onShowBackgroundActivity: () -> Unit,
     onShowInLibChecker: () -> Unit,
 ): AppDetailActions {
     val currentRuleDetail by rememberUpdatedState(navigateToRuleDetail)
     val currentLibChecker by rememberUpdatedState(onShowInLibChecker)
+    val currentBackgroundActivity by rememberUpdatedState(onShowBackgroundActivity)
     return remember(headerViewModel, listViewModel, controlViewModel) {
         AppDetailActions(
             onSelectTab = listViewModel::selectTab,
             onRefresh = listViewModel::refresh,
             onGrantAccess = listViewModel::grantAccess,
             onShowInLibChecker = { currentLibChecker() },
+            onShowBackgroundActivity = { currentBackgroundActivity() },
             onExportRules = headerViewModel::exportBlockerRules,
             onImportRules = headerViewModel::importBlockerRules,
             onExportIfw = headerViewModel::exportIfwRules,

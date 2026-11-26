@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">Atividade em segundo plano</string>
+    <string name="feature_wake_api_app_detail_summary">Veja quais aplicativos iniciam este aplicativo e como ele continua em execução</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="one">%d aplicativo se mantém em execução</item>
         <item quantity="many">%d aplicativos se mantêm em execução</item>

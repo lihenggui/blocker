@@ -64,7 +64,6 @@ fun GeneralRulesScreen(
     modifier: Modifier = Modifier,
     showTopBar: Boolean = true,
     title: String? = null,
-    belowTopBar: @Composable () -> Unit = {},
     highlightSelectedRule: Boolean = false,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
@@ -77,7 +76,6 @@ fun GeneralRulesScreen(
         GeneralRulesScreen(
             showTopBar = showTopBar,
             title = title,
-            belowTopBar = belowTopBar,
             highlightSelectedRule = highlightSelectedRule,
             uiState = uiState.rules,
             isProcessing = uiState.batch != null,
@@ -115,7 +113,6 @@ fun GeneralRulesScreen(
     modifier: Modifier = Modifier,
     showTopBar: Boolean = true,
     title: String? = null,
-    belowTopBar: @Composable () -> Unit = {},
     highlightSelectedRule: Boolean = false,
     navigateToRuleDetail: (String) -> Unit = {},
     onBlockAllClick: () -> Unit = {},
@@ -148,7 +145,6 @@ fun GeneralRulesScreen(
                     }
                 },
             )
-            belowTopBar()
         }
         val analyticsHelper = LocalAnalyticsHelper.current
         when (uiState) {

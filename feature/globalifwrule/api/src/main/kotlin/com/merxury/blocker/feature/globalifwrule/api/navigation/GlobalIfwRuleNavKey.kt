@@ -17,7 +17,12 @@
 package com.merxury.blocker.feature.globalifwrule.api.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
 import kotlinx.serialization.Serializable
 
 @Serializable
 data object GlobalIfwRuleNavKey : NavKey
+
+fun Navigator.navigateToGlobalIfwRule() {
+    navigate(GlobalIfwRuleNavKey)
+}

@@ -18,17 +18,25 @@
 package com.merxury.blocker.ui
 
 import androidx.compose.runtime.remember
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.navigation.NavigationState
 import com.merxury.blocker.core.navigation.Navigator
+import com.merxury.blocker.core.navigation.rememberNavigationState
 import com.merxury.blocker.core.testing.util.TestNetworkMonitor
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
 import com.merxury.blocker.core.testing.util.TestTimeZoneMonitor
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
 import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
 import com.merxury.blocker.feature.generalrule.api.navigation.GeneralRuleNavKey
 import com.merxury.blocker.feature.search.api.navigation.SearchNavKey
+import com.merxury.blocker.feature.wake.api.navigation.WakeOverviewNavKey
+import com.merxury.blocker.feature.wake.api.navigation.navigateToWakeApp
+import com.merxury.blocker.feature.wake.api.navigation.navigateToWakeOverview
+import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -71,6 +79,7 @@ class BlockerAppStateTest {
         topLevelStack = NavBackStack(AppListNavKey),
         subStacks = mapOf(
             AppListNavKey to NavBackStack(AppListNavKey),
+            WakeOverviewNavKey to NavBackStack(WakeOverviewNavKey),
             GeneralRuleNavKey() to NavBackStack(GeneralRuleNavKey()),
             SearchNavKey to NavBackStack(SearchNavKey),
         ),
@@ -116,15 +125,59 @@ class BlockerAppStateTest {
         }
         val navigationState = state.navigationState
 
-        assertEquals(3, navigationState.topLevelKeys.size)
         assertEquals(
-            setOf(
+            listOf(
                 AppListNavKey,
+                WakeOverviewNavKey,
                 GeneralRuleNavKey(),
                 SearchNavKey,
             ),
-            navigationState.topLevelKeys,
+            navigationState.topLevelKeys.toList(),
         )
+    }
+
+    @Test
+    fun givenSavedSearchDetail_whenBackgroundIsInserted_thenSearchRestoresItsOwnStack() {
+        val restoration = StateRestorationTester(composeTestRule)
+        var roots = setOf<NavKey>(AppListNavKey, GeneralRuleNavKey(), SearchNavKey)
+        lateinit var navigationState: NavigationState
+        val detail = AppDetailNavKey("com.example")
+        restoration.setContent {
+            navigationState = rememberNavigationState(startKey = AppListNavKey, topLevelKeys = roots)
+        }
+
+        composeTestRule.runOnIdle {
+            val navigator = Navigator(navigationState)
+            navigator.navigate(SearchNavKey)
+            navigator.navigate(detail)
+            roots = TOP_LEVEL_NAV_ITEMS.keys
+        }
+        restoration.emulateSavedInstanceStateRestore()
+
+        composeTestRule.runOnIdle {
+            assertEquals(SearchNavKey, navigationState.currentTopLevelKey)
+            assertEquals(detail, navigationState.currentKey)
+            Navigator(navigationState).navigateToWakeOverview()
+            assertEquals(listOf(WakeOverviewNavKey), navigationState.currentSubStack.toList())
+        }
+    }
+
+    @Test
+    fun givenWakeDetailsForTheSameAppInDifferentStacks_whenGoingBack_thenEachStackKeepsItsOwnEntry() {
+        val navigationState = testNavigationState()
+        val navigator = Navigator(navigationState)
+        val packageName = "com.example"
+        navigator.navigateToWakeApp(packageName)
+        val appsEntry = navigationState.currentKey
+        navigator.navigateToWakeOverview()
+        navigator.navigateToWakeApp(packageName)
+
+        navigator.goBack()
+        assertEquals(WakeOverviewNavKey, navigationState.currentKey)
+        navigator.goBack()
+        assertEquals(appsEntry, navigationState.currentKey)
+        navigator.navigateToWakeOverview()
+        assertEquals(listOf(WakeOverviewNavKey), navigationState.currentSubStack.toList())
     }
 
     @Test

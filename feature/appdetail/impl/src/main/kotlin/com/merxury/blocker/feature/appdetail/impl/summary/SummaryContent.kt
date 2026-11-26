@@ -42,6 +42,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle.LONG
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
+import com.merxury.blocker.feature.wake.api.R.string as wakeString
 
 /**
  * What the app info tab shows about [app], and the rule works for it: the Blocker rules of the
@@ -53,6 +54,8 @@ internal fun SummaryContent(
     modifier: Modifier = Modifier,
     isLibCheckerInstalled: Boolean = false,
     onShowAppInfoClick: () -> Unit = {},
+    showBackgroundActivity: Boolean = false,
+    onShowBackgroundActivity: () -> Unit = {},
     onExportRules: () -> Unit = {},
     onImportRules: () -> Unit = {},
     onExportIfw: () -> Unit = {},
@@ -75,6 +78,8 @@ internal fun SummaryContent(
                     dataDir = app.dataDir,
                     isLibCheckerInstalled = isLibCheckerInstalled,
                     onShowAppInfoClick = onShowAppInfoClick,
+                    showBackgroundActivity = showBackgroundActivity,
+                    onShowBackgroundActivity = onShowBackgroundActivity,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
                     onExportIfw = onExportIfw,
@@ -94,6 +99,8 @@ private fun AppSummary(
     dataDir: String?,
     isLibCheckerInstalled: Boolean,
     onShowAppInfoClick: () -> Unit,
+    showBackgroundActivity: Boolean,
+    onShowBackgroundActivity: () -> Unit,
     onExportRules: () -> Unit,
     onImportRules: () -> Unit,
     onExportIfw: () -> Unit,
@@ -137,6 +144,13 @@ private fun AppSummary(
                 title = stringResource(id = string.feature_appdetail_api_app_info),
                 summary = stringResource(id = string.feature_appdetail_api_app_info_with_libchecker_summary),
                 onItemClick = onShowAppInfoClick,
+            )
+        }
+        if (showBackgroundActivity) {
+            BlockerSettingItem(
+                title = stringResource(wakeString.feature_wake_api_title),
+                summary = stringResource(wakeString.feature_wake_api_app_detail_summary),
+                onItemClick = onShowBackgroundActivity,
             )
         }
         HorizontalDivider()

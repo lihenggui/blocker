@@ -18,11 +18,12 @@ package com.merxury.blocker.feature.globalifwrule.impl.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.feature.globalifwrule.api.navigation.GlobalIfwRuleNavKey
 import com.merxury.blocker.feature.globalifwrule.impl.GlobalIfwRuleRoute
 
-fun EntryProviderScope<NavKey>.globalIfwRuleEntry() {
-    entry<GlobalIfwRuleNavKey> { _ ->
-        GlobalIfwRuleRoute()
+fun EntryProviderScope<NavKey>.globalIfwRuleEntry(navigator: Navigator) {
+    entry<GlobalIfwRuleNavKey> {
+        GlobalIfwRuleRoute(onBack = navigator::goBack)
     }
 }

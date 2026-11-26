@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">Background activity</string>
+    <string name="feature_wake_api_app_detail_summary">See which apps start this app and how it keeps running</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="one">%d app keeps itself running</item>
         <item quantity="other">%d apps keep themselves running</item>

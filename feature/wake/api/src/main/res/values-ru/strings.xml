@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_wake_api_title">Фоновая активность</string>
+    <string name="feature_wake_api_app_detail_summary">Узнайте, какие приложения запускают это приложение и как оно продолжает работать</string>
     <plurals name="feature_wake_api_keep_alive_apps">
         <item quantity="one">%d приложение поддерживает свою работу</item>
         <item quantity="few">%d приложения поддерживают свою работу</item>
