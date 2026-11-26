@@ -154,6 +154,19 @@ class WakeWorkTest {
         assertThat(channel.connectCount).isEqualTo(0)
     }
 
+    @Test fun givenRunningCollector_whenExplicitlyRequestingWakeRun_thenSeparateWorkIsScheduled() = runTest {
+        val work = initializeWork()
+        val regular = work.pending("wake-history-update").id
+        val requester = WakeWork(context, WakeAuthorizationRepository(channel), backgroundScope)
+
+        requester.requestRun()
+        val first = work.pending("wake-history-requested").id
+        requester.requestRun()
+
+        assertThat(work.pending("wake-history-requested").id).isNotEqualTo(first)
+        assertThat(work.pending("wake-history-update").id).isEqualTo(regular)
+    }
+
     @Test fun givenRetryingCollector_whenEitherPeerUpdates_thenASeparateRefreshIsScheduled() = runTest {
         val work = initializeWork()
 

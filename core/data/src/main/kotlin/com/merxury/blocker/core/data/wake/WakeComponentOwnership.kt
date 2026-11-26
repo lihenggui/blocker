@@ -19,7 +19,7 @@ class WakeComponentOwnership @Inject constructor(
     private val journal: WakeComponentJournal,
 ) {
     // A manual override must survive the same interrupted write as a pending system change.
-    private fun WakeProtection.needsComponentJournal() = method == "PM" && (configured || pendingChange || disabledByUser)
+    private fun WakeProtection.needsComponentJournal() = method == "PM" && previousState != null && (configured || pendingChange || disabledByUser)
 
     /**
      * Reads the journal, the first file the wake feature needs, to find whether the channel can
@@ -45,18 +45,28 @@ class WakeComponentOwnership @Inject constructor(
     }
 
     suspend fun recover() {
-        val local = history.readProtections().filter { it.needsComponentJournal() }.associateBy { it.pathId }
+        val local = history.readProtections().filter { it.method == "PM" }.associateBy { it.pathId }
         val stored = journal.read()
         if (stored == null) {
             // Migrate an existing local journal before making further PackageManager changes.
-            if (local.isNotEmpty()) journal.write(Json.encodeToString(local.values.toList()))
+            val owned = local.values.filter { it.needsComponentJournal() }
+            if (owned.isNotEmpty()) journal.write(Json.encodeToString(owned))
             return
         }
         val durable = Json.decodeFromString<List<WakeProtection>>(stored).associateBy { it.pathId }
-        check(durable.values.all { it.needsComponentJournal() && it.previousState != null })
+        check(durable.values.all { it.needsComponentJournal() })
+        // A wake-screen toggle changes only the override in Room. Keep that decision while
+        // recovering the system-write metadata from the journal, which can be ahead of Room.
+        val recovered = durable.values.map { saved ->
+            val current = local[saved.pathId]
+            if (current != null && current.copy(disabledByUser = saved.disabledByUser) == saved) current else saved
+        }
+        if (recovered.any { it != durable[it.pathId] }) {
+            journal.write(Json.encodeToString(recovered.filter { it.needsComponentJournal() }))
+        }
         val released = local.values.filter { it.pathId !in durable && (it.configured || it.pendingChange) }
             .map { it.copy(configured = false, pendingChange = false) }
-        history.putProtections(released + durable.values.filter { it != local[it.pathId] })
+        history.putProtections(released + recovered.filter { it != local[it.pathId] })
     }
 
     suspend fun save(path: WakeProtection) {
