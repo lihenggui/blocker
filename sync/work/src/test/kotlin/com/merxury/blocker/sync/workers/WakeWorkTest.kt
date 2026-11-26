@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -54,6 +55,14 @@ class WakeWorkTest {
     private val context get() = RuntimeEnvironment.getApplication() as Application
     private val channel = FakePrivilegedChannel(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
     private val runs = mutableListOf<HeldRun>()
+
+    // A held run that is never finished fails its future when it is garbage collected, which wakes
+    // this test's WorkManager after Robolectric has closed its database. Stop the work while it is open.
+    @After
+    fun stopHeldRuns() {
+        WorkManager.getInstance(context).cancelAllWork().result.get()
+        shadowOf(Looper.getMainLooper()).idle()
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.initializeWork(): WorkManager {
