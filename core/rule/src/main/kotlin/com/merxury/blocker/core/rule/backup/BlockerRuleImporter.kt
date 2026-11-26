@@ -192,7 +192,7 @@ class BlockerRuleImporter @Inject constructor(
         }
         val requests = restoreRequests(rule, app.key, statuses, summary)
         val states = statuses.associate { it.declaration.id to it.state }.toMutableMap()
-        val applied = requests.sumOf { components.control(it).countControlOutcomes(it.goal, states, summary) }
+        val applied = requests.sumOf { components.restore(it).countControlOutcomes(it.goal, states, summary) }
         if (applied > 0) summary.apps++
     }
 }
@@ -226,7 +226,7 @@ internal fun restoreRequests(
             return@forEach
         }
         val goal = if (entry.state) ControlGoal.UNBLOCK else ControlGoal.BLOCK
-        // The methods map to the same layers a block with that controller type uses.
+        // The method identifies the layer recorded in the backup.
         batches.getOrPut(goal to entry.method.blockLayers) { linkedSetOf() } += declaration
     }
     return batches.map { (key, declarations) -> ControlRequest(app.userId, declarations.toList(), key.first, key.second) }

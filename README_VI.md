@@ -46,10 +46,12 @@ Từng nội dung của ứng dụng được gửi thông qua hệ thống đư
 #### Giới hạn của tường lửa
 Chỉ có ứng dụng hệ thống mới có quyền RW đường dẫn của nó và ứng dụng thứ 3 không thể chỉnh sửa được.
 
+Tường lửa không thể chặn broadcast ngầm định đối với từng bộ thu riêng lẻ, vì vậy chế độ tường lửa sử dụng PackageManager để vô hiệu hóa các bộ thu broadcast. Ứng dụng có thể phát hiện trạng thái vô hiệu hóa này.
+
 #### Sự khác biệt giữa tường lửa và trình quản lý gói
 Tường lửa nội bộ không gây ảnh hưởng đến trạng thái của thành phần. Ứng dụng vẫn phát hiện ra thành phần đang được kích hoạt, nhưng chỉ là không thể chạy thành phần đó.
 
-Về trình quản lý gói, khi mà có ứng dụng khởi chạy và phát hiện ra thành phần bị vô hiệu hóa, nhà phát triển có thể thêm tính năng tự động kích hoạt thành phần đấy hoặc từ chối chạy. Nhưng nếu bạn sử dụng tường lửa thì có thể không có gì xảy ra cả.
+Về trình quản lý gói, khi mà có ứng dụng khởi chạy và phát hiện ra thành phần bị vô hiệu hóa, nhà phát triển có thể thêm tính năng tự động kích hoạt thành phần đấy hoặc từ chối chạy.
 #### Ví dụ
 [Tưởng lửa nội bộ](https://carteryagemann.com/pages/android-intent-firewall.html)
 

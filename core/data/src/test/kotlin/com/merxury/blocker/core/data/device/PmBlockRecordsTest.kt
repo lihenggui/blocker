@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -88,7 +89,8 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
 
     private fun apply(request: ControlRequest, declaration: ComponentDeclaration, refusal: ControlFailure.NotPermitted?, unreadable: Boolean): ComponentOutcome {
         val key = ComponentKey(declaration.id, request.user)
-        val throughPm = ControlLayer.PACKAGE_MANAGER in declaration.layersFor(request.layers)
+        val layers = declaration.layersFor(request.layers, request.goal)
+        val throughPm = ControlLayer.PACKAGE_MANAGER in layers
         val before = system.settings[request.user to declaration.id] ?: PmSetting.DEFAULT
         if (throughPm && refusal == null) {
             val after = when (request.goal) {
@@ -98,7 +100,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
             }
             system.put(request.user, declaration, after)
         }
-        val ifw = if (ControlLayer.INTENT_FIREWALL in declaration.layersFor(request.layers) && request.goal == ControlGoal.BLOCK) IfwBlock.BLOCKED else IfwBlock.NOT_BLOCKED
+        val ifw = if (ControlLayer.INTENT_FIREWALL in layers && request.goal == ControlGoal.BLOCK) IfwBlock.BLOCKED else IfwBlock.NOT_BLOCKED
         return when {
             unreadable -> ComponentOutcome(key, ControlState(PmSetting.UNKNOWN, ifw), ControlResult.FAILED, mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.StateNotConfirmed))
             refusal != null && throughPm -> ComponentOutcome(key, ControlState(before, ifw), ControlResult.FAILED, mapOf(ControlLayer.PACKAGE_MANAGER to refusal))
@@ -136,15 +138,27 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
     }
 
     @Test
-    fun givenBlockThroughIntentFirewallOnly_whenControlled_thenOnlyTheProviderIsRecorded() = runTest {
+    fun givenBlockThroughIntentFirewallOnly_whenControlled_thenProviderAndReceiverAreRecorded() = runTest {
         val repository = installed(backgroundScope)
         // The component was disabled by someone else before; a firewall block does not make it Blocker's.
         system.put(OWNER, SYNC, PmSetting.DISABLED)
         repository.refresh(AppKey(PKG, OWNER))
 
-        repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL), MAIN, SYNC, DATA)
+        val request = ControlRequest(OWNER, listOf(MAIN, SYNC, DATA, SELF_OFF), ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL))
+        repository.control(request).test {
+            assertThat(awaitItem()).isInstanceOf(ControlEvent.PackageDone::class.java)
+            assertThat(recorded()).containsExactly(DATA.key(), SELF_OFF.key())
+            assertThat(awaitItem()).isEqualTo(ControlEvent.Finished(achieved = 4, partial = 0, failed = 0))
+            awaitComplete()
+        }
+        val found = repository.disabledByBlocker(OWNER) as ReadResult.Success
+
+        assertThat(found.value.components).containsExactly(DATA.key(), SELF_OFF.key())
+
+        repository.resetPmBlocks(OWNER, listOf(SELF_OFF)).toList()
 
         assertThat(recorded()).containsExactly(DATA.key())
+        assertThat(system.settings[OWNER to SELF_OFF.id]).isEqualTo(PmSetting.DEFAULT)
     }
 
     @Test

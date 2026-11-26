@@ -55,10 +55,12 @@ Each intent sent by an application is filtered by the Intent Firewall, with rule
 #### Limitations of Intent Firewall
 Only system applications can read and write the directory where the configuration file is stored, and third-party applications do not have permission to access it.
 
+The firewall cannot stop implicit broadcasts to a single receiver, so Intent Firewall mode disables broadcast receivers through PackageManager. Applications can detect this disabled state.
+
 #### Differences between Intent Firewall and Package Manager
 Intent Firewall, indeed it is a firewall, it has no impact on component status. The application detects the component is on, but it just cannot start the component.
 
-For the components disabled by PackageManager, if an application starts it, an exception will be thrown. Developers can catch this exception to know whether the component is disabled or not, so they could re-enable this component. That's the reason why the components will be enabled unexpectedly. If you are using an Intent Firewall controller, there will be no problems.
+An attempt to start a component disabled through PackageManager can throw an exception. An application can catch the exception and re-enable the component.
 #### References
 [Intent Firewall](https://carteryagemann.com/pages/android-intent-firewall.html)
 

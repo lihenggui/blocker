@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.control
 
+import android.app.Activity
 import android.content.ComponentName
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -24,6 +25,7 @@ import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
+import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -41,6 +43,8 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
+import com.merxury.blocker.core.model.control.blockLayers
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.getOrNull
@@ -64,6 +68,7 @@ import com.merxury.core.ifw.xml.IfwXmlSerializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -114,8 +119,9 @@ class ComponentControlDeviceTest {
     private lateinit var activity: ComponentDeclaration
     private lateinit var disabledActivity: ComponentDeclaration
     private lateinit var service: ComponentDeclaration
+    private lateinit var receiver: ComponentDeclaration
     private lateinit var provider: ComponentDeclaration
-    private val fixtures get() = listOf(activity, disabledActivity, service, provider)
+    private val fixtures get() = listOf(activity, disabledActivity, service, receiver, provider)
 
     @get:Rule
     val testName = TestName()
@@ -141,6 +147,7 @@ class ComponentControlDeviceTest {
         activity = declaration(ControlFixtureActivity::class.java.name)
         disabledActivity = declaration(ControlFixtureDisabledActivity::class.java.name)
         service = declaration(WakeFixtureService::class.java.name)
+        receiver = declaration(ControlFixtureReceiver::class.java.name)
         provider = declaration(ControlFixtureProvider::class.java.name)
         assertFalse(disabledActivity.enabledInManifest)
         assertEquals(ComponentType.PROVIDER, provider.type)
@@ -195,6 +202,23 @@ class ComponentControlDeviceTest {
         assertNull(ruleFile())
         assertEquals(emptyMap<ComponentDeclaration, String>(), overrides(target))
         assertStarts(true)
+    }
+
+    @Test
+    fun givenRoot_whenReceiverBlockedAndUnblockedWithIfw_thenImplicitBroadcastDeliveryStopsAndResumes() = runTest {
+        val layers = ControllerType.IFW.blockLayers
+        assertImplicitBroadcastResult(Activity.RESULT_OK)
+
+        val blocked = apply(ControlGoal.BLOCK, layers, receiver).single()
+
+        assertAchieved(blocked, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))
+        assertThat(ruleFile()).isNull()
+        assertImplicitBroadcastResult(Activity.RESULT_CANCELED)
+
+        val unblocked = apply(ControlGoal.UNBLOCK, layers, receiver).single()
+
+        assertAchieved(unblocked, ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
+        assertImplicitBroadcastResult(Activity.RESULT_OK)
     }
 
     @Test
@@ -324,6 +348,12 @@ class ComponentControlDeviceTest {
     }
 
     private suspend fun ruleFile(): String? = ChannelIfwFileSystem(transport).readRules(self)
+
+    private fun assertImplicitBroadcastResult(expected: Int) {
+        val output = shell("am broadcast --user ${target.value} --include-stopped-packages --receiver-include-background -a $FIXTURE_BROADCAST -p $self")
+        Log.i(TAG, output.trim())
+        assertThat(output.lineSequence().map(String::trim).toList()).contains("Broadcast completed: result=$expected")
+    }
 
     /** Starts [component] in the target user and checks whether it ran. */
     private fun assertStarts(expected: Boolean, component: ComponentDeclaration = activity) {

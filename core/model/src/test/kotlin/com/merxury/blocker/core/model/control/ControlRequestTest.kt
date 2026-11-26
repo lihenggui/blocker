@@ -17,6 +17,9 @@
 package com.merxury.blocker.core.model.control
 
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer.INTENT_FIREWALL
@@ -41,6 +44,34 @@ class ControlRequestTest {
             ControllerType.IFW_PLUS_PM,
             setOf(PACKAGE_MANAGER, INTENT_FIREWALL),
         )
+    }
+
+    @Test
+    fun givenEveryComponentTypeAndController_whenResolvingEachGoal_thenUsesTheExpectedLayers() {
+        val pm = setOf(PACKAGE_MANAGER)
+        val ifw = setOf(INTENT_FIREWALL)
+        val both = pm + ifw
+        val receiverLayers = mapOf(ControlGoal.BLOCK to pm, ControlGoal.UNBLOCK to both, ControlGoal.ENABLE to both)
+        val ifwLayers = mapOf(
+            ComponentType.ACTIVITY to ControlGoal.entries.associateWith { ifw },
+            ComponentType.SERVICE to ControlGoal.entries.associateWith { ifw },
+            ComponentType.PROVIDER to ControlGoal.entries.associateWith { pm },
+            ComponentType.RECEIVER to receiverLayers,
+        )
+
+        for (type in ComponentType.entries) {
+            val component = ComponentDeclaration(ComponentId("com.example", "com.example.Component"), type, exported = true, enabledInManifest = true)
+            for (controller in ControllerType.entries) {
+                for (goal in ControlGoal.entries) {
+                    val expected = when (controller) {
+                        ControllerType.IFW -> ifwLayers.getValue(type).getValue(goal)
+                        ControllerType.IFW_PLUS_PM -> if (type == ComponentType.PROVIDER) pm else both
+                        ControllerType.PM, ControllerType.SHIZUKU -> pm
+                    }
+                    assertWithMessage("$type $controller $goal").that(component.layersFor(controller.blockLayers, goal)).isEqualTo(expected)
+                }
+            }
+        }
     }
 
     @Test

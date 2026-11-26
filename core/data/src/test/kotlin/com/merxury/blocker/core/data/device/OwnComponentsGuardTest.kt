@@ -65,14 +65,15 @@ class OwnComponentsGuardTest : DeviceRepositoryTestBase() {
     private fun request(user: UserId, goal: ControlGoal, vararg components: ComponentDeclaration) = ControlRequest(user, components.toList(), goal, setOf(ControlLayer.PACKAGE_MANAGER))
 
     @Test
-    fun givenOwnAndOtherComponents_whenBlockedInTheOwnUser_thenOnlyTheOthersAreSentAndTheOwnAreSkipped() = runTest {
+    fun givenOwnAndOtherReceivers_whenBlockedWithIfwInTheOwnUser_thenOnlyTheOthersAreSent() = runTest {
         val repository = components(backgroundScope)
         system.install(installedApp(SELF_PKG), OWN_RECEIVER)
         system.install(installedApp(PKG), OTHER_RECEIVER)
         repository.refresh(AppKey(SELF_PKG, OWNER))
         controlAchieves()
 
-        val events = repository.control(request(OWNER, ControlGoal.BLOCK, OWN_RECEIVER, OTHER_RECEIVER)).toList()
+        val request = ControlRequest(OWNER, listOf(OWN_RECEIVER, OTHER_RECEIVER), ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL))
+        val events = repository.control(request).toList()
 
         assertThat(sent.single().components).containsExactly(OTHER_RECEIVER)
         val refused = events.filterIsInstance<ControlEvent.PackageDone>().single { it.packageName == SELF_PKG }.outcomes.single()

@@ -224,7 +224,7 @@ class ComponentBatchRunner @Inject constructor(
         key = ComponentKey(id, run.key.user),
         state = ControlState(PmSetting.UNKNOWN, IfwBlock.UNKNOWN),
         result = ControlResult.FAILED,
-        failures = layersFor(layers).associateWith { ControlFailure.SystemError(e.toString()) },
+        failures = layersFor(layers, run.goal).associateWith { ControlFailure.SystemError(e.toString()) },
     )
 
     private fun remove(run: BatchRun) = synchronized(runs) {
