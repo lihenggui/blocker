@@ -87,5 +87,6 @@ private val emptyOutcome = WakeBlockOutcome(emptySet(), null)
 
 private fun BackgroundUsageFailure.asBlockFailure(): WakeBlockFailure = when (this) {
     BackgroundUsageFailure.NO_ACCESS -> WakeBlockFailure.NoAccess
+    BackgroundUsageFailure.NOT_CHANGEABLE -> WakeBlockFailure.BackgroundNotChangeable
     else -> WakeBlockFailure.SystemError(name)
 }

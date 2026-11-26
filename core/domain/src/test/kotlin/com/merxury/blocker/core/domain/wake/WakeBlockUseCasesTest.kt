@@ -69,6 +69,28 @@ class WakeBlockUseCasesTest {
         assertThat(f.manual.unblockedPaths).isEmpty()
     }
 
+    @Test fun givenReviewedPathsAndStaleSelection_whenUndoingBatch_thenPreExistingBlocksStayActive() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val path = finding("incoming").toWakePath()
+        val active = AutomaticWakeBlock("active", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "action", active = true, allowed = false)
+        val allowed = active.copy(pathId = "allowed", action = "other", active = false, allowed = true)
+        val staleUnmatched = active.copy(pathId = "unmatched", caller = "other")
+        f.automatic.blocks.value = listOf(active, allowed, staleUnmatched)
+
+        val result = setBlocked.blockWithUndo(
+            listOf(path.state(WakePathBlock.NONE)),
+            listOf(staleUnmatched.copy(active = false, allowed = true)),
+        )
+        assertThat(result.outcome.done).containsExactly("incoming", "unmatched")
+        assertThat(f.automatic.allowedIds).isEmpty()
+        assertThat(f.manual.requests).isEmpty()
+
+        setBlocked.undo(result.undo)
+        assertThat(f.automatic.allowedIds).containsExactly("allowed")
+        assertThat(f.automatic.blocks.value).containsExactly(active, allowed, staleUnmatched)
+    }
+
     @Test fun givenAnUnappliedReview_whenBlockingItsPath_thenAUserBlockIsSaved() = runTest {
         val f = WakeStateTestFixture(this)
         val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)

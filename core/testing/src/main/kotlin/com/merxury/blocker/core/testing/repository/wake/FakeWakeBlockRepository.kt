@@ -26,6 +26,15 @@ class FakeWakeBlockRepository : WakeBlockRepository {
         )
     }
 
+    override suspend fun blockRecordingChanges(requests: List<Pair<WakePath, WakeBlockMethod>>): Pair<WakeBlockOutcome, WakeBlockRepository.AddedBlocks> {
+        val existing = blocks.value.mapTo(mutableSetOf()) { it.pathKey }
+        val outcome = block(requests.filterNot { it.first.pathKey in existing })
+        return outcome.copy(done = outcome.done + requests.map { it.first.pathKey }.filter { it in existing }) to
+            WakeBlockRepository.AddedBlocks(blocks.value.filterNot { it.pathKey in existing }, emptySet())
+    }
+
+    override suspend fun undoAddedBlocks(blocks: WakeBlockRepository.AddedBlocks): WakeBlockOutcome = unblock(this.blocks.value.filter { it in blocks.records }.map { it.pathKey })
+
     override suspend fun unblock(pathKeys: Collection<String>): WakeBlockOutcome = change(pathKeys) { done ->
         blocks.value = blocks.value.filterNot { it.pathKey in done }
     }

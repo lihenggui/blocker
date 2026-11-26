@@ -340,6 +340,39 @@ class WakeBlockRepositoryTest {
         assertThat(writer.userWrites).isEmpty()
     }
 
+    @Test fun givenOneAlreadyDisabledReceiver_whenUndoingBatch_thenOnlyTheNewlyDisabledReceiverIsUnblocked() = runTest {
+        val repository = repository()
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        val other = declaration(OTHER_RECEIVER, ComponentType.RECEIVER)
+        receivers.matches[TARGET to ACTION] = listOf(receiver, other)
+        components.sendComponents(
+            UserId.SYSTEM,
+            listOf(
+                ComponentStatus(receiver, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED)),
+                ComponentStatus(other, ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)),
+            ),
+        )
+
+        val (outcome, undo) = repository.blockRecordingChanges(listOf(actionPath("group") to COMPONENT))
+        assertThat(outcome.done).containsExactly("group")
+        assertThat(undo.componentsWritten).containsExactly(other.id)
+        assertThat(repository.undoAddedBlocks(undo).done).containsExactly("group")
+        assertThat(dao.all()).isEmpty()
+        assertThat(components.component(ComponentKey(receiver.id, UserId.SYSTEM)).first()?.state?.pm).isEqualTo(PmSetting.DISABLED)
+        assertThat(components.component(ComponentKey(other.id, UserId.SYSTEM)).first()?.state?.pm).isEqualTo(PmSetting.DEFAULT)
+    }
+
+    @Test fun givenBlockWasReplaced_whenUndoingBatch_thenReplacementIsPreserved() = runTest {
+        val repository = repository()
+        val (outcome, undo) = repository.blockRecordingChanges(listOf(path("path") to FIREWALL))
+        assertThat(outcome.done).containsExactly("path")
+        val replacement = dao.all().single().copy(blockedAt = 5)
+        dao.upsert(listOf(replacement))
+
+        assertThat(repository.undoAddedBlocks(undo).done).isEmpty()
+        assertThat(dao.all()).containsExactly(replacement)
+    }
+
     @Test fun givenActionWithoutMatchingReceivers_whenBlocking_thenNoRequestOrRowIsCreated() = runTest {
         val repository = repository()
         val outcome = repository.block(listOf(actionPath("missing") to COMPONENT))

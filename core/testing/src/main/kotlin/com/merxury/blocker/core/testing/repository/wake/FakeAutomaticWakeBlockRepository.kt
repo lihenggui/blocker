@@ -18,12 +18,13 @@ class FakeAutomaticWakeBlockRepository : AutomaticWakeBlockRepository {
 
     override suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): WakeBlockOutcome {
         val done = blocks.value.map { it.pathId }.filterTo(mutableSetOf()) { it in pathIds }
+        val changed = blocks.value.filter { it.pathId in done && it.allowed == blocked }.mapTo(mutableSetOf()) { it.pathId }
         if (done.isNotEmpty()) {
             changes += done to blocked
             blocks.value = blocks.value.map { if (it.pathId in done && it.allowed == blocked) it.copy(active = blocked, allowed = !blocked) else it }
         }
         val missing = pathIds - done
-        return WakeBlockOutcome(done, missing.takeIf { it.isNotEmpty() }?.let { WakeBlockFailure.NotBlockable(it.toList()) })
+        return WakeBlockOutcome(done, missing.takeIf { it.isNotEmpty() }?.let { WakeBlockFailure.NotBlockable(it.toList()) }, changed)
     }
 
     override suspend fun allowForApp(packageName: String): WakeBlockOutcome {

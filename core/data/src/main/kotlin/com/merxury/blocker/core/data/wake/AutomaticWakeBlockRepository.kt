@@ -76,6 +76,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
     ): WakeBlockOutcome {
         if (requested?.isEmpty() == true) return WakeBlockOutcome(emptySet(), null)
         var done = emptySet<String>()
+        var changedIds = emptySet<String>()
         val failure = try {
             lock.withLock {
                 val rows = history.readProtections().filter(select)
@@ -83,6 +84,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
                 currentCoroutineContext().ensureActive()
                 withContext(NonCancellable) {
                     if (changed.isNotEmpty()) history.putProtections(changed)
+                    changedIds = changed.mapTo(mutableSetOf()) { it.pathId }
                     done = rows.mapTo(mutableSetOf()) { it.pathId }
                     if (done.isNotEmpty()) runs.requestRun()
                 }
@@ -95,6 +97,6 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
             Timber.w(e, "Cannot change automatic wake blocks")
             WakeBlockFailure.SystemError(e.message)
         }
-        return WakeBlockOutcome(done, failure)
+        return WakeBlockOutcome(done, failure, changedIds)
     }
 }
