@@ -5,7 +5,10 @@ package com.merxury.blocker.core.domain.wake
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.database.wake.WakeExemption
+import com.merxury.blocker.core.database.wake.WakeRelation
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
@@ -13,6 +16,7 @@ import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.ReviveTrigger
+import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
@@ -24,6 +28,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 class ObserveWakeStateTest {
     @Test fun givenPowerSnapshots_whenObservingAnAppWithoutFindings_thenEnvironmentUpdatesAndClears() = runTest {
@@ -115,6 +121,50 @@ class ObserveWakeStateTest {
         val outbound = state.activity.peers.single().outbound.single()
         assertThat(outbound.component).isEqualTo(block.component)
         assertThat(state.paths.getValue(block.pathKey).block).isEqualTo(WakePathBlock.USER)
+    }
+
+    @Test fun givenOwnBroadcastToRemoteProcess_whenBuildingThePath_thenItCanDisableTheReceiver() = runTest {
+        val f = WakeStateTestFixture(this)
+        val receiver = receiver(TEST_APP, "Wake")
+        f.status(receiver, off = false)
+        val uid = 10022
+        val pid = 42
+        val start = wakeRecord(
+            "start",
+            "am_proc_start",
+            2_000_000_000,
+            source = SYSTEM_WAKE_EVENTS,
+            targetUid = uid,
+            targetPackage = TEST_APP,
+            process = "$TEST_APP:remote",
+            component = "$TEST_APP/.Wake",
+            pid = pid,
+        )
+        val stats = start.copy(id = "stats", kind = "ProcessStartTime", source = "statsd", startType = 3)
+        val broadcast = wakeRecord(
+            "broadcast", "BroadcastDeliveryEventReported", 1_000_000_000, callerUid = uid, callerPackage = TEST_APP,
+            targetUid = uid, targetPackage = TEST_APP, action = "$TEST_APP.WAKE", attributes = mapOf("sender_proc_state" to "1004"),
+        )
+        val evidence = WakeDetectionEvidence(
+            listOf(broadcast, start, stats),
+            listOf(WakeRelation(broadcast.id, stats.id, "MATCHING_CALLER")),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            mapOf(uid to setOf(TEST_APP)),
+        )
+        f.findings.value = WakeDetection.daily(WakeDetection.detect(evidence), ZoneOffset.UTC)
+            .map { it.copy(day = LocalDate.now().toEpochDay()) }
+
+        val path = f.state(TEST_APP).first().paths.values.single()
+
+        assertThat(path.path.trigger).isEqualTo(ReviveTrigger.SELF_PROCESS)
+        assertThat(path.path.componentType).isEqualTo(ComponentType.RECEIVER)
+        assertThat(path.path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+        val result = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)(listOf(path), blocked = true)
+        assertThat(result.done).containsExactly(path.path.pathKey)
+        assertThat(f.manual.requests).containsExactly(path.path to WakeBlockMethod.COMPONENT)
     }
 
     @Test fun givenMutualPaths_whenTheOwnerComponentsChange_thenBothDirectionsUseTheirOwnTarget() = runTest {

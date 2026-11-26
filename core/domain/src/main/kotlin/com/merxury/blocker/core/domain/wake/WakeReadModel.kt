@@ -279,7 +279,7 @@ internal fun WakeFindingDay.toWakePath(): WakePath {
         scheduledService && component != null -> ComponentType.SERVICE
 
         trigger == ReviveTrigger.PEER_SERVICE || trigger == ReviveTrigger.STICKY_RESTART || trigger == ReviveTrigger.SYSTEM_BIND ||
-            trigger == ReviveTrigger.SELF_PROCESS || hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.BOUND_BY_PEER ||
+            hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.BOUND_BY_PEER ||
             hold == HoldCause.BOUND_BY_SYSTEM -> ComponentType.SERVICE
 
         trigger == ReviveTrigger.PEER_PROVIDER || hold == HoldCause.PROVIDER_CLIENT -> ComponentType.PROVIDER
@@ -318,8 +318,6 @@ private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?
 
     (trigger == ReviveTrigger.PEER_BROADCAST || trigger == ReviveTrigger.SYSTEM_BROADCAST || trigger == ReviveTrigger.PUSH_TRANSPORT) &&
         (component != null || action != null) -> WakeBlockMethod.COMPONENT
-
-    trigger == ReviveTrigger.SELF_PROCESS && component != null -> WakeBlockMethod.FIREWALL_RULE
 
     trigger == ReviveTrigger.SELF_PROCESS && action != null -> WakeBlockMethod.COMPONENT
 

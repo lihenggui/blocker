@@ -132,7 +132,7 @@ class WakeReadModelTest {
             revive(ReviveTrigger.PEER_BROADCAST, actor = PEER, detail = "test.BOOT") to component,
             revive(ReviveTrigger.PEER_BROADCAST, actor = PEER, detail = "$APP/.Receiver") to component,
             revive(ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = "test.BOOT") to component,
-            revive(ReviveTrigger.SELF_PROCESS, actor = APP, detail = ".Service") to firewall,
+            revive(ReviveTrigger.SELF_PROCESS, actor = APP, detail = ".Service") to none,
             revive(ReviveTrigger.SELF_PROCESS, actor = APP, detail = "custom/WAKE") to component,
             revive(ReviveTrigger.PEER_PROVIDER, actor = PEER, detail = ".Provider") to component,
             revive(ReviveTrigger.STICKY_RESTART, detail = ".Service") to component,
