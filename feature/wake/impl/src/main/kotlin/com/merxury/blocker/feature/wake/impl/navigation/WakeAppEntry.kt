@@ -17,8 +17,8 @@ import com.merxury.blocker.feature.wake.impl.WakeAppRoute
 import com.merxury.blocker.feature.wake.impl.WakeAppViewModel
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.wakeAppEntry(navigator: Navigator, transitions: WakeTransitions) {
-    entry<WakeAppNavKey>(metadata = ListDetailSceneStrategy.detailPane() + transitions.metadata) { key ->
+fun EntryProviderScope<NavKey>.wakeAppEntry(navigator: Navigator) {
+    entry<WakeAppNavKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
         WakeAppRoute(
             viewModel = hiltViewModel<WakeAppViewModel, WakeAppViewModel.Factory>(key = key.packageName) {
                 it.create(key.packageName)

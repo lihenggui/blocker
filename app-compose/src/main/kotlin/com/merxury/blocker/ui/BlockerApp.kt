@@ -84,8 +84,6 @@ import com.merxury.blocker.feature.impl.licenses.navigation.licensesEntry
 import com.merxury.blocker.feature.impl.settings.navigation.settingsEntry
 import com.merxury.blocker.feature.ruledetail.impl.navigation.ruleDetailEntry
 import com.merxury.blocker.feature.search.impl.navigation.searchEntry
-import com.merxury.blocker.feature.wake.impl.navigation.CompactWakeSceneStrategy
-import com.merxury.blocker.feature.wake.impl.navigation.rememberWakeTransitions
 import com.merxury.blocker.feature.wake.impl.navigation.wakeAppEntry
 import com.merxury.blocker.feature.wake.impl.navigation.wakeOverviewEntry
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
@@ -141,18 +139,11 @@ internal fun BlockerApp(
 ) {
     val navigationState = appState.navigationState
     val navigator = remember(navigationState) { Navigator(navigationState) }
-    val paneDirective = calculatePaneScaffoldDirective(windowAdaptiveInfo)
-    val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(directive = paneDirective)
-    val sceneStrategies = remember(paneDirective.maxHorizontalPartitions, listDetailStrategy) {
-        if (paneDirective.maxHorizontalPartitions == 1) {
-            listOf(CompactWakeSceneStrategy, listDetailStrategy)
-        } else {
-            listOf(listDetailStrategy)
-        }
-    }
+    val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
+        directive = calculatePaneScaffoldDirective(windowAdaptiveInfo),
+    )
 
-    val wakeTransitions = rememberWakeTransitions()
-    val entryProvider = remember(navigator, updateIconThemingState, wakeTransitions) {
+    val entryProvider = remember(navigator, updateIconThemingState) {
         entryProvider {
             appListEntry(
                 navigator = navigator,
@@ -169,8 +160,8 @@ internal fun BlockerApp(
             ifwRuleEditorEntry(navigator)
             ruleDetailEntry(navigator)
             debloaterEntry(navigator)
-            wakeOverviewEntry(navigator, wakeTransitions)
-            wakeAppEntry(navigator, wakeTransitions)
+            wakeOverviewEntry(navigator)
+            wakeAppEntry(navigator)
             searchEntry(navigator)
             supportAndFeedbackEntry(navigator)
             licensesEntry(navigator)
@@ -180,7 +171,7 @@ internal fun BlockerApp(
 
     val sceneState = rememberSceneState(
         entries = navigationState.toEntries(entryProvider),
-        sceneStrategies = sceneStrategies,
+        sceneStrategies = listOf(listDetailStrategy),
         onBack = navigator::goBack,
     )
     val navigationEventState = rememberNavigationEventState(sceneState)
