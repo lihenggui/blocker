@@ -234,7 +234,7 @@ private fun AppDetailTabs(
                     app = app,
                     isLibCheckerInstalled = header.showLibChecker,
                     onShowAppInfoClick = actions.onShowInLibChecker,
-                    showBackgroundActivity = header.launch == LaunchMode.OWN_USER,
+                    showBackgroundActivity = header.launch == LaunchMode.OWN_USER && header.backgroundActivityAvailable,
                     onShowBackgroundActivity = actions.onShowBackgroundActivity,
                     onExportRules = actions.onExportRules,
                     onImportRules = actions.onImportRules,

@@ -21,20 +21,26 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.workDataOf
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
+import com.merxury.blocker.core.domain.wake.ObserveWakeAvailabilityUseCase
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
+import com.merxury.blocker.core.model.wake.WakeAvailability
 import com.merxury.blocker.core.rule.entity.RuleWorkEvent
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.profile.ProfileLabel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -47,6 +53,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -62,6 +69,7 @@ class AppHeaderViewModelTest {
     val tempFolder = TemporaryFolder()
 
     private lateinit var fixture: AppDetailFixture
+    private val wakeAvailability = MutableStateFlow<WakeAvailability?>(null)
 
     private fun viewModel(userId: Int? = null): AppHeaderViewModel {
         fixture = AppDetailFixture(mainDispatcherRule.testDispatcher, userId = userId)
@@ -71,6 +79,7 @@ class AppHeaderViewModelTest {
             deviceUsers = fixture.deviceUsers,
             installedApps = fixture.installedApps,
             componentDetails = fixture.details,
+            observeWakeAvailability = mock<ObserveWakeAvailabilityUseCase> { on { invoke() } doReturn wakeAvailability.filterNotNull() },
             userDataRepository = fixture.userData,
             workManager = fixture.workManager,
             zipAppRule = ZipAppRuleUseCase(fixture.components, fixture.userData, tempFolder.newFolder(), tempFolder.newFolder(), "generated", dispatcher),
@@ -114,6 +123,31 @@ class AppHeaderViewModelTest {
         assertThat(state.app?.icon?.uid).isEqualTo(10_100)
         assertThat(state.profile).isNull()
         assertThat(state.launch).isEqualTo(LaunchMode.OWN_USER)
+    }
+
+    @Test
+    fun givenOwnUsersApp_whenWakeAvailabilityChanges_thenBackgroundActivityIsAvailableOnlyWhenReady() = runTest {
+        val viewModel = viewModel()
+        assertThat(viewModel.uiState.value.backgroundActivityAvailable).isFalse()
+        fixture.installedApps.sendApps(listOf(installedApp(OWN_APP)))
+
+        viewModel.uiState.filter { it.app != null }.test {
+            assertThat(awaitItem().backgroundActivityAvailable).isFalse()
+
+            val unavailableStates = listOf(
+                WakeAvailability.NoAccess,
+                WakeAvailability.NotOwnerProfile,
+                WakeAvailability.ReadsRefused,
+                WakeAvailability.Collecting,
+            )
+            for (availability in unavailableStates) {
+                wakeAvailability.value = WakeAvailability.Ready(lastCheckedMillis = null)
+                assertThat(awaitItem().backgroundActivityAvailable).isTrue()
+
+                wakeAvailability.value = availability
+                assertThat(awaitItem().backgroundActivityAvailable).isFalse()
+            }
+        }
     }
 
     @Test

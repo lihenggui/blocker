@@ -56,7 +56,7 @@ class AppDetailScreenScreenshotTests {
 
     private val allTabs = listOf(AppDetailTabs.Info, AppDetailTabs.Service, AppDetailTabs.Activity, AppDetailTabs.Sdk)
     private val counts = mapOf(AppDetailTabs.Service to previewServiceRows.size, AppDetailTabs.Activity to previewActivityRows.size, AppDetailTabs.Sdk to 1)
-    private val header = AppHeaderUiState(app = previewHeaderApp, launch = LaunchMode.OWN_USER)
+    private val header = AppHeaderUiState(app = previewHeaderApp, launch = LaunchMode.OWN_USER, backgroundActivityAvailable = true)
 
     private fun list(
         tab: AppDetailTabs,

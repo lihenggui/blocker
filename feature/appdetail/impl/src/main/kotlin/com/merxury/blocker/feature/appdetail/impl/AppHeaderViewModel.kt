@@ -31,10 +31,12 @@ import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
 import com.merxury.blocker.core.domain.model.ZippedRule
+import com.merxury.blocker.core.domain.wake.ObserveWakeAvailabilityUseCase
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.InstalledApp
+import com.merxury.blocker.core.model.wake.WakeAvailability
 import com.merxury.blocker.core.rule.entity.RuleWorkEvent
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.ruleWorkEventOf
@@ -77,6 +79,7 @@ class AppHeaderViewModel @AssistedInject constructor(
     deviceUsers: DeviceUserRepository,
     installedApps: InstalledAppRepository,
     componentDetails: ComponentDetailRepository,
+    observeWakeAvailability: ObserveWakeAvailabilityUseCase,
     private val userDataRepository: UserDataRepository,
     private val workManager: WorkManager,
     private val zipAppRule: ZipAppRuleUseCase,
@@ -123,6 +126,12 @@ class AppHeaderViewModel @AssistedInject constructor(
             ruleWork = ruleWork,
             sharedRules = sharedRules,
         )
+    }.combine(
+        observeWakeAvailability()
+            .map { it is WakeAvailability.Ready }
+            .onStart { emit(false) },
+    ) { header, available ->
+        header.copy(backgroundActivityAvailable = available)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

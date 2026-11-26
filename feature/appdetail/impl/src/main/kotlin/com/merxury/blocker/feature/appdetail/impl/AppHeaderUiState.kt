@@ -29,6 +29,7 @@ import kotlin.time.Instant
  * @property profile the profile the app belongs to when it is not the user Blocker runs in; null
  * also while the users are not cached yet
  * @property launch how the app can be opened from here
+ * @property backgroundActivityAvailable whether background activity has results to show
  * @property showLibChecker whether LibChecker can show the app: it is installed, and so is the app,
  * for the user Blocker runs in
  * @property hasCustomizedRules whether the user wrote descriptions for components of the app, which
@@ -45,6 +46,7 @@ data class AppHeaderUiState(
     val useDynamicColor: Boolean = false,
     val ruleWork: RuleWorkEvent? = null,
     val sharedRules: ZippedRule? = null,
+    val backgroundActivityAvailable: Boolean = false,
 )
 
 /**
