@@ -79,6 +79,7 @@
     <string name="feature_wake_api_method_restart">关闭后重新启动</string>
     <string name="feature_wake_api_method_self_start">自身进程互相拉起</string>
     <string name="feature_wake_api_method_system_event">收到系统广播后启动</string>
+    <string name="feature_wake_api_method_silent_push">收到静默推送后启动</string>
     <string name="feature_wake_api_method_timed">定时唤醒</string>
     <string name="feature_wake_api_method_screen_off">熄屏后持续运行</string>
     <string name="feature_wake_api_method_known">已知保活方式</string>
@@ -89,6 +90,8 @@
     <string name="feature_wake_api_fact_component">组件</string>
     <string name="feature_wake_api_fact_caller">调用方</string>
     <string name="feature_wake_api_fact_action">动作</string>
+    <string name="feature_wake_api_fact_method">限制方式</string>
+    <string name="feature_wake_api_fact_method_background">关闭“允许后台活动”</string>
     <string name="feature_wake_api_fact_component_value">%1$s（%2$s）</string>
     <string name="feature_wake_api_fact_component_of_app">%1$s（%2$s的%3$s）</string>
     <string name="feature_wake_api_type_activity">活动</string>

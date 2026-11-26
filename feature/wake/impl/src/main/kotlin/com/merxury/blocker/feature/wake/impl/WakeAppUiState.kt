@@ -11,6 +11,8 @@ import com.merxury.blocker.core.model.wake.AppWakeState
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.JustifiedStarts
 import com.merxury.blocker.core.model.wake.OwnWakeKind
+import com.merxury.blocker.core.model.wake.ReviveTrigger
+import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
@@ -38,13 +40,17 @@ internal data class WakeAppUiState(
     val hasRestart get() = methods.any { it.kind == OwnWakeKind.RESTART_AFTER_CLOSE && !it.blocked }
     val inbound get() = chainSide(relations.filter { it.direction == WakeDirection.INBOUND || it.direction == WakeDirection.MUTUAL })
     val outbound get() = chainSide(relations.filter { it.direction == WakeDirection.OUTBOUND || it.direction == WakeDirection.MUTUAL })
+    private val blockableRows get() = rows.filter { it.canToggle(background) && !it.blocked }
     val choices get() = buildList {
-        rows.filter { it.canToggle && !it.blocked }.forEach { add(WakeSheetChoice(it.key, it.title)) }
-        if (background?.allowed == true && background.changeable) {
+        val available = blockableRows
+        available.forEach { add(WakeSheetChoice(it.key, it.title)) }
+        if (background?.allowed == true && background.changeable &&
+            available.none { row -> row.paths.any { it.canRestrictBackground(app.packageName) } }
+        ) {
             add(WakeSheetChoice(BACKGROUND_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_background)))
         }
     }
-    val canBlockAll get() = rows.any { it.canToggle && !it.blocked }
+    val canBlockAll get() = blockableRows.isNotEmpty()
 }
 
 internal const val BACKGROUND_CHOICE = "background"
@@ -74,9 +80,14 @@ internal data class WakeDetailRow(
     val kind: OwnWakeKind? = null,
     val boot: Boolean = false,
 ) {
-    val canToggle get() = paths.isNotEmpty() || automatic != null
+    val hasSwitch get() = paths.isNotEmpty() || automatic != null
     val blocked get() = automatic?.active ?: (paths.isNotEmpty() && paths.all { it.block != WakePathBlock.NONE })
+
+    fun canToggle(background: BackgroundUsage?) = hasSwitch &&
+        (background?.changeable != false || automatic != null || paths.any { it.path.blockMethod != WakeBlockMethod.BACKGROUND_RESTRICTION })
 }
+
+internal fun WakePathState.canRestrictBackground(packageName: String) = block == WakePathBlock.NONE && path.blockMethod == WakeBlockMethod.BACKGROUND_RESTRICTION && path.target == packageName
 
 internal data class WakeFact(val label: Int, val value: WakeText)
 internal data class WakeChainPeer(val app: WakeAppIdentity, val blocked: Boolean)
@@ -121,9 +132,10 @@ internal fun buildWakeAppState(
     } + state.automatic.map(facts::automaticRow)
     val methods = app.own.map { method ->
         val boot = method.action.isWakeBootAction() || method.paths.any { it.action.isWakeBootAction() }
+        val silentPush = method.paths.isNotEmpty() && method.paths.all { it.trigger == ReviveTrigger.PUSH_TRANSPORT }
         makeRow(
             key = "method:${method.kind}:${method.component}:${method.action}:${method.paths.firstOrNull()?.hold}",
-            title = WakeText.Resource(methodTitle(method.kind, boot)),
+            title = WakeText.Resource(if (silentPush) string.feature_wake_api_method_silent_push else methodTitle(method.kind, boot)),
             paths = method.paths,
             state = state,
             lastCheckedMillis = lastCheckedMillis,
@@ -194,7 +206,13 @@ private class WakeFacts(
 ) {
     fun forPaths(paths: List<WakePath>, callers: List<String> = paths.mapNotNull { it.actor }): List<WakeFact> {
         val component = paths.firstNamedPath()
-        return build(component?.component, component?.componentType, component?.target, callers, paths.firstNotNullOfOrNull { it.action })
+        val action = paths.firstNotNullOfOrNull { it.action?.takeIf(String::isNotBlank) }
+        val facts = build(component?.component, component?.componentType, component?.target, callers, action)
+        return if (component == null && action == null && paths.isNotEmpty() && paths.all { it.blockMethod == WakeBlockMethod.BACKGROUND_RESTRICTION }) {
+            facts + WakeFact(string.feature_wake_api_fact_method, WakeText.Resource(string.feature_wake_api_fact_method_background))
+        } else {
+            facts
+        }
     }
 
     fun automaticRow(block: AutomaticWakeBlock) = WakeDetailRow(

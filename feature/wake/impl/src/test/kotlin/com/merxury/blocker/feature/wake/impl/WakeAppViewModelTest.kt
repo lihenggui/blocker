@@ -62,18 +62,9 @@ class WakeAppViewModelTest {
     private val first = detailPath("restart")
     private val second = detailPath("self", component = "$DETAIL_PACKAGE.Sync")
     private val known = AutomaticWakeBlock("known", "peer", DETAIL_PACKAGE, "$DETAIL_PACKAGE.Known", "bind", false, true)
-    private var includeBackgroundPath = false
-    private val base by lazy {
-        detailState(
-            own = buildList {
-                add(detailMethod(OwnWakeKind.RESTART_AFTER_CLOSE, first))
-                add(detailMethod(OwnWakeKind.SELF_START, second))
-                if (includeBackgroundPath) {
-                    add(detailMethod(OwnWakeKind.TIMED, detailPath("alarm", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)))
-                }
-            },
-        )
-    }
+    private val timed = detailMethod(OwnWakeKind.TIMED, detailPath("alarm", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null))
+    private var methods = listOf(detailMethod(OwnWakeKind.RESTART_AFTER_CLOSE, first), detailMethod(OwnWakeKind.SELF_START, second))
+    private val base by lazy { detailState(own = methods) }
     private val observed = combine(manual.blocks, automatic.blocks, background.observe(appKey)) { blocks, reviewed, usage ->
         val paths = base.paths.mapValues { (key, state) ->
             val block = blocks.firstOrNull { it.pathKey == key }
@@ -102,10 +93,9 @@ class WakeAppViewModelTest {
     }
 
     @Test
-    fun givenAllowedPath_whenTogglingBothWays_thenReadsBackWithoutShowingSnackbar() = runTest {
+    fun givenAllowedFirewallPath_whenTogglingBothWays_thenUpdatesRowWithoutReadingBackgroundUsage() = runTest {
         observe()
         val key = current.methods.first().key
-        assertThat(background.reads).containsExactly(AppKey(DETAIL_PACKAGE, UserId.SYSTEM))
         viewModel.toggle(key, allowed = false)
         runCurrent()
         assertThat(current.methods.first().blocked).isTrue()
@@ -114,7 +104,7 @@ class WakeAppViewModelTest {
         runCurrent()
         assertThat(current.methods.first().blocked).isFalse()
         assertThat(current.notice).isNull()
-        assertThat(background.reads).hasSize(3)
+        assertThat(background.reads).isEmpty()
     }
 
     @Test
@@ -138,18 +128,20 @@ class WakeAppViewModelTest {
         assertThat(automatic.allowedIds).containsExactly("known")
         assertThat(current.background?.allowed).isTrue()
         assertThat(background.writes).containsExactly(appKey to false, appKey to true).inOrder()
+        assertThat(background.reads).isEmpty()
     }
 
     @Test
-    fun givenTimedRowAndBackgroundChoiceSelected_whenBlockingAndUndoing_thenWritesTheSettingOnceEachWay() = runTest {
-        includeBackgroundPath = true
+    fun givenTimedRowInBlockSheet_whenBlockingAndUndoing_thenWritesTheSettingOnceEachWay() = runTest {
+        methods = methods + timed
         observe()
-        val timed = current.methods.single { it.kind == OwnWakeKind.TIMED }
-        assertThat(current.choices.map { it.key }).containsAtLeast(timed.key, BACKGROUND_CHOICE)
+        val row = current.methods.single { it.kind == OwnWakeKind.TIMED }
+        assertThat(current.choices.map { it.key }).contains(row.key)
+        assertThat(current.choices.map { it.key }).doesNotContain(BACKGROUND_CHOICE)
 
-        viewModel.blockAll(setOf(timed.key, BACKGROUND_CHOICE))
+        viewModel.blockAll(setOf(row.key))
         runCurrent()
-        assertThat(current.methods.single { it.key == timed.key }.blocked).isTrue()
+        assertThat(current.methods.single { it.key == row.key }.blocked).isTrue()
         assertThat(current.background?.allowed).isFalse()
         assertThat(background.writes).containsExactly(appKey to false)
         val notice = requireNotNull(current.notice)
@@ -157,10 +149,75 @@ class WakeAppViewModelTest {
 
         viewModel.undo(notice.id)
         runCurrent()
-        assertThat(current.methods.single { it.key == timed.key }.blocked).isFalse()
+        assertThat(current.methods.single { it.key == row.key }.blocked).isFalse()
         assertThat(current.background?.allowed).isTrue()
         assertThat(background.writes).containsExactly(appKey to false, appKey to true).inOrder()
+        assertThat(background.reads).containsExactly(appKey) // The batch captures the value for undo.
         assertThat(manual.blocks.value).isEmpty()
+    }
+
+    @Test
+    fun givenBackgroundRestrictionRow_whenToggling_thenCardFollowsWithoutAnExtraRead() = runTest {
+        methods = methods + timed
+        observe()
+        val row = current.methods.last()
+        assertThat(current.background?.allowed).isTrue()
+
+        viewModel.toggle(row.key, allowed = false)
+        runCurrent()
+
+        assertThat(current.methods.last().blocked).isTrue()
+        assertThat(current.background?.allowed).isFalse()
+        assertThat(background.writes).containsExactly(appKey to false)
+        assertThat(background.reads).isEmpty()
+    }
+
+    @Test
+    fun givenOnlyBackgroundRestrictionRows_whenTogglingBackgroundCard_thenAllRowsAndStatusFollow() = runTest {
+        val screenOff = detailMethod(
+            OwnWakeKind.SCREEN_OFF_RUN,
+            detailPath("screen", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null, screenOff = 300),
+        )
+        methods = listOf(timed, screenOff)
+        observe()
+        assertThat(current.status).isEqualTo(WakeAppStatus.KeepAlive)
+
+        viewModel.setBackgroundAllowed(false)
+        runCurrent()
+
+        assertThat(current.background?.allowed).isFalse()
+        assertThat(current.methods.map { it.blocked }).containsExactly(true, true)
+        assertThat(current.status).isEqualTo(WakeAppStatus.AllBlocked)
+        assertThat(current.canBlockAll).isFalse()
+
+        viewModel.setBackgroundAllowed(true)
+        runCurrent()
+
+        assertThat(current.background?.allowed).isTrue()
+        assertThat(current.methods.map { it.blocked }).containsExactly(false, false)
+        assertThat(current.status).isEqualTo(WakeAppStatus.KeepAlive)
+        assertThat(background.writes).containsExactly(appKey to false, appKey to true).inOrder()
+        assertThat(background.reads).isEmpty()
+    }
+
+    @Test
+    fun givenLiveBackgroundUsageBecomesProtected_whenInvokingStaleRowActions_thenSkipsWrites() = runTest {
+        methods = listOf(timed)
+        observe()
+        val key = current.methods.single().key
+        val protected = BackgroundUsage(allowed = true, changeable = false)
+        background.sendUsage(appKey, protected)
+        runCurrent()
+        assertThat(current.background).isEqualTo(protected)
+        assertThat(current.canBlockAll).isFalse()
+
+        viewModel.toggle(key, allowed = false)
+        runCurrent()
+        viewModel.blockAll(setOf(key, BACKGROUND_CHOICE))
+        runCurrent()
+
+        assertThat(background.writes).isEmpty()
+        assertThat(background.reads).isEmpty()
     }
 
     @Test
@@ -248,19 +305,20 @@ class WakeAppViewModelTest {
     }
 
     @Test
-    fun givenBackgroundPermission_whenChanged_thenReadsBackAndOnlyNotifiesOnFailure() = runTest {
+    fun givenBackgroundPermission_whenChanged_thenOnlyRereadsAndNotifiesOnRefusal() = runTest {
         observe()
         viewModel.setBackgroundAllowed(false)
         runCurrent()
         assertThat(current.background?.allowed).isFalse()
         assertThat(current.notice).isNull()
+        assertThat(background.reads).isEmpty()
 
         background.writeFailure = BackgroundUsageFailure.NOT_CHANGEABLE
         viewModel.setBackgroundAllowed(true)
         runCurrent()
         assertThat(current.background?.allowed).isFalse()
         assertThat(current.notice?.text).isEqualTo(WakeText.Resource(string.feature_wake_api_background_not_changeable))
-        assertThat(background.reads).hasSize(3)
+        assertThat(background.reads).containsExactly(appKey)
     }
 
     @Test
@@ -283,6 +341,7 @@ class WakeAppViewModelTest {
         assertThat(manual.blocks.value).containsExactly(first.record())
         assertThat(automatic.allowedIds).isEmpty()
         assertThat(current.background?.allowed).isFalse()
+        assertThat(background.reads).containsExactly(appKey)
     }
 
     @Test

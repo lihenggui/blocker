@@ -79,6 +79,7 @@
     <string name="feature_wake_api_method_restart">關閉後重新啟動</string>
     <string name="feature_wake_api_method_self_start">自身程序互相啟動</string>
     <string name="feature_wake_api_method_system_event">收到系統廣播後啟動</string>
+    <string name="feature_wake_api_method_silent_push">收到靜默推播後啟動</string>
     <string name="feature_wake_api_method_timed">定時喚醒</string>
     <string name="feature_wake_api_method_screen_off">螢幕關閉後持續執行</string>
     <string name="feature_wake_api_method_known">已知保活方式</string>
@@ -89,6 +90,8 @@
     <string name="feature_wake_api_fact_component">元件</string>
     <string name="feature_wake_api_fact_caller">呼叫端</string>
     <string name="feature_wake_api_fact_action">動作</string>
+    <string name="feature_wake_api_fact_method">限制方式</string>
+    <string name="feature_wake_api_fact_method_background">關閉「允許背景活動」</string>
     <string name="feature_wake_api_fact_component_value">%1$s（%2$s）</string>
     <string name="feature_wake_api_fact_component_of_app">%1$s（%2$s的%3$s）</string>
     <string name="feature_wake_api_type_activity">活動</string>

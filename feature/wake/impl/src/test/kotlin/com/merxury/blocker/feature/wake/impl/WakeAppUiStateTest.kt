@@ -8,7 +8,9 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
+import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.OwnWakeKind
+import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
 import com.merxury.blocker.core.model.wake.WakePathBlock
@@ -70,9 +72,26 @@ class WakeAppUiStateTest {
             string.feature_wake_api_method_self_start,
             string.feature_wake_api_method_screen_off,
         ).inOrder()
-        assertThat(ui.methods.first().canToggle).isFalse()
+        assertThat(ui.methods.first().canToggle(ui.background)).isFalse()
         assertThat(ui.methods.last().meta).isEqualTo(WakeText.Duration(500))
         assertThat(ui.hasRestart).isTrue()
+    }
+
+    @Test
+    fun givenSilentPushPaths_whenMappingSystemEvents_thenUsesSilentPushTitleOnlyForPushOnlyRows() {
+        val push = detailPath("push", method = WakeBlockMethod.COMPONENT).copy(trigger = ReviveTrigger.PUSH_TRANSPORT)
+        val broadcast = detailPath("broadcast", action = Intent.ACTION_SCREEN_ON).copy(trigger = ReviveTrigger.SYSTEM_BROADCAST)
+        val methods = listOf(
+            detailMethod(OwnWakeKind.SYSTEM_EVENT, push),
+            detailMethod(OwnWakeKind.SYSTEM_EVENT, broadcast, push),
+        )
+
+        val ui = buildWakeAppState(detailState(own = methods), null, emptyList(), emptyMap())
+
+        assertThat(ui.methods.map { it.title }).containsExactly(
+            WakeText.Resource(string.feature_wake_api_method_silent_push),
+            WakeText.Resource(string.feature_wake_api_method_system_event),
+        ).inOrder()
     }
 
     @Test
@@ -167,6 +186,51 @@ class WakeAppUiStateTest {
             WakeText.Count(plurals.feature_wake_api_normal_opened, 2L),
             WakeText.Count(plurals.feature_wake_api_normal_push, 8L),
         ).inOrder()
+    }
+
+    @Test
+    fun givenBackgroundRestrictionOnly_whenCheckingControls_thenAllowsUnknownOrChangeableUsageWithoutADuplicateChoice() {
+        val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
+        val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer)))
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
+        val row = ui.methods.single()
+        val changeable = ui.copy(background = BackgroundUsage(allowed = true, changeable = true))
+        val protected = ui.copy(background = BackgroundUsage(allowed = true, changeable = false))
+
+        assertThat(row.hasSwitch).isTrue()
+        for (available in listOf(ui, changeable)) {
+            assertThat(row.canToggle(available.background)).isTrue()
+            assertThat(available.choices.map { it.key }).containsExactly(row.key)
+            assertThat(available.canBlockAll).isTrue()
+        }
+        assertThat(row.canToggle(protected.background)).isFalse()
+        assertThat(protected.choices).isEmpty()
+        assertThat(protected.canBlockAll).isFalse()
+    }
+
+    @Test
+    fun givenProtectedBackgroundAndComponentControl_whenCheckingControls_thenKeepsMixedRowActionable() {
+        val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
+        val job = detailPath("job", method = WakeBlockMethod.COMPONENT)
+        val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer, job)))
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap()).copy(background = BackgroundUsage(allowed = true, changeable = false))
+
+        assertThat(ui.methods.single().canToggle(ui.background)).isTrue()
+        assertThat(ui.choices.map { it.key }).containsExactly(ui.methods.single().key)
+        assertThat(ui.canBlockAll).isTrue()
+    }
+
+    @Test
+    fun givenUnnamedScreenOffPath_whenMappingFacts_thenExplainsBackgroundRestriction() {
+        val wakelock = detailPath("wakelock", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
+            .copy(actor = null, trigger = null, hold = HoldCause.WAKELOCK)
+        val state = detailState(own = listOf(detailMethod(OwnWakeKind.SCREEN_OFF_RUN, wakelock)))
+
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
+
+        assertThat(ui.methods.single().facts).containsExactly(
+            WakeFact(string.feature_wake_api_fact_method, WakeText.Resource(string.feature_wake_api_fact_method_background)),
+        )
     }
 
     @Test
