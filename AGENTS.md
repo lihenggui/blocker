@@ -28,9 +28,9 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
 - [`core/database`](core/database), [`core/datastore`](core/datastore), and
   [`core/datastore-proto`](core/datastore-proto) own Room and Proto DataStore.
   [`core/network`](core/network) provides Retrofit clients.
-- [`core/analytics`](core/analytics), [`core/git`](core/git), and
-  [`core/provider`](core/provider) handle analytics, Git-backed rule sync, and
-  content providers. General rule matching lives in [`core/domain`](core/domain).
+- [`core/analytics`](core/analytics) handles analytics and
+  [`core/provider`](core/provider) handles content providers.
+  General rule matching lives in [`core/domain`](core/domain).
 - [`core/rule`](core/rule) owns Blocker backups, Intent Firewall XML import and export, My Android
   Tools import, PackageManager reset, and the workers for rule operations.
 - [`core/common`](core/common) holds shared infrastructure and extensions.
@@ -89,6 +89,7 @@ device tests, coverage, graphs, release builds, and baseline profiles.
   cached users while the privileged channel is ready.
 - Observe persisted data through the repository. `CatalogGeneralRuleRepository` reads the
   installed catalog. The bundled catalog seed lives in `core/data/src/main/assets/catalog`.
+  `CatalogRepository` installs the seed and checks for verified catalog releases.
 - Use `<Verb><Noun>UseCase` and `operator fun invoke` in `core:domain`.
   `PerformAppActionUseCase` shows the naming and Hilt constructor injection.
 - Collect flows with `collectAsStateWithLifecycle` at the screen boundary.

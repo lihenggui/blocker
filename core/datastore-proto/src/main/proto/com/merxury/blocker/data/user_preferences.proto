@@ -30,6 +30,8 @@ option java_package = "com.merxury.blocker.core.datastore";
 option java_multiple_files = true;
 
 message UserPreferences {
+    reserved 17;
+    reserved "rule_commit_id";
     DarkThemeConfigProto dark_theme_config = 1;
     ControllerTypeProto controller_type = 2;
     RuleServerProviderProto rule_server_provider = 3;
@@ -46,7 +48,6 @@ message UserPreferences {
     TopAppTypeProto top_app_type = 14;
     ComponentSortingOrderProto component_sorting_order = 15;
     bool is_first_time_initialization_completed = 16;
-    string rule_commit_id = 17;
     string app_display_language = 18;
     string lib_display_language = 19;
     bool disable_statistics = 20;

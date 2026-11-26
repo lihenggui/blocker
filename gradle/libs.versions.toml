@@ -50,7 +50,6 @@ googleAndroidMaterial = "1.14.0"
 hilt = "2.60.1"
 hiltExt = "1.4.0"
 jacoco = "0.8.16"
-jgit = "7.8.1.202611041320-r"
 kotlin = "2.4.21"
 kotlinxCoroutines = "1.11.0"
 kotlinxDatetime = "0.8.0"
@@ -150,7 +149,6 @@ coil-kt-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.r
 coil-kt-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
 compose-markdown = { group = "com.github.jeziellago", name = "compose-markdown", version.ref = "composeMarkdown" }
-eclipse-jgit = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref="firebaseBom"}
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
@@ -182,6 +180,7 @@ logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 material-kolor = { group = "com.materialkolor", name = "material-kolor", version.ref = "materialKolor" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" }
 protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobuf" }

@@ -35,18 +35,20 @@ internal object NetworkModule {
 
     @Provides
     @Singleton
-    fun okHttpCallFactory(): Call.Factory = trace("BlockerOkHttpClient") {
-        OkHttpClient.Builder()
-            .addInterceptor(
-                HttpLoggingInterceptor()
-                    .apply {
-                        if (BuildConfig.DEBUG) {
-                            setLevel(HttpLoggingInterceptor.Level.BODY)
-                        }
-                    },
-            )
-            .build()
-    }
+    fun okHttpClient(): OkHttpClient = trace("BlockerOkHttpClient") { OkHttpClient.Builder().build() }
+
+    @Provides
+    @Singleton
+    fun okHttpCallFactory(client: OkHttpClient): Call.Factory = client.newBuilder()
+        .addInterceptor(
+            HttpLoggingInterceptor()
+                .apply {
+                    if (BuildConfig.DEBUG) {
+                        setLevel(HttpLoggingInterceptor.Level.BODY)
+                    }
+                },
+        )
+        .build()
 
     @Provides
     @Singleton

@@ -15,6 +15,9 @@ See [the agent guide](../AGENTS.md) for everyday commands and test rules.
   `marketImplementation` for flavor-specific ones. App build types include
   `debug`, `release`, `benchmarkRelease`, and `nonMinifiedRelease`. The
   Baseline Profile plugin creates the latter two build types.
+- A standard checkout includes the bundled catalog seed under
+  [`core/data/src/main/assets/catalog`](../core/data/src/main/assets/catalog).
+  The app checks the selected GitHub or GitLab mirror for catalog releases at runtime.
 - [`app-compose/build.gradle.kts`](../app-compose/build.gradle.kts) derives
   `versionCode` from `git rev-list --count HEAD` and uses `2.0.<commit count>`
   for `versionName`. Use full Git history when reproducing release versioning.

@@ -21,7 +21,6 @@ import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
-import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.RuleServerProvider
@@ -38,6 +37,7 @@ import com.merxury.blocker.feature.impl.settings.SettingsUiState.Success
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -59,7 +59,6 @@ class SettingsViewModelTest {
 
     private val userDataRepository = TestUserDataRepository()
     private val syncManager = TestSyncManager()
-    private val blockerPreferences = mock<BlockerPreferencesDataSource>()
     private val analyticsHelper = NoOpAnalyticsHelper()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val appContext = mock<Application>()
@@ -70,7 +69,6 @@ class SettingsViewModelTest {
         viewModel = SettingsViewModel(
             ioDispatcher = dispatcher,
             userDataRepository = userDataRepository,
-            blockerPreferences = blockerPreferences,
             syncManager = syncManager,
             appContext = appContext,
             analyticsHelper = analyticsHelper,
@@ -116,30 +114,19 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun updateRuleServerProvider_switchesProvider_resetsAndSyncs() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.settingsUiState.collect() }
-        // Initialize with GITHUB (the default)
+    fun givenGitHubSelected_whenSwitchingToGitLab_thenTheNewProviderIsCheckedImmediately() = runTest {
         userDataRepository.sendUserData(defaultUserData)
+        val editor = mock<SharedPreferences.Editor>()
+        val preferences = mock<SharedPreferences>()
+        whenever(preferences.edit()) doReturn editor
+        whenever(editor.remove(any())) doReturn editor
+        whenever(appContext.getSharedPreferences("sync_rule", Application.MODE_PRIVATE)) doReturn preferences
 
-        // Mock SharedPreferences for clearLastSyncTime
-        val mockEditor = mock<SharedPreferences.Editor>()
-        val mockPrefs = mock<SharedPreferences>()
-        whenever(mockPrefs.edit()) doReturn mockEditor
-        whenever(mockEditor.remove(any())) doReturn mockEditor
-        whenever(appContext.getSharedPreferences(any<String>(), any())) doReturn mockPrefs
-
-        // Switch to GITLAB
         viewModel.updateRuleServerProvider(RuleServerProvider.GITLAB)
 
-        // Verify ruleCommitId was reset
-        verify(blockerPreferences).resetRuleCommitId()
-        // Verify immediate sync was requested
+        assertEquals(RuleServerProvider.GITLAB, userDataRepository.userData.first().ruleServerProvider)
+        verify(editor).remove("last_synced_time")
         assertTrue(syncManager.syncRequestedImmediately)
-        // Verify the provider was updated
-        val currentProvider = userDataRepository.userData
-        launch(UnconfinedTestDispatcher()) { currentProvider.collect() }.cancel()
-
-        collectJob.cancel()
     }
 }
 

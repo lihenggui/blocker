@@ -27,12 +27,6 @@ android {
     testOptions.unitTests.isIncludeAndroidResources = true
     // The device tests run the app's Hilt graph.
     defaultConfig.testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
-    androidResources {
-        // The catalog seed replaces the legacy rule checkout in the APK.
-        ignoreAssetsPattern =
-            "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:" +
-                "<dir>blocker-general-rules"
-    }
 }
 
 dependencies {

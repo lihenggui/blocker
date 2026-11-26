@@ -108,9 +108,9 @@ class ProtoDataStoresTest {
         )
         dataStore.data.first()
 
-        dataStore.updateData { it.copy { ruleCommitId = "abc" } }
+        dataStore.updateData { it.copy { appDisplayLanguage = "en" } }
 
-        assertEquals("abc", dataStore.data.first().ruleCommitId)
+        assertEquals("en", dataStore.data.first().appDisplayLanguage)
         // Only one DataStore may be active per file, so close the first one.
         firstScope.cancel()
         val reopened = createUserPreferencesDataStore(
@@ -120,7 +120,7 @@ class ProtoDataStoresTest {
         )
         assertEquals(
             userPreferences {
-                ruleCommitId = "abc"
+                appDisplayLanguage = "en"
                 disableStatistics = true
             },
             reopened.data.first(),

@@ -5,7 +5,9 @@ package com.merxury.blocker.core.testing.repository
 
 import com.merxury.blocker.core.data.repository.catalog.CatalogInstallResult
 import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
+import com.merxury.blocker.core.data.repository.catalog.CatalogUpdateResult
 import com.merxury.blocker.core.model.CatalogState
+import com.merxury.blocker.core.model.preference.RuleServerProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
@@ -17,6 +19,14 @@ class TestCatalogRepository : CatalogRepository {
 
     fun clear() {
         state.value = null
+    }
+
+    val updateRequests = mutableListOf<RuleServerProvider>()
+    var updateResult: CatalogUpdateResult = CatalogUpdateResult.UpToDate
+
+    override suspend fun update(provider: RuleServerProvider): CatalogUpdateResult {
+        updateRequests.add(provider)
+        return updateResult.also { if (it is CatalogUpdateResult.Updated) state.value = it.state }
     }
 
     override suspend fun installBundled(): CatalogInstallResult {
