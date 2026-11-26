@@ -22,7 +22,7 @@ import com.merxury.blocker.core.model.wake.WakePeerLink
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 
-private val peerTriggers = setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.PEER_BROADCAST, ReviveTrigger.PEER_PROVIDER)
+private val peerTriggers = setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.PEER_BROADCAST, ReviveTrigger.PEER_PROVIDER, ReviveTrigger.PEER_ACTIVITY)
 private val peerHolds = setOf(HoldCause.BOUND_BY_PEER, HoldCause.PROVIDER_CLIENT)
 private val timedTriggers = setOf(ReviveTrigger.ALARM, ReviveTrigger.JOB, ReviveTrigger.SYNC, ReviveTrigger.PENDING_INTENT)
 
@@ -114,7 +114,9 @@ private fun buildOwnWakeMethods(paths: List<WakePath>): List<OwnWakeMethod> = pa
 }.sortedWith(compareBy<OwnWakeMethod> { it.kind }.thenByDescending { it.paths.sumOf(WakePath::count) })
 
 private fun WakePath.ownMethodKey(): OwnMethodKey? = when {
-    trigger in peerTriggers || trigger == ReviveTrigger.PEER_ACTIVITY -> null
+    trigger == ReviveTrigger.PEER_ACTIVITY && actor == target -> OwnMethodKey(OwnWakeKind.SELF_START, component, action)
+
+    trigger in peerTriggers -> null
 
     trigger == ReviveTrigger.PUSH_TRANSPORT -> OwnMethodKey(OwnWakeKind.SYSTEM_EVENT, component, action)
 
@@ -128,7 +130,8 @@ private fun WakePath.ownMethodKey(): OwnMethodKey? = when {
     trigger in timedTriggers -> OwnMethodKey(OwnWakeKind.TIMED, component = component)
 
     screenOffNanos > 0 && (
-        hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.WAKELOCK || hold == HoldCause.RUNNING_JOB || hold == HoldCause.UNKNOWN ||
+        hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.WAKELOCK || hold == HoldCause.RUNNING_JOB ||
+            hold == HoldCause.OVERLAY_WINDOW || hold == HoldCause.UNKNOWN ||
             (hold == HoldCause.BOUND_BY_PEER && actor == target)
         ) -> OwnMethodKey(OwnWakeKind.SCREEN_OFF_RUN, component, hold = hold)
 
@@ -233,6 +236,8 @@ internal fun WakeFindingDay.toWakePath(): WakePath {
 
         trigger == ReviveTrigger.PEER_PROVIDER || hold == HoldCause.PROVIDER_CLIENT -> ComponentType.PROVIDER
 
+        trigger == ReviveTrigger.PEER_ACTIVITY -> ComponentType.ACTIVITY
+
         else -> null
     }
     return WakePath(
@@ -267,14 +272,15 @@ private fun WakeFindingDay.blockMethod(trigger: ReviveTrigger?, hold: HoldCause?
 
     trigger == ReviveTrigger.SELF_PROCESS && action != null -> WakeBlockMethod.COMPONENT
 
-    (trigger == ReviveTrigger.PEER_PROVIDER || hold == HoldCause.PROVIDER_CLIENT) && component != null -> WakeBlockMethod.COMPONENT
+    (trigger == ReviveTrigger.PEER_PROVIDER || trigger == ReviveTrigger.PEER_ACTIVITY || hold == HoldCause.PROVIDER_CLIENT) &&
+        component != null -> WakeBlockMethod.COMPONENT
 
     (trigger == ReviveTrigger.STICKY_RESTART || hold == HoldCause.FOREGROUND_SERVICE) && component != null -> WakeBlockMethod.COMPONENT
 
     isScheduledService(trigger, hold) && component != null -> WakeBlockMethod.COMPONENT
 
     trigger in timedTriggers || hold == HoldCause.WAKELOCK || hold == HoldCause.RUNNING_JOB ||
-        hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.UNKNOWN -> WakeBlockMethod.BACKGROUND_RESTRICTION
+        hold == HoldCause.FOREGROUND_SERVICE || hold == HoldCause.OVERLAY_WINDOW || hold == HoldCause.UNKNOWN -> WakeBlockMethod.BACKGROUND_RESTRICTION
 
     else -> WakeBlockMethod.NONE
 }

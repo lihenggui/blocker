@@ -60,11 +60,13 @@ internal object WakeRevives {
         "BOOT COMPLETE" to ReviveTrigger.SYSTEM_BROADCAST,
     )
 
-    // A process started to host an activity is showing UI. HostingRecord types and their
-    // ProcessStartTime hosting_type_id: activity 1, next-activity 8, next-top-activity 9, top-activity 13.
+    // HostingRecord types and their ProcessStartTime hosting_type_id:
+    // activity 1, next-activity 8, next-top-activity 9, top-activity 13.
     private val activityHostingTypes = setOf("activity", "next-activity", "next-top-activity", "top-activity")
     val ACTIVITY_HOSTING_TYPE_IDS = setOf(1L, 8L, 9L, 13L)
-    private val activityReasons = setOf("START ACTIVITY", "LAUNCHER", "LAUNCHER RECENTS")
+    private val launcherReasons = setOf("LAUNCHER", "LAUNCHER RECENTS")
+    private val activityReasons = launcherReasons + "START ACTIVITY"
+    private const val SOURCE_TYPE_LAUNCHER = 1L
 
     // HOSTING_TYPE_EMPTY: app zygote and WebView zygote starts, which are always isolated processes.
     private const val ZYGOTE_HOSTING_TYPE_ID = 14L
@@ -176,6 +178,53 @@ internal object WakeRevives {
 
     fun detect(index: WakeEvidenceIndex): List<Detected> = chain(classify(index), index.evidence.continuations)
 
+    private fun WakeEvidenceIndex.userVisibleActivity(
+        record: WakeRecord,
+        target: String,
+        coldActivityTimes: List<Long>,
+    ): Boolean {
+        if (isScreenOff(record.boot, record.elapsedNanos)) return false
+        if (record.number("source_type") == SOURCE_TYPE_LAUNCHER || record.attr("reason") in launcherReasons ||
+            isLauncher(record.callerPackage ?: packageOf(record.callerUid))
+        ) {
+            return true
+        }
+        return backgroundActivityLaunch(
+            record.boot,
+            record.targetPackage ?: target,
+            record.component,
+            record.elapsedNanos,
+            JOIN_WINDOW,
+            record.callerUid,
+            record.callerPackage,
+            record.targetUid,
+            coldActivityTimes = coldActivityTimes,
+        ) == null
+    }
+
+    private fun WakeEvidenceIndex.stealthActivityTrigger(
+        start: ColdStart,
+        target: String,
+        component: String?,
+        request: WakeRecord?,
+        bal: WakeRecord?,
+    ): Trigger {
+        val uid = bal?.balEffectiveCallerUid() ?: request?.callerUid?.takeIf(::isApp)
+        val pkg = packageOf(uid)
+            ?: bal?.callerPackage?.takeIf { bal.callerUid == uid }
+            ?: request?.callerPackage?.takeIf { bal == null || request.callerUid == uid }
+        val self = uid == start.uid || pkg == target || (uid == null && pkg == null)
+        // Keep the activity type for component blocking even when the app started itself.
+        return Trigger(
+            ReviveTrigger.PEER_ACTIVITY,
+            if (self && bal == null) Confidence.DIRECT else Confidence.JOINED,
+            if (self) target else pkg ?: uid.toString(),
+            component,
+            actorInBackground = true,
+            requestId = request?.id,
+        )
+    }
+
     /**
      * WakeAttribution.continuations links a request to the earlier request whose cold-started process
      * issued it. Walking those links back from a revive's own request reaches the revives upstream;
@@ -207,14 +256,25 @@ internal object WakeRevives {
     }
 
     private fun classify(index: WakeEvidenceIndex): List<Pair<Detected, String?>> = with(index) {
+        val starts = coldStarts(index)
         val requestsByStart = evidence.relations.groupBy({ it.processId }, { byId[it.requestId] }).mapValues { it.value.filterNotNull() }
+        fun requestFor(start: ColdStart) = start.stats?.let { requestsByStart[it.id] }?.singleOrNull { it.kind in peerTriggers }
+        fun callerOf(request: WakeRecord?) = request?.let { it.callerPackage ?: packageOf(it.callerUid) }
+        fun isActivity(start: ColdStart) = start.info?.attr("reason") in activityReasons ||
+            start.event?.attr("hosting_type") in activityHostingTypes || start.stats?.number("hosting_type_id") in ACTIVITY_HOSTING_TYPE_IDS
+
+        fun isLauncherStart(start: ColdStart, request: WakeRecord?) = start.info?.attr("reason") in launcherReasons ||
+            request?.number("source_type") == SOURCE_TYPE_LAUNCHER || isLauncher(callerOf(request))
+
+        val coldActivityTimes = starts.filter { isActivity(it) && !isLauncherStart(it, requestFor(it)) }
+            .groupBy({ it.boot }, { it.elapsed })
         val restarts = kind("am_schedule_service_restart").filter { it.source == SYSTEM_WAKE_EVENTS }.groupBy { it.boot }
         val jobs = byUid("ScheduledJobStateChanged") { record -> record.chainUid().takeIf { record.number("state") == 1L } }
         val syncs = byUid("SyncStateChanged") { record -> record.chainUid().takeIf { record.number("state") == 1L } }
         val wakeups = byUid("WakeupAlarmOccurred") { it.chainUid() }
         val batches = kind("AlarmBatchDelivered").groupBy { it.boot }
         val notifications = byUid("NotificationReported") { record -> record.targetUid.takeIf { record.number("event_id") in appNotificationEvents } }
-        // The app showed UI: a reported activity launch, or any start record of the uid hosting an activity.
+        // An activity launch, or any start record of the uid hosting an activity.
         val shown = (
             kind("AppStartOccurred") +
                 kind(WAKE_START_INFO).filter { it.attr("reason") in activityReasons } +
@@ -229,17 +289,26 @@ internal object WakeRevives {
         val kills = kind("am_kill").filter { it.source == SYSTEM_WAKE_EVENTS }.groupBy { Triple(it.boot, it.attr("user")?.toIntOrNull(), it.processName) }
         val deaths = kind("AppProcessDied").groupBy { Triple(it.boot, it.targetUid, it.processName) }
 
-        coldStarts(index).mapNotNull { start ->
+        starts.mapNotNull { start ->
             val reference = start.reference
-            val request = start.stats?.let { requestsByStart[it.id] }?.singleOrNull { it.kind in peerTriggers }
+            val request = requestFor(start)
             val target = target(start, request) ?: return@mapNotNull null
-            val callerPackage = request?.let { it.callerPackage ?: packageOf(it.callerUid) }
+            val callerPackage = callerOf(request)
             val component = start.component?.let { qualifiedWakeComponent(target, it) }
             val action = start.info?.action ?: start.stats?.action
             val reason = start.info?.attr("reason")
             val statsTrigger = triggerTypes[start.stats?.number("trigger_type")]
-            val activity = reason in activityReasons || start.event?.attr("hosting_type") in activityHostingTypes ||
-                start.stats?.number("hosting_type_id") in ACTIVITY_HOSTING_TYPE_IDS
+            val activity = isActivity(start)
+            val activityTimes = coldActivityTimes[start.boot].orEmpty()
+            val bal = if (activity && !isLauncherStart(start, request)) {
+                backgroundActivityLaunch(
+                    start.boot, target, component, start.elapsed, JOIN_WINDOW,
+                    request?.callerUid, callerPackage, start.uid, allowUnattributed = request == null, coldActivityTimes = activityTimes,
+                )
+            } else {
+                null
+            }
+            val stealthActivity = activity && (isScreenOff(start.boot, start.elapsed) || bal != null)
             val window = (start.elapsed - JOIN_WINDOW)..(start.elapsed + JOIN_WINDOW)
 
             fun correlated(): Trigger? {
@@ -308,7 +377,8 @@ internal object WakeRevives {
             val classified = when {
                 restart != null -> Trigger(ReviveTrigger.STICKY_RESTART, Confidence.JOINED, target, component)
 
-                // The app showed UI. Whoever launched it, the user saw the start.
+                stealthActivity -> stealthActivityTrigger(start, target, component, request, bal)
+
                 activity -> Trigger(
                     ReviveTrigger.PEER_ACTIVITY,
                     Confidence.DIRECT,
@@ -359,7 +429,10 @@ internal object WakeRevives {
             if (classified.trigger == ReviveTrigger.SELF_PROCESS && classified.actorInBackground == false) return@mapNotNull null
             val startWall = wallNanos(reference, start.elapsed)
             val after = start.elapsed + PRODUCTIVE_WINDOW
-            val userInitiated = activity || within(shown[start.boot to start.uid], start.elapsed - MERGE_WINDOW, after).isNotEmpty()
+            val userInitiated = (activity && !stealthActivity) || within(shown[start.boot to start.uid], start.elapsed - MERGE_WINDOW, after).any { record ->
+                val sameStealthLaunch = stealthActivity && (record == start.stats || record == start.event || record == start.info || record == request)
+                !sameStealthLaunch && userVisibleActivity(record, target, activityTimes)
+            }
             val justification = when {
                 userInitiated -> Justification.USER_INITIATED
                 classified.trigger == ReviveTrigger.SYSTEM_BIND && grantedSpecialAccess(target, component) -> Justification.USER_GRANTED_ROLE

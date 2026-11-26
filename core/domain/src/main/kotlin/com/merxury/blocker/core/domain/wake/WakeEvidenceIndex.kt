@@ -6,11 +6,17 @@ package com.merxury.blocker.core.domain.wake
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.component.appIdOfUid
+import com.merxury.blocker.core.model.component.isRegularAppUid
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
+import com.merxury.blocker.core.privileged.wake.WAKE_AUDIO_PLAYBACK
 import com.merxury.blocker.core.privileged.wake.WAKE_NOTIFICATIONS_OFF
+import com.merxury.blocker.core.privileged.wake.WAKE_OVERLAY_WINDOWS
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlin.math.abs
+
+private const val COMPONENTLESS_BAL_WINDOW_NS = 2_000_000_000L
 
 internal fun isApp(uid: Int?) = uid != null && appIdOfUid(uid) >= 10_000
 
@@ -59,13 +65,15 @@ internal fun requesterInBackground(state: Int?): Boolean? = when (state) {
 internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
     private val parsed = HashMap<String, Map<String, String>>()
 
-    fun WakeRecord.attr(key: String): String? = parsed.getOrPut(id) {
+    private fun WakeRecord.attributesMap(): Map<String, String> = parsed.getOrPut(id) {
         try {
             (Json.parseToJsonElement(this.attributes) as? JsonObject)?.mapValues { (_, value) -> (value as? JsonPrimitive)?.content.orEmpty() }.orEmpty()
         } catch (_: IllegalArgumentException) {
             emptyMap()
         }
-    }[key]?.takeIf { it.isNotEmpty() }
+    }
+
+    fun WakeRecord.attr(key: String): String? = attributesMap()[key]?.takeIf { it.isNotEmpty() }
 
     fun WakeRecord.number(key: String): Long? = attr(key)?.toLongOrNull()
 
@@ -84,6 +92,82 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
     }.groupBy({ it.first }, { it.second }).mapValues { (_, list) -> list.sortedBy { it.elapsedNanos } }
 
     fun within(list: List<WakeRecord>?, from: Long, through: Long) = list.orEmpty().filter { it.elapsedNanos in from..through }
+
+    private val interactiveStates = kind("InteractiveStateChanged").groupBy { it.boot }
+        .mapValues { (_, records) -> records.sortedBy { it.elapsedNanos } }
+
+    private fun screenState(boot: String, elapsedNanos: Long) = interactiveStates[boot]?.lastOrNull { it.elapsedNanos <= elapsedNanos }?.number("state")
+
+    /** An unknown screen state cannot establish that the screen was off. */
+    fun isScreenOff(boot: String, elapsedNanos: Long): Boolean = screenState(boot, elapsedNanos) == 0L
+
+    fun WakeRecord.balCallerUid(): Int? = attr("real_calling_uid")?.toIntOrNull()?.takeIf(::isRegularAppUid)
+        ?: callerUid?.takeIf(::isRegularAppUid)
+
+    fun WakeRecord.balEffectiveCallerUid(): Int? = callerUid?.takeIf(::isRegularAppUid)
+        ?: attr("real_calling_uid")?.toIntOrNull()?.takeIf(::isRegularAppUid)
+
+    private val launchers = kind("RoleHolder").filter { it.action == "android.app.role.HOME" }.mapNotNull { it.targetPackage }.toSet()
+
+    fun isLauncher(pkg: String?): Boolean = pkg in launchers
+
+    private fun WakeRecord.balCallerPackages() = evidence.packages[callerUid].orEmpty() +
+        evidence.packages[balCallerUid()].orEmpty() + listOfNotNull(callerPackage)
+
+    private val appBackgroundLaunches = kind("BalAllowed").filter { record ->
+        record.balCallerUid() != null && record.balCallerPackages().none { it == "com.android.systemui" || isLauncher(it) }
+    }
+
+    private val backgroundLaunches = appBackgroundLaunches.mapNotNull { record ->
+        val key = componentKey(record.component) ?: return@mapNotNull null
+        (record.boot to key.substringBefore('/')) to record
+    }.groupBy({ it.first }, { it.second })
+
+    private val componentlessLaunches = appBackgroundLaunches.filter { it.component.isNullOrBlank() }.groupBy { it.boot }
+
+    fun backgroundActivityLaunch(
+        boot: String,
+        target: String,
+        component: String?,
+        elapsedNanos: Long,
+        windowNanos: Long,
+        callerUid: Int? = null,
+        callerPackage: String? = null,
+        targetUid: Int? = null,
+        allowUnattributed: Boolean = true,
+        coldActivityTimes: List<Long>,
+    ): WakeRecord? {
+        val qualified = qualifiedWakeComponent(target, component)
+        val window = (elapsedNanos - windowNanos)..(elapsedNanos + windowNanos)
+        val named = backgroundLaunches[boot to target].orEmpty().asSequence()
+            .filter { it.elapsedNanos in window && (component == null || (qualified != null && qualifiedWakeComponent(target, it.component) == qualified)) }
+            .minByOrNull { abs(it.elapsedNanos - elapsedNanos) }
+        if (named != null) return named
+        val candidates = componentlessLaunches[boot].orEmpty().asSequence().filter { it.elapsedNanos in window }
+        return when {
+            callerUid != null -> candidates.singleOrNull { it.callerUid == callerUid || it.balCallerUid() == callerUid }
+                ?.takeIf { it.isUniqueColdActivity(elapsedNanos, coldActivityTimes, windowNanos) }
+
+            callerPackage != null -> candidates.singleOrNull { callerPackage in it.balCallerPackages() }
+                ?.takeIf { it.isUniqueColdActivity(elapsedNanos, coldActivityTimes) }
+
+            allowUnattributed && screenState(boot, elapsedNanos) == 1L ->
+                candidates.singleOrNull { abs(it.elapsedNanos - elapsedNanos) <= COMPONENTLESS_BAL_WINDOW_NS }
+                    ?.takeIf {
+                        it.isUniqueColdActivity(elapsedNanos, coldActivityTimes) &&
+                            it.balEffectiveCallerUid() != targetUid && target !in it.balCallerPackages()
+                    }
+
+            else -> null
+        }
+    }
+
+    private fun WakeRecord.isUniqueColdActivity(
+        launchTime: Long,
+        coldActivityTimes: List<Long>,
+        windowNanos: Long = COMPONENTLESS_BAL_WINDOW_NS,
+    ): Boolean = abs(elapsedNanos - launchTime) <= windowNanos &&
+        coldActivityTimes.asSequence().filter { abs(elapsedNanos - it) <= windowNanos }.take(2).count() == 1
 
     fun packageOf(uid: Int?, process: String? = null): String? {
         if (uid == null) return null
@@ -115,11 +199,26 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
 
     // The apps that could not notify at each snapshot, as `package/uid`.
     private val notificationsOff = kind(WAKE_NOTIFICATIONS_OFF).map { it.wallMillis to it.attr("apps").orEmpty().split(',').toSet() }
+    private val overlays = kind(WAKE_OVERLAY_WINDOWS).map { it.wallMillis to it.attr("packages").orEmpty().split(',').toSet() }
+    private val audioPlayback = kind(WAKE_AUDIO_PLAYBACK).mapNotNull { record ->
+        val uids = record.attributesMap()["uids"] ?: return@mapNotNull null
+        record.wallMillis to uids.split(',').mapNotNull(String::toIntOrNull).toSet()
+    }
 
     /** The app could not notify at any snapshot taken in the interval. Without a snapshot nothing is known. */
     fun notificationsOff(pkg: String, uid: Int, fromWall: Long, toWall: Long): Boolean {
         val taken = notificationsOff.filter { it.first in fromWall..toWall }
         return taken.isNotEmpty() && taken.all { "$pkg/$uid" in it.second }
+    }
+
+    fun hasOverlayWindow(pkg: String, uid: Int, fromWall: Long, toWall: Long): Boolean = overlays.any { (wall, packages) ->
+        wall in fromWall..toWall && ("$pkg/$uid" in packages || pkg in packages)
+    }
+
+    /** Without a playback snapshot, audio activity is unknown. */
+    fun silentAudio(uid: Int, fromWall: Long, toWall: Long): Boolean {
+        val taken = audioPlayback.filter { it.first in fromWall..toWall }
+        return taken.isNotEmpty() && taken.none { uid in it.second }
     }
 
     fun grantedSpecialAccess(pkg: String, component: String?): Boolean {

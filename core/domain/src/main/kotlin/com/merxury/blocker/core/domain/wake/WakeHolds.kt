@@ -16,6 +16,8 @@ import java.time.Instant
 import java.time.ZoneId
 
 internal object WakeHolds {
+    private const val PERSISTENT_FGS_SCREEN_OFF_MILLIS = 30 * 60 * 1000L
+
     // ServiceInfo.FOREGROUND_SERVICE_TYPE_* bits and their manifest names.
     private val fgsTypes = listOf(
         0 to "dataSync", 1 to "mediaPlayback", 2 to "phoneCall", 3 to "location", 4 to "connectedDevice",
@@ -25,6 +27,9 @@ internal object WakeHolds {
 
     // Sound, a call, or the system's capture and recording indicators show these without a notification.
     private val perceptibleFgsTypes = setOf("mediaPlayback", "phoneCall", "mediaProjection", "camera", "microphone")
+
+    // Android reserves systemExempted for roles and privileges such as VPN and device administration.
+    private val legitimateOngoingFgsTypes = perceptibleFgsTypes + setOf("dataSync", "location", "connectedDevice", "health", "systemExempted")
 
     fun fgsTypeNames(mask: Long?): String? = mask?.takeIf { it > 0 }?.let { bits ->
         fgsTypes.filter { (bit, _) -> bits and (1L shl bit) != 0L }.joinToString(",") { it.second }.ifEmpty { null }
@@ -209,21 +214,35 @@ internal object WakeHolds {
                 remaining -= share
                 attributed += candidate.copy(millis = share)
             }
-            if (remaining > 0) attributed += Candidate(HoldCause.UNKNOWN, null, null, Confidence.SNAPSHOT, remaining)
+            if (remaining > 0) {
+                val cause = if (hasOverlayWindow(target, uid, period.startMillis, period.endMillis)) HoldCause.OVERLAY_WINDOW else HoldCause.UNKNOWN
+                attributed += Candidate(cause, null, null, Confidence.SNAPSHOT, remaining)
+            }
             // Foreground service time keeps its own screen split; the other causes share the rest.
             val otherOff = (off - fgsOff.coerceAtMost(foregroundTotal)).coerceAtLeast(0)
             val otherTotal = total - foregroundTotal
-            fun screenOff(candidate: Candidate) = when {
+            fun screenOffMillis(candidate: Candidate) = when {
                 candidate.cause == HoldCause.FOREGROUND_SERVICE && foregroundTotal > 0 -> candidate.millis * fgsOff.coerceAtMost(foregroundTotal) / foregroundTotal
                 otherTotal > 0 -> candidate.millis * otherOff / otherTotal
                 else -> 0L
-            } * 1_000_000
+            }
             for (candidate in foreground + attributed) {
+                val candidateScreenOffMillis = screenOffMillis(candidate)
                 val justification = candidate.justification ?: when {
                     // A foreground service shows an ongoing notification, unless the app may not notify:
                     // from Android 13 the service still runs then. The user notices some types anyway.
-                    candidate.cause == HoldCause.FOREGROUND_SERVICE ->
-                        if (hidden && candidate.actor.orEmpty().split(',').none { it in perceptibleFgsTypes }) Justification.NONE else Justification.PRODUCTIVE
+                    candidate.cause == HoldCause.FOREGROUND_SERVICE -> {
+                        val types = candidate.actor.orEmpty().split(',').filter { it.isNotBlank() }
+                        val unjustified = if (hidden) {
+                            val perceptible = types.filter { it in perceptibleFgsTypes }
+                            perceptible.isEmpty() ||
+                                (perceptible == listOf("mediaPlayback") && silentAudio(uid, period.startMillis, period.endMillis))
+                        } else {
+                            candidateScreenOffMillis >= PERSISTENT_FGS_SCREEN_OFF_MILLIS &&
+                                types.none { it in legitimateOngoingFgsTypes } && !grantedSpecialAccess(target, candidate.detail)
+                        }
+                        if (unjustified) Justification.NONE else Justification.PRODUCTIVE
+                    }
 
                     candidate.cause == HoldCause.BOUND_BY_SYSTEM && grantedSpecialAccess(target, candidate.detail) -> Justification.USER_GRANTED_ROLE
 
@@ -234,12 +253,12 @@ internal object WakeHolds {
                 val days = days(period, zone)
                 val length = days.sumOf { it.second }
                 var durationLeft = candidate.millis * 1_000_000
-                var screenOffLeft = screenOff(candidate)
+                var screenOffLeft = candidateScreenOffMillis * 1_000_000
                 days.forEachIndexed { i, (from, millis) ->
                     val last = i == days.lastIndex
                     // Shares are taken in milliseconds: nanoseconds times a period length overflows.
                     val duration = if (last) durationLeft else candidate.millis * millis / length * 1_000_000
-                    val screenOff = if (last) screenOffLeft else screenOff(candidate) / 1_000_000 * millis / length * 1_000_000
+                    val screenOff = if (last) screenOffLeft else candidateScreenOffMillis * millis / length * 1_000_000
                     durationLeft -= duration
                     screenOffLeft -= screenOff
                     if (duration <= 0) return@forEachIndexed

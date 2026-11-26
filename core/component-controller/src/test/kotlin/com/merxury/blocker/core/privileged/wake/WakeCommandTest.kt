@@ -9,6 +9,11 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class WakeCommandTest {
+    @Test fun givenStealthSnapshotSources_whenBuildingCommands_thenOnlyFixedDumpArgumentsArePassed() {
+        assertThat(WakeCommand.OVERLAYS.arguments(0, 10111, 7)).containsExactly("dumpsys", "-t", "5", "window", "windows").inOrder()
+        assertThat(WakeCommand.AUDIO.arguments(0, 10111, 7)).containsExactly("dumpsys", "-t", "5", "audio").inOrder()
+    }
+
     @Test fun givenResumePoint_whenBuildingEventCommand_thenTimeReplacesTheCountLimit() {
         val argv = WakeCommand.EVENTS.arguments(0, 10111, 7, 1_795_366_000_045L)
         assertThat(argv).containsAtLeast("-T", "1795366000.045").inOrder()

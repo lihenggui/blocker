@@ -106,6 +106,118 @@ class WakeSystemEvidenceTest {
         assertThat(WakeSystemEvidence.snapshot(WakeCommand.NOTIFICATIONS, "Can't find service: notification", 7, sdk = 35)).isEmpty()
     }
 
+    @Test fun givenOverlayAndRegularWindows_whenParsing_thenOnlyVisibleOverlayPackagesAreRecorded() {
+        val dump = """
+            WINDOW MANAGER WINDOWS (dumpsys window windows)
+              Window #0 Window{aaaa u0 private title}:
+                mOwnerUid=10123 showForAllUsers=false package=example.zfloat appop=SYSTEM_ALERT_WINDOW
+                mAttrs={(0,0) ty=APPLICATION_OVERLAY fmt=TRANSLUCENT}
+                mHasSurface=true isReadyForDisplay()=true
+              Window #1 Window{bbbb u10 example.alarm/.Window}:
+                mAttrs={ty=2038}
+                mViewVisibility=0x0
+                isOnScreen=true
+              Window #2 Window{cccc u0 example.hidden}:
+                mAttrs={ty=TYPE_SYSTEM_ALERT}
+                mHasSurface=true mViewVisibility=0x8
+                isVisible=true
+              Window #3 Window{dddd u0 example.no.surface}:
+                mAttrs={ty=2006}
+                mHasSurface=false mViewVisibility=0x0
+                isVisible=true
+              Window #4 Window{eeee u0 example.regular/.Main}:
+                mAttrs={ty=BASE_APPLICATION}
+                mHasSurface=true
+              Window #5 Window{ffff u0 unrelated.title}:
+                ownerPackageName=example.legacy
+                mAttrs={ty=PHONE}
+                mHasSurface=true
+              Window #6 Window{gggg u0 example.offscreen}:
+                mAttrs={ty=2002}
+                mHasSurface=true mViewVisibility=0x0
+                isOnScreen=false
+              Window #7 Window{hhhh u0 example.zfloat}:
+                mOwnerUid=10123
+                mAttrs={ty=TYPE_APPLICATION_OVERLAY}
+                mHasSurface=true
+              Window #8 Window{iiii u0 example.incomplete}:
+                mAttrs={ty=SYSTEM_OVERLAY}
+              Unrelated section:
+                mHasSurface=true isVisible=true
+        """.trimIndent()
+
+        val snapshot = WakeSystemEvidence.snapshot(WakeCommand.OVERLAYS, dump, 7).single()
+
+        assertThat(snapshot.kind).isEqualTo(WAKE_OVERLAY_WINDOWS)
+        assertThat(snapshot.elapsedNanos).isEqualTo(7)
+        assertThat(snapshot.attributes).containsExactly("packages", "example.alarm,example.legacy,example.zfloat/10123")
+    }
+
+    @Test fun givenNoVisibleOverlay_whenParsing_thenOnlyRecognizedWindowsProduceEmptyEvidence() {
+        val dump = """
+            Window #0 Window{aaaa u0 example.hidden}:
+              mAttrs={ty=2003}
+              mHasSurface=false
+        """.trimIndent()
+
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.OVERLAYS, dump, 7).single().attributes).containsExactly("packages", "")
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.OVERLAYS, "Permission Denial", 7)).isEmpty()
+    }
+
+    @Test fun givenPlaybackTracks_whenParsing_thenOnlyUidsWithAnUnmutedStartedTrackAreRecorded() {
+        val dump = """
+            PlaybackActivityMonitor dump time: 08:12:00
+              players:
+             AudioPlaybackConfiguration piid:1 deviceIds:[1] type:AAudio u/pid:10130/11 state:started mutedState:none
+             AudioPlaybackConfiguration piid:2 u/pid:10130/12 state:started
+             AudioPlaybackConfiguration piid:3 u/pid:10110/13 state:started vol:0.25
+            (not logged) AudioPlaybackConfiguration piid:4 u/pid:1010120/14 state:started
+             AudioPlaybackConfiguration piid:5 u/pid:10122/15 state:idle
+             AudioPlaybackConfiguration piid:6 u/pid:10123/16 state:paused
+             AudioPlaybackConfiguration piid:7 u/pid:10124/17 state:started muted:true
+             AudioPlaybackConfiguration piid:8 u/pid:10125/18 state:started vol:0.0
+             AudioPlaybackConfiguration piid:9 u/pid:10126/19 state:started volume:0.00
+             AudioPlaybackConfiguration piid:10 u/pid:10127/20 state:started mutedState:clientVolume
+             AudioPlaybackConfiguration piid:11 u/pid:1000/21 state:started
+             AudioPlaybackConfiguration piid:12 u/pid:99000/22 state:started
+              ducked players piids:
+            04-03 08:11:00 new player piid:1 AudioPlaybackConfiguration u/pid:10128/23 state:started
+        """.trimIndent()
+
+        val snapshot = WakeSystemEvidence.snapshot(WakeCommand.AUDIO, dump, 8).single()
+
+        assertThat(snapshot.kind).isEqualTo(WAKE_AUDIO_PLAYBACK)
+        assertThat(snapshot.elapsedNanos).isEqualTo(8)
+        assertThat(snapshot.attributes).containsExactly("uids", "10110,10130,1010120")
+    }
+
+    @Test fun givenNoActivePlayer_whenParsing_thenOnlyRecognizedPlaybackProducesEmptyEvidence() {
+        val dump = "PlaybackActivityMonitor dump time: 08:12:00\n\n  players:\n\n  ducked players piids:"
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.AUDIO, dump, 8).single().attributes).containsExactly("uids", "")
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.AUDIO, "Audio event log:", 8)).isEmpty()
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.AUDIO, "players:\n AudioPlaybackConfiguration piid:1 state:started", 8)).isEmpty()
+    }
+
+    @Test fun givenLegacyAudioPlayers_whenParsing_thenStartedPlaybackIsRecorded() {
+        val dump = """
+            PlaybackActivityMonitor dump time: 08:12:00
+              players:
+                ID:123 -- type:android.media.AudioTrack u/pid:10123/456 state:started
+                ID:124 -- type:android.media.AudioTrack u/pid:10124/457 state:paused
+              ducked players piids: []
+                ID:125 -- type:android.media.AudioTrack u/pid:10125/458 state:started
+        """.trimIndent()
+
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.AUDIO, dump, 8).single().attributes).containsExactly("uids", "10123")
+    }
+
+    @Test fun givenUnrecognizedPlayerRows_whenParsing_thenPlaybackEvidenceIsUnavailable() {
+        for (row in listOf("  unknown player format", "  ID:123 -- type:android.media.AudioTrack", "  ID:123 -- state:started")) {
+            val dump = "players:\n  ID:124 -- u/pid:10124/457 state:started\n$row"
+            assertThat(WakeSystemEvidence.snapshot(WakeCommand.AUDIO, dump, 8)).isEmpty()
+        }
+    }
+
     @Test fun givenRoleAndJobDumps_whenDispatchingSnapshots_thenEachParserUsesOnlyItsOwnFields() {
         val role = "user_id=10\nname=android.app.role.HOME\nholders=[example.home]"
         val job = "JOB #u0a12/17: example.sync/.JobService"

@@ -115,6 +115,7 @@ class WakeReadModelTest {
             HoldCause.WAKELOCK,
             HoldCause.RUNNING_JOB,
             HoldCause.BOUND_BY_PEER,
+            HoldCause.OVERLAY_WINDOW,
             HoldCause.UNKNOWN,
         )
         assertThat(screenOff.first().paths).hasSize(2)
@@ -240,6 +241,43 @@ class WakeReadModelTest {
             assertThat(path.componentType).isEqualTo(ComponentType.SERVICE)
             assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
         }
+    }
+
+    @Test fun givenStealthActivityPaths_whenBuildingActivity_thenBothAreBlockableWithSeparateOwnAndPeerAttribution() {
+        val findings = listOf(
+            revive(ReviveTrigger.PEER_ACTIVITY, actor = APP, detail = ".Pixel"),
+            revive(ReviveTrigger.PEER_ACTIVITY, actor = PEER, detail = "$APP/.Popup"),
+            revive(ReviveTrigger.PEER_ACTIVITY, actor = "example.launcher", detail = ".Main", justification = Justification.USER_INITIATED),
+        )
+
+        val result = activity(findings)
+
+        assertThat(result.justified.userInitiated).isEqualTo(1)
+        assertThat(result.backgroundStarts).isEqualTo(2)
+        val own = result.own.single()
+        assertThat(own.kind).isEqualTo(OwnWakeKind.SELF_START)
+        assertThat(own.component).isEqualTo("$APP.Pixel")
+        val peer = result.peers.single()
+        assertThat(peer.peer).isEqualTo(PEER)
+        assertThat(peer.direction).isEqualTo(WakeDirection.INBOUND)
+        assertThat(peer.inbound.single().component).isEqualTo("$APP.Popup")
+        assertThat(buildAppWakeActivity(PEER, 10, 11, findings, emptyList()).peers.single().direction).isEqualTo(WakeDirection.OUTBOUND)
+        for (path in own.paths + peer.inbound) {
+            assertThat(path.componentType).isEqualTo(ComponentType.ACTIVITY)
+            assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+        }
+    }
+
+    @Test fun givenOverlayHold_whenBuildingActivity_thenScreenOffTimeOffersBackgroundRestriction() {
+        val result = activity(listOf(hold(HoldCause.OVERLAY_WINDOW, duration = 9, screenOff = 8)))
+
+        assertThat(result.peers).isEmpty()
+        assertThat(result.own.single().kind).isEqualTo(OwnWakeKind.SCREEN_OFF_RUN)
+        val path = result.own.single().paths.single()
+        assertThat(path.hold).isEqualTo(HoldCause.OVERLAY_WINDOW)
+        assertThat(path.screenOffNanos).isEqualTo(8)
+        assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.BACKGROUND_RESTRICTION)
+        assertThat(activity(listOf(hold(HoldCause.OVERLAY_WINDOW))).own).isEmpty()
     }
 
     @Test fun givenUnknownHoldWithScreenOffTime_whenBuildingActivity_thenItExplainsTheVerdictAndOffersBackgroundRestriction() {

@@ -118,6 +118,18 @@ class WakeDetectionDaoTest {
         assertThat(dao.detectionRecords(0).map { it.id }).containsExactly("e2", "o", "s")
     }
 
+    @Test fun givenStoredStealthEvidence_whenQueryingDetectionRecords_thenAllFourKindsAreIncludedInTheWindow() = runTest {
+        val kinds = listOf("BalAllowed", "InteractiveStateChanged", "OverlayWindow", "AudioPlayback")
+        val records = kinds.mapIndexed { index, kind ->
+            WakeRecord(kind, "7", index.toLong(), 5_000, "source", kind, null, null, null, null, null, null, null, null, null, "{}")
+        }
+        val older = records.first().copy(id = "older", wallMillis = 4_999)
+        val unrelated = records.first().copy(id = "unrelated", kind = "ProcessImportance")
+        db.history().importRecords(records + older + unrelated, 0)
+
+        assertThat(dao.detectionRecords(5_000).map { it.kind }).containsExactlyElementsIn(kinds).inOrder()
+    }
+
     private fun finding(day: Long, id: String = "f$day", target: String = "pkg", actor: String? = null) = WakeFindingDay(id, day, target, "UNKNOWN|${actor.orEmpty()}|$target|", "UNKNOWN", null, actor, null, null, null, "NONE", "DIRECT", null, 0, 1, 0, 0, day, 0)
 
     private fun verdict(day: Long) = WakeVerdictDay(day, "pkg", "NORMAL", 1, 1, 0, 0, 0, 0, 0, 0)

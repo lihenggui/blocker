@@ -58,7 +58,7 @@ internal object WakeDetection {
         return WakeDetectionWindow(minOf(complete, through), through, firstKeptDay)
     }
 
-    private val WakeFinding.peerInBackground get() = trigger in peerTriggers && actorInBackground == true
+    private val WakeFinding.peerInBackground get() = trigger in peerTriggers && actorInBackground == true && actor != target
 
     /** Rows also differ by classification so that no column is averaged away. Kill reasons carry pids, so they are normalized. */
     private fun rowKey(finding: WakeFinding, zone: ZoneId): List<Any?> = listOf(
