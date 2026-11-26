@@ -5,17 +5,23 @@ package com.merxury.blocker.feature.wake.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.device.AppRestrictionRepository
+import com.merxury.blocker.core.data.device.AppRestrictionRestoreResult
+import com.merxury.blocker.core.data.device.AppRestrictionResult
 import com.merxury.blocker.core.data.device.BackgroundUsageFailure
 import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.BackgroundUsageResult
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.domain.wake.ForceStopAppUseCase
 import com.merxury.blocker.core.domain.wake.ObserveAppWakeStateUseCase
+import com.merxury.blocker.core.domain.wake.ObservePotentialWakeEntriesUseCase
 import com.merxury.blocker.core.domain.wake.ObserveWakeAvailabilityUseCase
 import com.merxury.blocker.core.domain.wake.RestoreAppWakeChangesUseCase
 import com.merxury.blocker.core.domain.wake.SetWakePathsBlockedUseCase
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.wake.WakeAvailability
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
@@ -46,7 +52,10 @@ internal class WakeAppViewModel @AssistedInject constructor(
     selectedUsers: SelectedUserRepository,
     componentDetails: ComponentDetailRepository,
     private val backgroundUsage: BackgroundUsageRepository,
+    private val appRestriction: AppRestrictionRepository,
+    observePotentialEntries: ObservePotentialWakeEntriesUseCase,
     private val setBlocked: SetWakePathsBlockedUseCase,
+    private val forceStopApp: ForceStopAppUseCase,
     private val restore: RestoreAppWakeChangesUseCase,
 ) : ViewModel() {
     @AssistedFactory
@@ -65,8 +74,17 @@ internal class WakeAppViewModel @AssistedInject constructor(
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val detailed = observed
-        .map { it.visibleComponentNames() }
+    private val potential = observed
+        .map { it.observedComponentNames() }
+        .distinctUntilChanged()
+        .flatMapLatest { excluded -> observePotentialEntries(packageName, excluded) }
+        .onStart { emit(emptyList()) }
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 1)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val detailed = combine(observed, potential) { state, entries ->
+        state.visibleComponentNames() + entries.mapNotNull { it.state.path.component }
+    }
         .distinctUntilChanged()
         .flatMapLatest(componentDetails::getLocalComponentDetails)
         .onStart { emit(emptyMap()) }
@@ -76,21 +94,23 @@ internal class WakeAppViewModel @AssistedInject constructor(
         observeAvailability().map { (it as? WakeAvailability.Ready)?.lastCheckedMillis }.distinctUntilChanged(),
         installedApps.apps(appKey.userId),
         detailed,
+        potential,
         ::buildWakeAppState,
     )
 
     val uiState = combine(
         data,
         backgroundUsage.observe(appKey).onStart { emit(null) },
+        appRestriction.observe(appKey).onStart { emit(null) },
         busy,
         notices,
-    ) { state, usage, busy, notice ->
-        state.copy(background = usage, busy = busy, notice = notice)
+    ) { state, usage, restriction, busy, notice ->
+        state.copy(background = usage, deepRestriction = restriction, busy = busy, notice = notice)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WakeAppUiState(WakeAppIdentity(packageName)))
 
     fun toggle(key: String, allowed: Boolean) = act {
         val state = uiState.value
-        val row = state.rows.firstOrNull { it.key == key && it.canToggle(state.background) } ?: return@act
+        val row = state.controllableRows.firstOrNull { it.key == key && it.canToggle(state.background) } ?: return@act
         val paths = row.paths.filter { (it.block != WakePathBlock.NONE) == allowed }
         val outcome = row.automatic?.let { setBlocked(listOf(it), blocked = !allowed) } ?: setBlocked(paths, blocked = !allowed)
         if (outcome.failure != null) {
@@ -106,31 +126,51 @@ internal class WakeAppViewModel @AssistedInject constructor(
         if (result.failure != null) show(blockFailureText(result.failure, 0, 1))
     }
 
+    fun setDeepRestricted(restricted: Boolean) = act {
+        val current = uiState.value.deepRestriction ?: return@act
+        if (!current.changeable || (if (restricted) current.active else !current.anyActive)) return@act
+        changeDeepRestriction(restricted).failure?.let { show(blockFailureText(it, 0, 1)) }
+    }
+
     fun blockAll(selected: Set<String>) = act {
         val state = uiState.value
         val usage = state.background
-        val rows = state.rows.filter { it.key in selected && it.canToggle(usage) && !it.blocked }
+        val rows = state.blockableRows.filter { it.key in selected }
         val paths = rows.flatMap { it.paths }
         // A selected path for this app already owns the setting change and its undo.
         val backgroundHandledByPaths = paths.any { it.canRestrictBackground(appKey.packageName) }
         val turnOffBackground = BACKGROUND_CHOICE in selected && usage?.allowed == true && usage.changeable && !backgroundHandledByPaths
-        if (rows.isEmpty() && !turnOffBackground) return@act
+        val enableDeepRestriction = DEEP_RESTRICTION_CHOICE in selected && state.canEnableDeepRestriction
+        if (rows.isEmpty() && !turnOffBackground && !enableDeepRestriction) return@act
 
         val allowed = rows.associateWith { row ->
             row.paths.filter { it.block == WakePathBlock.NONE }.map { it.path.pathKey }.toSet() + listOfNotNull(row.automatic?.pathId)
         }
         val result = setBlocked.blockWithUndo(paths, rows.mapNotNull { it.automatic })
         val backgroundResult = if (turnOffBackground) changeBackground(false) else null
+        val deepResult = if (enableDeepRestriction) changeDeepRestriction(true) else null
 
         val completed = rows.count { row -> allowed.getValue(row).all { it in result.outcome.done } }
         val backgroundChanged = backgroundResult?.done?.isNotEmpty() == true
-        val undo = WakeUndo.Block(result.undo, backgroundChanged).takeIf { result.undo.hasChanges || backgroundChanged }
-        val failure = result.outcome.failure ?: backgroundResult?.failure
-        val failed = rows.size - completed + if (backgroundResult?.failure != null) 1 else 0
-        val text = if (failed == 0 && failure == null) {
-            blockedCount(completed.coerceAtLeast(if (backgroundChanged) 1 else 0))
+        val deepRestrictionChanged = deepResult?.done?.isNotEmpty() == true
+        val undo = WakeUndo.Block(result.undo, backgroundChanged, deepRestrictionChanged)
+            .takeIf { result.undo.hasChanges || backgroundChanged || deepRestrictionChanged }
+        val settingsFailures = listOfNotNull(backgroundResult?.failure, deepResult?.failure)
+        val failure = result.outcome.failure ?: settingsFailures.firstOrNull()
+        val failed = rows.size - completed + settingsFailures.size
+        val totalCompleted = completed + (if (backgroundChanged) 1 else 0) + (if (deepRestrictionChanged) 1 else 0)
+        val anyChanged = result.outcome.done.isNotEmpty() || result.undo.hasChanges || backgroundChanged || deepRestrictionChanged
+        val forceStopFailed = FORCE_STOP_CHOICE in selected && anyChanged && forceStopApp(appKey.packageName) is CallResult.Failure
+        val blockNotice = if (failed == 0 && failure == null) {
+            blockedCount(totalCompleted)
         } else {
-            blockFailureText(failure, completed + if (backgroundChanged) 1 else 0, failed)
+            blockFailureText(failure, totalCompleted, failed)
+        }
+        val text = if (forceStopFailed) {
+            val stopNotice = WakeText.Resource(string.feature_wake_api_force_stop_failed, state.app.label)
+            WakeText.Resource(string.feature_wake_api_list_pair, blockNotice, stopNotice)
+        } else {
+            blockNotice
         }
         show(text, undo)
     }
@@ -150,7 +190,12 @@ internal class WakeAppViewModel @AssistedInject constructor(
                 is WakeUndo.Block -> {
                     val outcome = setBlocked.undo(token.token)
                     val backgroundFailure = if (token.background) changeBackground(true).failure else null
-                    outcome.failure ?: backgroundFailure
+                    val deepFailure = if (token.deepRestrictionChanged) {
+                        (appRestriction.restoreOwned(appKey) as? AppRestrictionRestoreResult.Failure)?.reason?.wakeFailure()
+                    } else {
+                        null
+                    }
+                    outcome.failure ?: backgroundFailure ?: deepFailure
                 }
 
                 is WakeUndo.Restore -> restore.undo(token.token).failure
@@ -193,6 +238,19 @@ internal class WakeAppViewModel @AssistedInject constructor(
             }
         }
         return WakeBlockOutcome(if (failure == null) setOf(BACKGROUND_CHOICE) else emptySet(), failure)
+    }
+
+    private suspend fun changeDeepRestriction(restricted: Boolean): WakeBlockOutcome {
+        val failure = when (val result = appRestriction.setDeepRestricted(appKey, restricted)) {
+            is AppRestrictionResult.Failure -> result.reason.wakeFailure()
+
+            is AppRestrictionResult.Success -> {
+                val value = result.value
+                val matches = if (restricted) value.active else !value.anyActive
+                WakeBlockFailure.SystemError(null).takeUnless { matches }
+            }
+        }
+        return WakeBlockOutcome(if (failure == null) setOf(DEEP_RESTRICTION_CHOICE) else emptySet(), failure)
     }
 
     private fun show(text: WakeText, undo: WakeUndo? = null) {

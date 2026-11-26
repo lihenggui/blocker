@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -33,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -61,6 +63,7 @@ internal fun WakeAppRoute(
         onComponents = onComponents,
         onToggle = viewModel::toggle,
         onBackground = viewModel::setBackgroundAllowed,
+        onDeepRestriction = viewModel::setDeepRestricted,
         onBlock = viewModel::blockAll,
         onRestore = viewModel::restoreAll,
         onUndo = viewModel::undo,
@@ -77,6 +80,7 @@ internal fun WakeAppScreen(
     onComponents: () -> Unit = {},
     onToggle: (String, Boolean) -> Unit = { _, _ -> },
     onBackground: (Boolean) -> Unit = {},
+    onDeepRestriction: (Boolean) -> Unit = {},
     onBlock: (Set<String>) -> Unit = {},
     onRestore: () -> Unit = {},
     onUndo: (Long) -> Unit = {},
@@ -86,6 +90,7 @@ internal fun WakeAppScreen(
 ) = WakeTheme {
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     var normalExpanded by rememberSaveable { mutableStateOf(false) }
+    var potentialExpanded by rememberSaveable { mutableStateOf(false) }
     var sheetOpen by rememberSaveable { mutableStateOf(initiallyShowingSheet) }
     var fabHeight by remember { mutableIntStateOf(0) }
     val fabVisible = state.canBlockAll && !sheetOpen
@@ -123,6 +128,20 @@ internal fun WakeAppScreen(
             val expand: (String) -> Unit = { expanded = it.takeUnless { key -> expanded == key } }
             wakeDetailGroup(string.feature_wake_api_section_relations, state.relations, expanded, state.background, state.busy, expand, onToggle, onPeerClick)
             wakeDetailGroup(string.feature_wake_api_section_methods, state.methods, expanded, state.background, state.busy, expand, onToggle, onPeerClick)
+            if (state.potential.isNotEmpty()) {
+                item(key = "potential") {
+                    PotentialWakeEntries(
+                        rows = state.potential,
+                        expanded = potentialExpanded,
+                        expandedRow = expanded,
+                        busy = state.busy,
+                        onExpand = { potentialExpanded = !potentialExpanded },
+                        onExpandRow = expand,
+                        onToggle = onToggle,
+                        modifier = Modifier.padding(bottom = WakeContentSpacing),
+                    )
+                }
+            }
             if (state.normal.parts().isNotEmpty()) {
                 item(key = "normal") {
                     NormalWakeStarts(
@@ -136,6 +155,23 @@ internal fun WakeAppScreen(
             }
             state.background?.let { usage ->
                 item(key = "background") { WakeBackgroundCard(usage, onBackground, state.busy) }
+            }
+            state.deepRestriction?.let { restriction ->
+                item(key = "deep-restriction") {
+                    WakeDeepRestrictionCard(
+                        restriction,
+                        onDeepRestriction,
+                        state.busy,
+                        Modifier.padding(top = if (state.background != null) ListItemDefaults.SegmentedGap else 0.dp),
+                    )
+                }
+            }
+            val environment = state.environment
+            if (environment.userIdleAllowlisted || environment.systemIdleAllowlisted || environment.specialAccess.isNotEmpty()) {
+                item(key = "environment") {
+                    val spacing = if (state.background != null || state.deepRestriction != null) WakeContentSpacing else 0.dp
+                    WakeEnvironmentCard(environment, Modifier.padding(top = spacing))
+                }
             }
         }
     }

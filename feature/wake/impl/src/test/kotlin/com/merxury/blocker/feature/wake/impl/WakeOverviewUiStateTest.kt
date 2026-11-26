@@ -11,6 +11,8 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.wake.AppWakeSummary
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.WakeAvailability
+import com.merxury.blocker.core.model.wake.WakeBlock
+import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeHeadline
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import com.merxury.blocker.core.ui.coil.ApkIcon
@@ -61,7 +63,9 @@ class WakeOverviewUiStateTest {
             WakeAppRow("keep-z", "Label for keep-z", ApkIcon("keep-z", "/apk/keep-z", 3, 12345), WakeHeadline.BackgroundStarts(4)),
         )
         assertThat(state.handledKeepAlive).isEqualTo(1)
-        assertThat(state.otherApps).isEqualTo(4)
+        assertThat(state.blockedApps.map { it.packageName }).containsExactly("keep-b", "watch-b").inOrder()
+        assertThat(state.dormantApps.map { it.packageName }).containsExactly("no-summary", "normal").inOrder()
+        assertThat(state.otherApps).isEqualTo(2)
         assertThat(state.checking).isTrue()
     }
 
@@ -72,6 +76,34 @@ class WakeOverviewUiStateTest {
         val state = wakeOverviewUiState(WakeAvailability.Ready(100), false, automaticBlocks = blocks)
 
         assertThat(state).isEqualTo(WakeOverviewUiState.Ready(emptyList(), emptyList(), 0, 1, 0, false))
+    }
+
+    @Test
+    fun givenManualAndAutomaticBlocksAndDormantApps_whenReady_thenEveryInstalledAppIsReachable() {
+        val apps = listOf(
+            wakeTestApp("dormant-z").copy(label = "zebra"),
+            wakeTestApp("dormant-a").copy(label = "Apple"),
+            wakeTestApp("manual"),
+            wakeTestApp("static-only"),
+            wakeTestApp("caller"),
+            wakeTestApp("target"),
+        )
+        val manual = listOf("manual", "static-only").map {
+            WakeBlock("STATIC|$it", it, WakeBlockMethod.COMPONENT, null, null, "$it.Receiver", null, 42)
+        }
+        val state = wakeOverviewUiState(
+            WakeAvailability.Ready(null),
+            false,
+            listOf(summary("manual", WakeVerdict.NORMAL)),
+            listOf(block("active", active = true)),
+            apps,
+            manual,
+        ) as WakeOverviewUiState.Ready
+
+        assertThat(state.blockedApps.map { it.packageName }).containsExactly("caller", "manual", "static-only", "target")
+        assertThat(state.dormantApps.map { it.packageName }).containsExactly("dormant-a", "dormant-z").inOrder()
+        assertThat(state.otherApps).isEqualTo(2)
+        assertThat(state.automaticBlocks).isEqualTo(1)
     }
 
     private fun summary(name: String, verdict: WakeVerdict, blocked: Boolean = false) = AppWakeSummary(name, verdict, keepAliveDays = 0, suspiciousDays = 0, WakeHeadline.BackgroundStarts(4), allBlocked = blocked)

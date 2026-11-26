@@ -13,6 +13,9 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -60,6 +63,8 @@ internal fun WakeOverviewScreen(
     onAppClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var blockedExpanded by rememberSaveable { mutableStateOf(false) }
+    var dormantExpanded by rememberSaveable { mutableStateOf(false) }
     WakeTheme {
         Column(modifier.fillMaxSize()) {
             WakeOverviewTopBar(state, onCheckNow)
@@ -77,6 +82,14 @@ internal fun WakeOverviewScreen(
                                 wakeAppGroup("keepAlive", string.feature_wake_api_section_keep_alive, state.keepAlive, onAppClick)
                                 wakeAppGroup("attention", string.feature_wake_api_section_attention, state.attention, onAppClick)
                                 wakeOverviewTotals(state)
+                                wakeOverviewAppLists(
+                                    state = state,
+                                    blockedExpanded = blockedExpanded,
+                                    dormantExpanded = dormantExpanded,
+                                    onToggleBlocked = { blockedExpanded = !blockedExpanded },
+                                    onToggleDormant = { dormantExpanded = !dormantExpanded },
+                                    onAppClick = onAppClick,
+                                )
                             }
 
                             is WakeOverviewUiState.Collecting -> item(key = "firstRun") { WakeFirstRunSection() }

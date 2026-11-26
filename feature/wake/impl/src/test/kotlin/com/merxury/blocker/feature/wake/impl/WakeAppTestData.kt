@@ -10,6 +10,8 @@ import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.JustifiedStarts
 import com.merxury.blocker.core.model.wake.OwnWakeKind
 import com.merxury.blocker.core.model.wake.OwnWakeMethod
+import com.merxury.blocker.core.model.wake.PotentialWakeCategory
+import com.merxury.blocker.core.model.wake.PotentialWakeEntry
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
@@ -51,3 +53,16 @@ internal fun detailState(
 }
 
 internal fun detailMethod(kind: OwnWakeKind, vararg paths: WakePath) = OwnWakeMethod(kind, paths.firstOrNull()?.component, paths.firstOrNull()?.action, paths.toList())
+
+internal fun potentialEntry(
+    category: PotentialWakeCategory = PotentialWakeCategory.BOOT_AUTOSTART,
+    name: String = "BootReceiver",
+    type: ComponentType = ComponentType.RECEIVER,
+    action: String? = "android.intent.action.BOOT_COMPLETED",
+    block: WakePathBlock = WakePathBlock.NONE,
+    reEnabledByApp: Boolean = false,
+): PotentialWakeEntry {
+    val path = detailPath("static:$name", method = WakeBlockMethod.COMPONENT, action = action, component = "$DETAIL_PACKAGE.$name")
+        .copy(actor = null, componentType = type)
+    return PotentialWakeEntry(category, WakePathState(path, block, null, false, reEnabledByApp))
+}

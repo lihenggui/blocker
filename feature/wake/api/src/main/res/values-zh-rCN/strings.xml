@@ -133,4 +133,33 @@
     <string name="feature_wake_api_undo_failed">部分更改未能撤销</string>
     <string name="feature_wake_api_sender_unsupported">此系统不支持按来源阻止</string>
     <string name="feature_wake_api_background_not_changeable">系统不允许更改此应用的后台活动</string>
+    <plurals name="feature_wake_api_potential_entries">
+        <item quantity="other">%d 个潜在自启入口</item>
+    </plurals>
+    <string name="feature_wake_api_re_enabled_by_app">已重新启用</string>
+    <string name="feature_wake_api_potential_boot">开机自启动</string>
+    <string name="feature_wake_api_potential_push">推送唤醒入口</string>
+    <string name="feature_wake_api_potential_job">后台定时任务</string>
+    <string name="feature_wake_api_potential_sync">账户同步服务</string>
+    <string name="feature_wake_api_potential_system_broadcast">系统广播入口</string>
+    <string name="feature_wake_api_deep_restriction">深度后台限制</string>
+    <string name="feature_wake_api_deep_restriction_desc">限制待机分组、后台运行和精确闹钟</string>
+    <string name="feature_wake_api_environment">后台运行豁免</string>
+    <string name="feature_wake_api_battery_allowlist">电池优化白名单</string>
+    <string name="feature_wake_api_accessibility">无障碍服务</string>
+    <string name="feature_wake_api_notification_listener">通知监听</string>
+    <string name="feature_wake_api_device_admin">设备管理应用</string>
+    <string name="feature_wake_api_always_on_vpn">始终开启的 VPN</string>
+    <string name="feature_wake_api_companion_device">配套设备</string>
+    <string name="feature_wake_api_input_method">输入法</string>
+    <string name="feature_wake_api_live_wallpaper">动态壁纸</string>
+    <string name="feature_wake_api_home_widget">桌面小组件</string>
+    <string name="feature_wake_api_account_sync">账户同步</string>
+    <string name="feature_wake_api_sheet_deep_restriction">同时开启深度后台限制</string>
+    <string name="feature_wake_api_sheet_force_stop">阻止后立即强行停止</string>
+    <plurals name="feature_wake_api_section_blocked_apps">
+        <item quantity="other">%d 个已阻止的应用</item>
+    </plurals>
+    <string name="feature_wake_api_force_stop_failed">无法强行停止 %s</string>
+    <string name="feature_wake_api_choice_with_component">%1$s · %2$s</string>
 </resources>

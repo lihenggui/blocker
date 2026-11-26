@@ -133,4 +133,33 @@
     <string name="feature_wake_api_undo_failed">部分變更無法復原</string>
     <string name="feature_wake_api_sender_unsupported">此系統不支援依來源封鎖</string>
     <string name="feature_wake_api_background_not_changeable">系統不允許變更此應用程式的背景活動</string>
+    <plurals name="feature_wake_api_potential_entries">
+        <item quantity="other">%d 個潛在自啟動入口</item>
+    </plurals>
+    <string name="feature_wake_api_re_enabled_by_app">已重新啟用</string>
+    <string name="feature_wake_api_potential_boot">開機自動啟動</string>
+    <string name="feature_wake_api_potential_push">推播喚醒入口</string>
+    <string name="feature_wake_api_potential_job">背景排程任務</string>
+    <string name="feature_wake_api_potential_sync">帳戶同步服務</string>
+    <string name="feature_wake_api_potential_system_broadcast">系統廣播入口</string>
+    <string name="feature_wake_api_deep_restriction">深度背景限制</string>
+    <string name="feature_wake_api_deep_restriction_desc">限制待機分組、背景執行和精確鬧鐘</string>
+    <string name="feature_wake_api_environment">背景執行豁免</string>
+    <string name="feature_wake_api_battery_allowlist">電池最佳化允許清單</string>
+    <string name="feature_wake_api_accessibility">無障礙服務</string>
+    <string name="feature_wake_api_notification_listener">通知監聽</string>
+    <string name="feature_wake_api_device_admin">裝置管理應用程式</string>
+    <string name="feature_wake_api_always_on_vpn">一律啟用的 VPN</string>
+    <string name="feature_wake_api_companion_device">配套裝置</string>
+    <string name="feature_wake_api_input_method">輸入法</string>
+    <string name="feature_wake_api_live_wallpaper">動態桌布</string>
+    <string name="feature_wake_api_home_widget">主畫面小工具</string>
+    <string name="feature_wake_api_account_sync">帳戶同步</string>
+    <string name="feature_wake_api_sheet_deep_restriction">同時開啟深度背景限制</string>
+    <string name="feature_wake_api_sheet_force_stop">阻止後立即強制停止</string>
+    <plurals name="feature_wake_api_section_blocked_apps">
+        <item quantity="other">%d 個已封鎖的應用程式</item>
+    </plurals>
+    <string name="feature_wake_api_force_stop_failed">無法強制停止 %s</string>
+    <string name="feature_wake_api_choice_with_component">%1$s · %2$s</string>
 </resources>

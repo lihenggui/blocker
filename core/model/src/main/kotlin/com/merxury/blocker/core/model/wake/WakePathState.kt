@@ -28,6 +28,7 @@ data class AutomaticWakeBlock(
     val active: Boolean,
     /** Whether the user has allowed the path. */
     val allowed: Boolean,
+    val method: String = "IFW",
 )
 
 enum class WakeSpecialAccess {

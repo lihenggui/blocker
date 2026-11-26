@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -66,8 +67,8 @@ internal fun LazyListScope.wakeAppGroup(
             modifier = Modifier.animateWakeItem(this)
                 .padding(top = if (index == 0) 0.dp else ListItemDefaults.SegmentedGap),
             leadingContent = { AppIcon(app.icon, Modifier.size(WakeListAvatarSize)) },
-            supportingContent = {
-                Text(app.headline.reasonText(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            supportingContent = app.headline?.let { headline ->
+                { Text(headline.reasonText(), maxLines = 1, overflow = TextOverflow.Ellipsis) }
             },
             content = { Text(app.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         )
@@ -91,7 +92,7 @@ internal fun LazyListScope.wakeOverviewTotals(state: WakeOverviewUiState.Ready) 
         }
     }
     val other = state.otherApps
-    if (other > 0) {
+    if (other > 0 && state.dormantApps.isEmpty()) {
         item(key = "otherApps") {
             Text(
                 text = pluralStringResource(plurals.feature_wake_api_other_apps, other, other),
@@ -100,6 +101,59 @@ internal fun LazyListScope.wakeOverviewTotals(state: WakeOverviewUiState.Ready) 
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+internal fun LazyListScope.wakeOverviewAppLists(
+    state: WakeOverviewUiState.Ready,
+    blockedExpanded: Boolean,
+    dormantExpanded: Boolean,
+    onToggleBlocked: () -> Unit,
+    onToggleDormant: () -> Unit,
+    onAppClick: (String) -> Unit,
+) {
+    if (state.blockedApps.isNotEmpty()) {
+        val apps = state.blockedApps
+        overviewDisclosure("blockedApps", plurals.feature_wake_api_section_blocked_apps, apps.size, BlockerIcons.LinkOff, blockedExpanded, onToggleBlocked)
+        if (blockedExpanded) overviewAppItems("blocked", apps.map { WakeAppIdentity(it.packageName, it.label, it.icon) }, onAppClick)
+    }
+    if (state.dormantApps.isNotEmpty()) {
+        overviewDisclosure("otherApps", plurals.feature_wake_api_other_apps, state.otherApps, BlockerIcons.Apps, dormantExpanded, onToggleDormant)
+        if (dormantExpanded) overviewAppItems("dormant", state.dormantApps, onAppClick)
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun LazyListScope.overviewDisclosure(
+    key: String,
+    @PluralsRes title: Int,
+    count: Int,
+    icon: ImageVector,
+    expanded: Boolean,
+    onExpand: () -> Unit,
+) {
+    item(key = key) {
+        WakeDisclosure(
+            title = pluralStringResource(title, count, count),
+            icon = icon,
+            expanded = expanded,
+            onExpand = onExpand,
+            modifier = Modifier.padding(top = ListItemDefaults.SegmentedGap),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun LazyListScope.overviewAppItems(key: String, apps: List<WakeAppIdentity>, onAppClick: (String) -> Unit) {
+    itemsIndexed(apps, key = { _, app -> "$key:${app.packageName}" }, contentType = { _, _ -> "overview app" }) { index, app ->
+        SegmentedListItem(
+            onClick = { onAppClick(app.packageName) },
+            shapes = ListItemDefaults.segmentedShapes(index, apps.size),
+            colors = wakeSegmentedColors(),
+            modifier = Modifier.padding(top = ListItemDefaults.SegmentedGap),
+            leadingContent = { AppIcon(app.icon, Modifier.size(WakeListAvatarSize)) },
+            content = { Text(app.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        )
     }
 }
 

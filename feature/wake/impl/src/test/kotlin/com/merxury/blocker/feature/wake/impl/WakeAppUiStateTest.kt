@@ -5,17 +5,22 @@ package com.merxury.blocker.feature.wake.impl
 
 import android.content.Intent
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.system.BackgroundUsage
+import com.merxury.blocker.core.model.system.DeepBackgroundRestriction
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.OwnWakeKind
+import com.merxury.blocker.core.model.wake.PotentialWakeCategory
 import com.merxury.blocker.core.model.wake.ReviveTrigger
+import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.core.model.wake.WakePathState
 import com.merxury.blocker.core.model.wake.WakePeerLink
+import com.merxury.blocker.core.model.wake.WakeSpecialAccess
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import com.merxury.blocker.feature.wake.api.R.plurals
 import com.merxury.blocker.feature.wake.api.R.string
@@ -112,6 +117,93 @@ class WakeAppUiStateTest {
     }
 
     @Test
+    fun givenComponentReenabledByApp_whenMappingUnblockedRow_thenWarningReplacesActivityMeta() {
+        val service = detailPath("service", method = WakeBlockMethod.COMPONENT)
+        val blocked = detailPath("blocked", method = WakeBlockMethod.COMPONENT)
+        val state = detailState(
+            own = listOf(detailMethod(OwnWakeKind.SELF_START, service, blocked)),
+            blocks = mapOf(
+                service.pathKey to WakePathState(service, WakePathBlock.NONE, null, false, reEnabledByApp = true),
+                blocked.pathKey to WakePathState(blocked, WakePathBlock.USER, 100, false),
+            ),
+        )
+
+        val row = buildWakeAppState(state, null, emptyList(), emptyMap()).methods.single()
+        assertThat(row.blocked).isFalse()
+        assertThat(row.reEnabledByApp).isTrue()
+        assertThat(row.meta).isEqualTo(WakeText.Resource(string.feature_wake_api_re_enabled_by_app))
+
+        val reblocked = state.copy(paths = state.paths.mapValues { (_, path) -> path.copy(block = WakePathBlock.USER) })
+        val blockedRow = buildWakeAppState(reblocked, null, emptyList(), emptyMap()).methods.single()
+        assertThat(blockedRow.blocked).isTrue()
+        assertThat(blockedRow.reEnabledByApp).isFalse()
+        assertThat(blockedRow.meta).isEqualTo(WakeText.Resource(string.feature_wake_api_blocked))
+    }
+
+    @Test
+    fun givenPotentialEntries_whenMapping_thenShowsCategoryStatusAndComponentFacts() {
+        val entries = listOf(
+            potentialEntry(),
+            potentialEntry(PotentialWakeCategory.PUSH_RECEIVER, "PushReceiver", action = "example.PUSH", reEnabledByApp = true),
+            potentialEntry(PotentialWakeCategory.SCHEDULED_JOB, "ScheduledJob", ComponentType.SERVICE, action = null, block = WakePathBlock.USER),
+            potentialEntry(PotentialWakeCategory.ACCOUNT_SYNC, "SyncService", ComponentType.SERVICE, action = "android.content.SyncAdapter"),
+            potentialEntry(PotentialWakeCategory.SYSTEM_BROADCAST, "SystemReceiver", action = Intent.ACTION_SCREEN_ON),
+        )
+        val catalog = ComponentDetail("$DETAIL_PACKAGE.PushReceiver", sdkName = "Push SDK", disableEffect = "Stops push delivery")
+        val environment = WakeAppEnvironment(userIdleAllowlisted = true, specialAccess = setOf(WakeSpecialAccess.SYNC_ADAPTER))
+        val ui = buildWakeAppState(detailState().copy(environment = environment), null, emptyList(), mapOf(catalog.name to catalog), entries)
+
+        assertThat(ui.environment).isEqualTo(environment)
+        assertThat(ui.potential.map { it.key }).containsExactlyElementsIn(entries.map { "potential:${it.state.path.pathKey}" }).inOrder()
+        assertThat(ui.potential.map { (it.title as WakeText.Resource).id }).containsExactly(
+            string.feature_wake_api_potential_boot,
+            string.feature_wake_api_potential_push,
+            string.feature_wake_api_potential_job,
+            string.feature_wake_api_potential_sync,
+            string.feature_wake_api_potential_system_broadcast,
+        ).inOrder()
+        assertThat(ui.potential.map { it.meta }).containsExactly(
+            WakeText.Literal("BootReceiver"),
+            WakeText.Resource(string.feature_wake_api_re_enabled_by_app),
+            WakeText.Resource(string.feature_wake_api_blocked),
+            WakeText.Literal("SyncService"),
+            WakeText.Literal("SystemReceiver"),
+        ).inOrder()
+        assertThat(ui.potential.map { it.reEnabledByApp }).containsExactly(false, true, false, false, false).inOrder()
+        val actions = listOf("BOOT_COMPLETED", "example.PUSH", null, "android.content.SyncAdapter", "SCREEN_ON")
+        val types = listOf(
+            string.feature_wake_api_type_receiver,
+            string.feature_wake_api_type_receiver,
+            string.feature_wake_api_type_service,
+            string.feature_wake_api_type_service,
+            string.feature_wake_api_type_receiver,
+        )
+        ui.potential.forEachIndexed { index, row ->
+            val entry = entries[index]
+            val facts = buildList {
+                add(
+                    WakeFact(
+                        string.feature_wake_api_fact_component,
+                        WakeText.Resource(
+                            string.feature_wake_api_fact_component_value,
+                            requireNotNull(entry.state.path.component),
+                            WakeText.Resource(types[index]),
+                        ),
+                    ),
+                )
+                actions[index]?.let { add(WakeFact(string.feature_wake_api_fact_action, WakeText.Literal(it))) }
+                if (index == 1) {
+                    add(WakeFact(appString.feature_appdetail_api_belonging_sdk, WakeText.Literal("Push SDK")))
+                    add(WakeFact(appString.feature_appdetail_api_blocking_effect, WakeText.Literal("Stops push delivery")))
+                }
+            }
+            assertThat(row.facts).containsExactlyElementsIn(facts).inOrder()
+            assertThat(row.paths).containsExactly(entry.state)
+            assertThat(row.canToggle(ui.background)).isTrue()
+        }
+    }
+
+    @Test
     fun givenMutualLinkWithCatalogDetails_whenMappingFacts_thenUsesFirstComponentAndBothCallers() {
         val path = detailPath("out", target = "peer", action = "android.intent.action.USER_PRESENT")
         val state = detailState(
@@ -179,12 +271,97 @@ class WakeAppUiStateTest {
             emptyList(),
             emptyMap(),
         )
-        assertThat(ui.choices.map { it.key }).containsExactly(ui.methods.first().key)
+        assertThat(ui.choices.map { it.key }).containsExactly(ui.methods.first().key, FORCE_STOP_CHOICE).inOrder()
         assertThat(ui.copy(background = BackgroundUsage(true, false)).choices).isEqualTo(ui.choices)
-        assertThat(ui.copy(background = BackgroundUsage(true, true)).choices.map { it.key }).containsExactly(ui.methods.first().key, BACKGROUND_CHOICE).inOrder()
+        assertThat(ui.copy(background = BackgroundUsage(true, true)).choices.map { it.key })
+            .containsExactly(ui.methods.first().key, BACKGROUND_CHOICE, FORCE_STOP_CHOICE).inOrder()
         assertThat(ui.normal.parts()).containsExactly(
             WakeText.Count(plurals.feature_wake_api_normal_opened, 2L),
             WakeText.Count(plurals.feature_wake_api_normal_push, 8L),
+        ).inOrder()
+    }
+
+    @Test
+    fun givenDormantEntryAndDeepRestriction_whenBuildingChoices_thenOnlyOffersAvailableActions() {
+        val entry = potentialEntry()
+        val restriction = DeepBackgroundRestriction(false, false, false, changeable = true)
+        val ui = buildWakeAppState(detailState(), null, emptyList(), emptyMap(), listOf(entry)).copy(deepRestriction = restriction)
+        val key = ui.potential.single().key
+        val forceStop = WakeSheetChoice(FORCE_STOP_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_force_stop))
+
+        assertThat(ui.canBlockAll).isTrue()
+        assertThat(ui.choices).containsExactly(
+            WakeSheetChoice(
+                key,
+                WakeText.Resource(string.feature_wake_api_choice_with_component, WakeText.Resource(string.feature_wake_api_potential_boot), WakeText.Literal("BootReceiver")),
+            ),
+            WakeSheetChoice(DEEP_RESTRICTION_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_deep_restriction)),
+            forceStop,
+        ).inOrder()
+        for (unavailable in listOf(restriction.copy(changeable = false), DeepBackgroundRestriction(true, true, true, changeable = true))) {
+            assertThat(ui.copy(deepRestriction = unavailable).choices.map { it.key }).containsExactly(key, FORCE_STOP_CHOICE).inOrder()
+        }
+        assertThat(ui.copy(potential = emptyList(), deepRestriction = null).choices).isEmpty()
+    }
+
+    @Test
+    fun givenOnlyStandaloneRestrictions_whenBuildingChoices_thenTheFabIsAvailable() {
+        val empty = WakeAppUiState(WakeAppIdentity(DETAIL_PACKAGE), loaded = true)
+        assertThat(empty.canBlockAll).isFalse()
+        val background = empty.copy(background = BackgroundUsage(allowed = true, changeable = true))
+        assertThat(background.choices.map { it.key }).containsExactly(BACKGROUND_CHOICE, FORCE_STOP_CHOICE).inOrder()
+        assertThat(background.canBlockAll).isTrue()
+        val deep = empty.copy(deepRestriction = DeepBackgroundRestriction(false, false, false, changeable = true))
+        assertThat(deep.choices.map { it.key }).containsExactly(DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE).inOrder()
+        assertThat(deep.canBlockAll).isTrue()
+    }
+
+    @Test
+    fun givenBlockedPotentialService_whenFirewallEvidenceAppears_thenThePackageManagerRowRemainsControllable() {
+        val entry = potentialEntry(PotentialWakeCategory.SCHEDULED_JOB, "Worker", ComponentType.SERVICE, action = null, block = WakePathBlock.USER)
+        val component = requireNotNull(entry.state.path.component)
+        val path = detailPath("peer-service", actor = "peer", component = component).copy(trigger = ReviveTrigger.PEER_SERVICE)
+        val peer = WakePeerLink("peer", WakeDirection.INBOUND, listOf(path), emptyList())
+        val rule = AutomaticWakeBlock("ifw", "peer", DETAIL_PACKAGE, component, "", active = true, allowed = false, method = "IFW")
+        val state = detailState(peers = listOf(peer), automatic = listOf(rule))
+
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap(), listOf(entry))
+        val row = ui.potential.single()
+        assertThat(row.paths.single().path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
+        assertThat(row.blocked).isTrue()
+        assertThat(row.canToggle(ui.background)).isTrue()
+        assertThat(ui.relations).hasSize(2)
+
+        val resolved = state.paths.getValue(path.pathKey).copy(path = path.copy(blockMethod = WakeBlockMethod.COMPONENT))
+        val resolvedPm = state.copy(paths = mapOf(path.pathKey to resolved))
+        assertThat(buildWakeAppState(resolvedPm, null, emptyList(), emptyMap(), listOf(entry)).potential).isEmpty()
+        val automaticPm = state.copy(automatic = listOf(rule.copy(method = "PM")))
+        assertThat(buildWakeAppState(automaticPm, null, emptyList(), emptyMap(), listOf(entry)).potential).isEmpty()
+    }
+
+    @Test
+    fun givenDuplicateShortClassNames_whenBuildingPotentialRows_thenBothExposePackageRelativeNames() {
+        val entries = listOf(potentialEntry(name = "sync.BootReceiver"), potentialEntry(name = "metrics.BootReceiver"), potentialEntry(name = "RefreshReceiver"))
+        val ui = buildWakeAppState(detailState(), null, emptyList(), emptyMap(), entries)
+        val labels = listOf("sync.BootReceiver", "metrics.BootReceiver", "RefreshReceiver").map { WakeText.Literal(it) }
+        val titles = labels.map {
+            WakeText.Resource(string.feature_wake_api_choice_with_component, WakeText.Resource(string.feature_wake_api_potential_boot), it)
+        }
+
+        assertThat(ui.potential.map { it.meta }).containsExactlyElementsIn(labels).inOrder()
+        assertThat(ui.potential.map { it.actionTitle }).containsExactlyElementsIn(titles).inOrder()
+        assertThat(ui.choices.take(3).map { it.title }).containsExactlyElementsIn(titles).inOrder()
+    }
+
+    @Test
+    fun givenDormantChoicesWithTheSameCategory_whenBuildingTitles_thenEachUsesItsOwnComponentName() {
+        val entries = listOf(potentialEntry(name = "FirstReceiver"), potentialEntry(name = "SecondReceiver"))
+        val ui = buildWakeAppState(detailState(), null, emptyList(), emptyMap(), entries)
+
+        assertThat(ui.choices.take(2).map { it.title }).containsExactlyElementsIn(
+            listOf("FirstReceiver", "SecondReceiver").map {
+                WakeText.Resource(string.feature_wake_api_choice_with_component, WakeText.Resource(string.feature_wake_api_potential_boot), WakeText.Literal(it))
+            },
         ).inOrder()
     }
 
@@ -200,7 +377,7 @@ class WakeAppUiStateTest {
         assertThat(row.hasSwitch).isTrue()
         for (available in listOf(ui, changeable)) {
             assertThat(row.canToggle(available.background)).isTrue()
-            assertThat(available.choices.map { it.key }).containsExactly(row.key)
+            assertThat(available.choices.map { it.key }).containsExactly(row.key, FORCE_STOP_CHOICE).inOrder()
             assertThat(available.canBlockAll).isTrue()
         }
         assertThat(row.canToggle(protected.background)).isFalse()
@@ -216,7 +393,7 @@ class WakeAppUiStateTest {
         val ui = buildWakeAppState(state, null, emptyList(), emptyMap()).copy(background = BackgroundUsage(allowed = true, changeable = false))
 
         assertThat(ui.methods.single().canToggle(ui.background)).isTrue()
-        assertThat(ui.choices.map { it.key }).containsExactly(ui.methods.single().key)
+        assertThat(ui.choices.map { it.key }).containsExactly(ui.methods.single().key, FORCE_STOP_CHOICE).inOrder()
         assertThat(ui.canBlockAll).isTrue()
     }
 
