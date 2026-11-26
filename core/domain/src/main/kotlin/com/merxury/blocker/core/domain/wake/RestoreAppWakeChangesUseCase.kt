@@ -14,7 +14,11 @@ import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
 import com.merxury.blocker.core.model.wake.WakePath
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class RestoreAppWakeChangesUseCase @Inject constructor(
@@ -32,29 +36,37 @@ class RestoreAppWakeChangesUseCase @Inject constructor(
         internal val backgroundApp: AppKey?,
     )
 
+    /** Restores wake changes and returns the undo token once the writes have started. */
     suspend operator fun invoke(packageName: String): Result {
         val app = AppKey(packageName, UserId.SYSTEM)
         val outbound = activity(packageName).first().outboundPaths().map(WakePath::pathKey).toSet()
-        val (manual, blocks) = user.removeAppBlocks(packageName, outbound)
-        val reviewed = automatic.allowForApp(packageName)
-        val background = when (val setting = backgroundUsage.read(app)) {
-            is BackgroundUsageResult.Success -> if (setting.value.allowed) emptyOutcome else setBackgroundUsage(app, allowed = true)
-            is BackgroundUsageResult.Failure -> WakeBlockOutcome(emptySet(), setting.reason.asBlockFailure())
+        currentCoroutineContext().ensureActive()
+        return withContext(NonCancellable) {
+            val (manual, blocks) = user.removeAppBlocks(packageName, outbound)
+            val reviewed = automatic.allowForApp(packageName)
+            val background = when (val setting = backgroundUsage.read(app)) {
+                is BackgroundUsageResult.Success -> if (setting.value.allowed) emptyOutcome else setBackgroundUsage(app, allowed = true)
+                is BackgroundUsageResult.Failure -> WakeBlockOutcome(emptySet(), setting.reason.asBlockFailure())
+            }
+            val backgroundApp = app.takeIf { background.done.isNotEmpty() }
+            val undo = if (blocks.isNotEmpty() || reviewed.done.isNotEmpty() || backgroundApp != null) {
+                Undo(blocks, reviewed.done, backgroundApp)
+            } else {
+                null
+            }
+            Result(manual + reviewed + background, undo)
         }
-        val backgroundApp = app.takeIf { background.done.isNotEmpty() }
-        val undo = if (blocks.isNotEmpty() || reviewed.done.isNotEmpty() || backgroundApp != null) {
-            Undo(blocks, reviewed.done, backgroundApp)
-        } else {
-            null
-        }
-        return Result(manual + reviewed + background, undo)
     }
 
+    /** Reapplies the recorded changes to completion once the writes have started. */
     suspend fun undo(changes: Undo): WakeBlockOutcome {
-        val manual = user.restoreBlocks(changes.blocks)
-        val reviewed = automatic.setBlocked(changes.automaticIds, blocked = true)
-        val background = changes.backgroundApp?.let { setBackgroundUsage(it, allowed = false) } ?: emptyOutcome
-        return manual + reviewed + background
+        currentCoroutineContext().ensureActive()
+        return withContext(NonCancellable) {
+            val manual = user.restoreBlocks(changes.blocks)
+            val reviewed = automatic.setBlocked(changes.automaticIds, blocked = true)
+            val background = changes.backgroundApp?.let { setBackgroundUsage(it, allowed = false) } ?: emptyOutcome
+            manual + reviewed + background
+        }
     }
 
     private suspend fun setBackgroundUsage(app: AppKey, allowed: Boolean): WakeBlockOutcome {

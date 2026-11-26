@@ -7,16 +7,21 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.BackgroundUsageFailure
 import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.BackgroundUsageResult
+import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository
+import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.ReviveTrigger
+import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.core.model.wake.WakePathState
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -117,6 +122,67 @@ class WakeBlockUseCasesTest {
         assertThat(result.outcome).isEqualTo(WakeBlockOutcome(emptySet(), WakeBlockFailure.NoAccess))
         assertThat(result.undo).isNull()
         assertThat(background.writes).isEmpty()
+    }
+
+    @Test fun givenUserBlocksWereRemoved_whenRestoreIsCancelled_thenRemainingChangesAndUndoAreReturned() = runTest {
+        val f = WakeStateTestFixture(this)
+        val block = finding("incoming").toWakePath().blockRow()
+        f.manual.blocks.value = listOf(block)
+        f.automatic.blocks.value = listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", true))
+        val background = FakeBackgroundUsageRepository(allowed = false)
+        val removed = CompletableDeferred<Unit>()
+        val resume = CompletableDeferred<Unit>()
+        val manual = object : WakeBlockRepository by f.manual {
+            override suspend fun removeAppBlocks(packageName: String, outboundPathKeys: Set<String>): Pair<WakeBlockOutcome, List<WakeBlock>> = f.manual.removeAppBlocks(packageName, outboundPathKeys).also {
+                removed.complete(Unit)
+                resume.await()
+            }
+        }
+        val restore = RestoreAppWakeChangesUseCase(f.activity, manual, f.automatic, background)
+        var result: RestoreAppWakeChangesUseCase.Result? = null
+        val caller = launch { result = restore(TEST_APP) }
+
+        removed.await()
+        caller.cancel()
+        resume.complete(Unit)
+        caller.join()
+
+        assertThat(f.automatic.allowedIds).containsExactly("review")
+        assertThat(background.allowed).isTrue()
+        val completed = requireNotNull(result)
+        assertThat(completed.outcome).isEqualTo(WakeBlockOutcome(setOf("incoming", "review", "background:$TEST_APP"), null))
+        assertThat(restore.undo(requireNotNull(completed.undo))).isEqualTo(completed.outcome)
+        assertThat(f.manual.blocks.value).containsExactly(block)
+    }
+
+    @Test fun givenAutomaticBlocksWereReinstated_whenUndoIsCancelled_thenBackgroundUsageAndOutcomeAreRestored() = runTest {
+        val f = WakeStateTestFixture(this)
+        val block = finding("incoming").toWakePath().blockRow()
+        f.manual.blocks.value = listOf(block)
+        f.automatic.blocks.value = listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", true))
+        val background = FakeBackgroundUsageRepository(allowed = false)
+        val reinstated = CompletableDeferred<Unit>()
+        val resume = CompletableDeferred<Unit>()
+        val automatic = object : AutomaticWakeBlockRepository by f.automatic {
+            override suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): WakeBlockOutcome = f.automatic.setBlocked(pathIds, blocked).also {
+                reinstated.complete(Unit)
+                resume.await()
+            }
+        }
+        val restore = RestoreAppWakeChangesUseCase(f.activity, f.manual, automatic, background)
+        val restored = restore(TEST_APP)
+        var outcome: WakeBlockOutcome? = null
+        val caller = launch { outcome = restore.undo(requireNotNull(restored.undo)) }
+
+        reinstated.await()
+        caller.cancel()
+        resume.complete(Unit)
+        caller.join()
+
+        assertThat(background.allowed).isFalse()
+        assertThat(f.manual.blocks.value).containsExactly(block)
+        assertThat(f.automatic.allowedIds).isEmpty()
+        assertThat(outcome).isEqualTo(restored.outcome)
     }
 }
 
