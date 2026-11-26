@@ -62,6 +62,7 @@ internal fun LazyListScope.wakeAppGroup(
         SegmentedListItem(
             onClick = { onAppClick(app.packageName) },
             shapes = animatedSegmentedShapes(index, apps.size),
+            colors = wakeSegmentedColors(),
             modifier = Modifier.animateWakeItem(this)
                 .padding(top = if (index == 0) 0.dp else ListItemDefaults.SegmentedGap),
             leadingContent = { AppIcon(app.icon, Modifier.size(AppIconSize)) },
@@ -140,6 +141,7 @@ private fun WakeInformationalRow(
 ) {
     SegmentedListItem(
         shapes = shapes,
+        colors = wakeSegmentedColors(),
         modifier = modifier,
         leadingContent = {
             BlockerActionIcon(icon, contentDescription = null, tint = LocalContentColor.current)
@@ -193,3 +195,8 @@ private class AnimatedCorner(
         fraction.value,
     ).coerceAtLeast(0f)
 }
+
+// The screen background is `surface`, so the segments take `surfaceContainer` to stay visible as a group.
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun wakeSegmentedColors() = ListItemDefaults.segmentedColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
