@@ -5,24 +5,33 @@ package com.merxury.blocker.feature.wake.impl
 
 import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.appcontrol.AppControl
+import com.merxury.blocker.core.data.device.AppRestrictionFailure
 import com.merxury.blocker.core.data.device.BackgroundUsageFailure
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.wake.WakeBlockRepository
+import com.merxury.blocker.core.domain.wake.ForceStopAppUseCase
 import com.merxury.blocker.core.domain.wake.ObserveAppWakeActivityUseCase
 import com.merxury.blocker.core.domain.wake.ObserveAppWakeStateUseCase
+import com.merxury.blocker.core.domain.wake.ObservePotentialWakeEntriesUseCase
 import com.merxury.blocker.core.domain.wake.ObserveWakeAvailabilityUseCase
 import com.merxury.blocker.core.domain.wake.RestoreAppWakeChangesUseCase
 import com.merxury.blocker.core.domain.wake.SetWakePathsBlockedUseCase
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.system.BackgroundUsage
+import com.merxury.blocker.core.model.system.DeepBackgroundRestriction
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.OwnWakeKind
+import com.merxury.blocker.core.model.wake.PotentialWakeEntry
 import com.merxury.blocker.core.model.wake.WakeAvailability
 import com.merxury.blocker.core.model.wake.WakeBlock
+import com.merxury.blocker.core.model.wake.WakeBlockFailure
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
+import com.merxury.blocker.core.testing.controller.FakeAppControl
 import com.merxury.blocker.core.testing.repository.device.FakeAppRestrictionRepository
 import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
@@ -34,6 +43,7 @@ import com.merxury.blocker.feature.wake.api.R.string
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -45,8 +55,11 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WakeAppViewModelTest {
@@ -59,6 +72,12 @@ class WakeAppViewModelTest {
         override suspend fun blockRecordingChanges(requests: List<Pair<WakePath, WakeBlockMethod>>) = manual.blockRecordingChanges(requests).also { finishBlock?.await() }
     }
     private val background = FakeBackgroundUsageRepository()
+    private val restriction = FakeAppRestrictionRepository()
+    private val appControl = FakeAppControl()
+    private var beforeForceStop: suspend (AppKey) -> Unit = {}
+    private val forceStop = ForceStopAppUseCase(object : AppControl by appControl {
+        override suspend fun forceStop(app: AppKey) = appControl.forceStop(app.also { beforeForceStop(it) })
+    })
     private val appKey = AppKey(DETAIL_PACKAGE, UserId.SYSTEM)
     private val first = detailPath("restart")
     private val second = detailPath("self", component = "$DETAIL_PACKAGE.Sync")
@@ -66,6 +85,18 @@ class WakeAppViewModelTest {
     private val timed = detailMethod(OwnWakeKind.TIMED, detailPath("alarm", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null))
     private var methods = listOf(detailMethod(OwnWakeKind.RESTART_AFTER_CLOSE, first), detailMethod(OwnWakeKind.SELF_START, second))
     private val base by lazy { detailState(own = methods) }
+    private val dormant = MutableStateFlow<List<PotentialWakeEntry>>(emptyList())
+    private val scanner = mock<ObservePotentialWakeEntriesUseCase> {
+        on { invoke(eq(DETAIL_PACKAGE), any()) } doAnswer { invocation ->
+            val excluded = invocation.getArgument<Set<String>>(1)
+            combine(dormant, manual.blocks) { entries, blocks ->
+                entries.filterNot { it.state.path.component in excluded }.map { entry ->
+                    val state = entry.state
+                    entry.copy(state = state.copy(block = if (blocks.any { it.pathKey == state.path.pathKey }) WakePathBlock.USER else WakePathBlock.NONE))
+                }
+            }
+        }
+    }
     private val observed = combine(manual.blocks, automatic.blocks, background.observe(appKey)) { blocks, reviewed, usage ->
         val paths = base.paths.mapValues { (key, state) ->
             val block = blocks.firstOrNull { it.pathKey == key }
@@ -84,8 +115,8 @@ class WakeAppViewModelTest {
         val details = mock<ComponentDetailRepository> { on { getLocalComponentDetails(any()) } doReturn flowOf(emptyMap()) }
         WakeAppViewModel(
             DETAIL_PACKAGE, state, availability, FakeInstalledAppRepository(), FakeSelectedUserRepository(), details,
-            background, SetWakePathsBlockedUseCase(manualBatch, automatic, background),
-            RestoreAppWakeChangesUseCase(activity, manual, automatic, background, FakeAppRestrictionRepository()),
+            background, restriction, scanner, SetWakePathsBlockedUseCase(manualBatch, automatic, background),
+            forceStop, RestoreAppWakeChangesUseCase(activity, manual, automatic, background, restriction),
         )
     }
 
@@ -110,19 +141,19 @@ class WakeAppViewModelTest {
     }
 
     @Test
-    fun givenThreeChoices_whenBlockingThenUndoing_thenShowsRealRowsAndRestoresOnlyThatBatch() = runTest {
+    fun givenThreeRowsAndBackgroundUsage_whenBlockingThenUndoing_thenCountsFourChoicesAndRestoresThatBatch() = runTest {
         val existing = detailPath("outside").record()
         manual.blocks.value = listOf(existing)
         automatic.blocks.value = listOf(known)
         observe()
-        viewModel.blockAll(current.choices.mapTo(mutableSetOf()) { it.key })
+        viewModel.blockAll(current.choices.mapTo(mutableSetOf()) { it.key } - setOf(DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE))
         runCurrent()
         assertThat(manual.blocks.value.map { it.pathKey }).containsExactly("outside", "restart", "self")
         assertThat(automatic.allowedIds).isEmpty()
         assertThat(current.rows.map { it.blocked }).containsExactly(true, true, true).inOrder()
         assertThat(current.background?.allowed).isFalse()
         val notice = requireNotNull(current.notice)
-        assertThat(notice.text).isEqualTo(blockedCount(3))
+        assertThat(notice.text).isEqualTo(blockedCount(4))
 
         viewModel.undo(notice.id)
         runCurrent()
@@ -131,6 +162,223 @@ class WakeAppViewModelTest {
         assertThat(current.background?.allowed).isTrue()
         assertThat(background.writes).containsExactly(appKey to false, appKey to true).inOrder()
         assertThat(background.reads).isEmpty()
+        assertThat(appControl.calls).isEmpty()
+    }
+
+    @Test
+    fun givenDormantComponent_whenTogglingBothWays_thenWritesComponentBlockAndObservesBothStates() = runTest {
+        val entry = potentialEntry()
+        dormant.value = listOf(entry, potentialEntry(name = "Service"))
+        methods = listOf(detailMethod(OwnWakeKind.RESTART_AFTER_CLOSE, first.copy(blockMethod = WakeBlockMethod.COMPONENT)))
+        observe()
+        val key = current.potential.single().key
+
+        viewModel.toggle(key, allowed = false)
+        runCurrent()
+        assertThat(manual.blocks.value.map { it.pathKey to it.method }).containsExactly(entry.state.path.pathKey to WakeBlockMethod.COMPONENT)
+        assertThat(current.potential.single().blocked).isTrue()
+
+        viewModel.toggle(key, allowed = true)
+        runCurrent()
+        assertThat(manual.blocks.value).isEmpty()
+        assertThat(current.potential.single().blocked).isFalse()
+    }
+
+    @Test
+    fun givenDormantComponent_whenAnAutomaticPmPathAppears_thenRescansWithTheComponentExcluded() = runTest {
+        dormant.value = listOf(potentialEntry(name = "Known"))
+        observe()
+        assertThat(current.potential).hasSize(1)
+
+        val pm = known.copy(method = "PM")
+        automatic.blocks.value = listOf(pm)
+        runCurrent()
+
+        verify(scanner).invoke(DETAIL_PACKAGE, setOf(pm.component))
+        assertThat(current.potential).isEmpty()
+        assertThat(current.relations.single().automatic).isEqualTo(pm)
+    }
+
+    @Test
+    fun givenChangeableDeepRestriction_whenToggling_thenStateFollowsRepositoryReadback() = runTest {
+        observe()
+        assertThat(current.deepRestriction?.active).isFalse()
+
+        viewModel.setDeepRestricted(true)
+        runCurrent()
+        assertThat(current.deepRestriction?.active).isTrue()
+        assertThat(current.notice).isNull()
+
+        viewModel.setDeepRestricted(false)
+        runCurrent()
+        assertThat(current.deepRestriction?.active).isFalse()
+        assertThat(restriction.writes).containsExactly(appKey to true, appKey to false).inOrder()
+    }
+
+    @Test
+    fun givenPartialAndLegacyDeepRestrictions_whenToggling_thenClearsPartialAndEnablesSupportedOperations() = runTest {
+        val legacy = DeepBackgroundRestriction(false, false, false, changeable = true, bucketSupported = false, exactAlarmSupported = false)
+        restriction.sendRestriction(appKey, legacy)
+        observe()
+
+        viewModel.setDeepRestricted(true)
+        runCurrent()
+        assertThat(current.deepRestriction?.active).isTrue()
+        assertThat(current.notice).isNull()
+
+        restriction.sendRestriction(appKey, DeepBackgroundRestriction(false, true, false, changeable = true))
+        runCurrent()
+        assertThat(current.deepRestriction?.active).isFalse()
+        assertThat(current.deepRestriction?.anyActive).isTrue()
+        viewModel.setDeepRestricted(false)
+        runCurrent()
+
+        assertThat(current.deepRestriction?.anyActive).isFalse()
+        assertThat(current.notice).isNull()
+    }
+
+    @Test
+    fun givenDeepRestrictionWriteFailures_whenToggling_thenShowsTypedNoticeAndKeepsReadback() = runTest {
+        observe()
+        val failures = mapOf(
+            AppRestrictionFailure.NO_ACCESS to WakeBlockFailure.NoAccess,
+            AppRestrictionFailure.NOT_CHANGEABLE to WakeBlockFailure.BackgroundNotChangeable,
+            AppRestrictionFailure.NOT_INSTALLED to WakeBlockFailure.SystemError(null),
+            AppRestrictionFailure.SYSTEM_ERROR to WakeBlockFailure.SystemError(null),
+        )
+        failures.forEach { (failure, mapped) ->
+            restriction.writeFailure = failure
+            viewModel.setDeepRestricted(true)
+            runCurrent()
+
+            assertThat(current.deepRestriction?.active).isFalse()
+            assertThat(current.notice?.text).isEqualTo(blockFailureText(mapped, 0, 1))
+        }
+    }
+
+    @Test
+    fun givenDormantEntryAndDeepRestriction_whenBlockingWithForceStopThenUndoing_thenRestoresBothRestrictions() = runTest {
+        val entry = potentialEntry()
+        dormant.value = listOf(entry)
+        appControl.running[appKey.userId] = mutableSetOf(DETAIL_PACKAGE)
+        observe()
+
+        viewModel.blockAll(setOf(current.potential.single().key, DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE))
+        runCurrent()
+
+        assertThat(manual.blocks.value.map { it.pathKey }).containsExactly(entry.state.path.pathKey)
+        assertThat(current.potential.single().blocked).isTrue()
+        assertThat(restriction.writes).containsExactly(appKey to true)
+        assertThat(current.deepRestriction?.active).isTrue()
+        assertThat(appControl.calls).containsExactly("forceStop $appKey")
+        assertThat(appControl.running.getValue(appKey.userId)).isEmpty()
+        val notice = requireNotNull(current.notice)
+        assertThat(notice.text).isEqualTo(blockedCount(2))
+        assertThat((notice.undo as WakeUndo.Block).deepRestrictionChanged).isTrue()
+
+        viewModel.undo(notice.id)
+        runCurrent()
+
+        assertThat(manual.blocks.value).isEmpty()
+        assertThat(current.potential.single().blocked).isFalse()
+        assertThat(current.deepRestriction?.active).isFalse()
+        assertThat(restriction.writes).containsExactly(appKey to true, appKey to false).inOrder()
+    }
+
+    @Test
+    fun givenDeepRestrictionWasAlreadyActive_whenInvokingStaleBulkSelection_thenUndoLeavesItActive() = runTest {
+        restriction.sendRestriction(appKey, DeepBackgroundRestriction(true, true, true, changeable = true))
+        observe()
+        viewModel.blockAll(setOf(current.methods.first().key, DEEP_RESTRICTION_CHOICE))
+        runCurrent()
+
+        viewModel.undo(requireNotNull(current.notice).id)
+        runCurrent()
+
+        assertThat(manual.blocks.value).isEmpty()
+        assertThat(current.deepRestriction?.active).isTrue()
+        assertThat(restriction.writes).isEmpty()
+    }
+
+    @Test
+    fun givenStandaloneSettings_whenBlockingAndForceStopFails_thenWritesFinishFirstAndRemainUndoable() = runTest {
+        methods = emptyList()
+        val refused = CallFailure.SystemError("stop refused")
+        appControl.failures["forceStop"] = refused
+        beforeForceStop = { key ->
+            assertThat(key).isEqualTo(appKey)
+            assertThat(background.writes).containsExactly(appKey to false)
+            assertThat(restriction.read(appKey).value.active).isTrue()
+        }
+        observe()
+        assertThat(current.canBlockAll).isTrue()
+
+        viewModel.blockAll(setOf(BACKGROUND_CHOICE, DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE))
+        runCurrent()
+
+        val notice = requireNotNull(current.notice)
+        assertThat(appControl.calls).containsExactly("forceStop $appKey")
+        assertThat(notice.text).isEqualTo(
+            WakeText.Resource(
+                string.feature_wake_api_list_pair,
+                blockedCount(2),
+                WakeText.Resource(string.feature_wake_api_force_stop_failed, current.app.label),
+            ),
+        )
+        viewModel.undo(notice.id)
+        runCurrent()
+
+        assertThat(current.background?.allowed).isTrue()
+        assertThat(current.deepRestriction?.anyActive).isFalse()
+        assertThat(appControl.calls).hasSize(1)
+    }
+
+    @Test
+    fun givenOutboundPathAndBackgroundChoice_whenBlocking_thenOnlyTheOpenAppStopsAndCountIncludesBothWrites() = runTest {
+        val peer = "another.app"
+        val path = detailPath("out", target = peer)
+        automatic.blocks.value = listOf(AutomaticWakeBlock("outgoing", DETAIL_PACKAGE, peer, checkNotNull(path.component), "", false, true))
+        appControl.running[UserId.SYSTEM] = mutableSetOf(DETAIL_PACKAGE, peer)
+        beforeForceStop = {
+            assertThat(automatic.blocks.value.single().active).isTrue()
+            assertThat(background.writes).containsExactly(appKey to false)
+        }
+        observe()
+
+        viewModel.blockAll(setOf(current.relations.single().key, BACKGROUND_CHOICE, FORCE_STOP_CHOICE))
+        runCurrent()
+
+        assertThat(current.notice?.text).isEqualTo(blockedCount(2))
+        assertThat(appControl.calls).containsExactly("forceStop $appKey")
+        assertThat(appControl.running[UserId.SYSTEM]).containsExactly(peer)
+    }
+
+    @Test
+    fun givenAGroupedRowPartlyBlocks_whenForceStopIsSelected_thenTheAppStopsAfterTheSuccessfulWrite() = runTest {
+        methods = listOf(detailMethod(OwnWakeKind.SELF_START, first, second))
+        manual.excluded = setOf(second.pathKey)
+        beforeForceStop = { assertThat(manual.blocks.value.map { it.pathKey }).containsExactly(first.pathKey) }
+        observe()
+
+        viewModel.blockAll(setOf(current.methods.single().key, FORCE_STOP_CHOICE))
+        runCurrent()
+
+        assertThat(current.methods.single().blocked).isFalse()
+        assertThat(current.notice?.text).isEqualTo(blockFailureText(null, 0, 1))
+        assertThat(current.notice?.undo).isNotNull()
+        assertThat(appControl.calls).containsExactly("forceStop $appKey")
+    }
+
+    @Test
+    fun givenOnlyForceStopSelected_whenConfirmingBulkAction_thenDoesNothing() = runTest {
+        observe()
+        viewModel.blockAll(setOf(FORCE_STOP_CHOICE))
+        runCurrent()
+
+        assertThat(appControl.calls).isEmpty()
+        assertThat(manual.blocks.value).isEmpty()
+        assertThat(restriction.writes).isEmpty()
+        assertThat(current.notice).isNull()
     }
 
     @Test
@@ -190,7 +438,7 @@ class WakeAppViewModelTest {
         assertThat(current.background?.allowed).isFalse()
         assertThat(current.methods.map { it.blocked }).containsExactly(true, true)
         assertThat(current.status).isEqualTo(WakeAppStatus.AllBlocked)
-        assertThat(current.canBlockAll).isFalse()
+        assertThat(current.choices.map { it.key }).containsExactly(DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE).inOrder()
 
         viewModel.setBackgroundAllowed(true)
         runCurrent()
@@ -211,7 +459,7 @@ class WakeAppViewModelTest {
         background.sendUsage(appKey, protected)
         runCurrent()
         assertThat(current.background).isEqualTo(protected)
-        assertThat(current.canBlockAll).isFalse()
+        assertThat(current.choices.map { it.key }).containsExactly(DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE).inOrder()
 
         viewModel.toggle(key, allowed = false)
         runCurrent()

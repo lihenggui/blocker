@@ -6,12 +6,16 @@ package com.merxury.blocker.feature.wake.impl
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.system.BackgroundUsage
+import com.merxury.blocker.core.model.system.DeepBackgroundRestriction
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.wake.AppWakeState
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.JustifiedStarts
 import com.merxury.blocker.core.model.wake.OwnWakeKind
+import com.merxury.blocker.core.model.wake.PotentialWakeCategory
+import com.merxury.blocker.core.model.wake.PotentialWakeEntry
 import com.merxury.blocker.core.model.wake.ReviveTrigger
+import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
 import com.merxury.blocker.core.model.wake.WakePath
@@ -30,30 +34,43 @@ internal data class WakeAppUiState(
     val backgroundStarts: Long = 0,
     val relations: List<WakeDetailRow> = emptyList(),
     val methods: List<WakeDetailRow> = emptyList(),
+    val potential: List<WakeDetailRow> = emptyList(),
     val normal: JustifiedStarts = JustifiedStarts(0, 0, 0, 0),
     val background: BackgroundUsage? = null,
+    val deepRestriction: DeepBackgroundRestriction? = null,
+    val environment: WakeAppEnvironment = WakeAppEnvironment(),
     val busy: Boolean = false,
     val notice: WakeNotice? = null,
     val loaded: Boolean = false,
 ) {
     val rows get() = relations + methods
+    val controllableRows get() = rows + potential
     val hasRestart get() = methods.any { it.kind == OwnWakeKind.RESTART_AFTER_CLOSE && !it.blocked }
     val inbound get() = chainSide(relations.filter { it.direction == WakeDirection.INBOUND || it.direction == WakeDirection.MUTUAL })
     val outbound get() = chainSide(relations.filter { it.direction == WakeDirection.OUTBOUND || it.direction == WakeDirection.MUTUAL })
-    private val blockableRows get() = rows.filter { it.canToggle(background) && !it.blocked }
+    val blockableRows get() = controllableRows.filter { it.canToggle(background) && !it.blocked }
+    val canEnableDeepRestriction get() = deepRestriction?.let { it.changeable && !it.active } == true
     val choices get() = buildList {
         val available = blockableRows
-        available.forEach { add(WakeSheetChoice(it.key, it.title)) }
+        available.forEach { add(WakeSheetChoice(it.key, it.actionTitle)) }
         if (background?.allowed == true && background.changeable &&
             available.none { row -> row.paths.any { it.canRestrictBackground(app.packageName) } }
         ) {
             add(WakeSheetChoice(BACKGROUND_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_background)))
         }
+        if (canEnableDeepRestriction) {
+            add(WakeSheetChoice(DEEP_RESTRICTION_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_deep_restriction)))
+        }
+        if (isNotEmpty()) {
+            add(WakeSheetChoice(FORCE_STOP_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_force_stop)))
+        }
     }
-    val canBlockAll get() = blockableRows.isNotEmpty()
+    val canBlockAll get() = choices.any { it.key != FORCE_STOP_CHOICE }
 }
 
 internal const val BACKGROUND_CHOICE = "background"
+internal const val DEEP_RESTRICTION_CHOICE = "deep-restriction"
+internal const val FORCE_STOP_CHOICE = "force-stop"
 internal data class WakeSheetChoice(val key: String, val title: WakeText)
 internal enum class WakeAppStatus(val halo: WakeHalo) {
     KeepAlive(WakeHalo.KeepAlive),
@@ -79,7 +96,12 @@ internal data class WakeDetailRow(
     val direction: WakeDirection? = null,
     val kind: OwnWakeKind? = null,
     val boot: Boolean = false,
+    val reEnabledByApp: Boolean = false,
+    val componentLabel: WakeText.Literal? = null,
 ) {
+    val actionTitle get() = componentLabel?.let {
+        WakeText.Resource(string.feature_wake_api_choice_with_component, title, it)
+    } ?: title
     val hasSwitch get() = paths.isNotEmpty() || automatic != null
     val blocked get() = automatic?.active ?: (paths.isNotEmpty() && paths.all { it.block != WakePathBlock.NONE })
 
@@ -112,10 +134,12 @@ internal fun buildWakeAppState(
     lastCheckedMillis: Long?,
     installedApps: List<InstalledApp>,
     details: Map<String, ComponentDetail>,
+    potential: List<PotentialWakeEntry> = emptyList(),
 ): WakeAppUiState {
     val app = state.activity
     val apps = installedApps.associateBy { it.key.packageName }
     val facts = WakeFacts(app.packageName, apps, details)
+    val observedComponents = state.observedComponentNames()
     val relations = app.peers.sortedWith(
         compareBy<WakePeerLink> { relationOrder(it.direction) }.thenByDescending { it.inbound.sumOf(WakePath::count) + it.outbound.sumOf(WakePath::count) },
     ).map { link ->
@@ -143,13 +167,33 @@ internal fun buildWakeAppState(
             screenOff = method.kind == OwnWakeKind.SCREEN_OFF_RUN,
         ).copy(kind = method.kind, boot = boot)
     }
+    // The scanner may still be emitting entries for the previous set of observed components.
+    val dormant = potential.filterNot { it.state.path.component in observedComponents }
+    val shortNameCounts = dormant.mapNotNull { it.state.path.component?.substringAfterLast('.') }.groupingBy { it }.eachCount()
+    val relativeNameCounts = dormant.mapNotNull { entry ->
+        val path = entry.state.path
+        path.component?.removePrefix("${path.target}.")
+    }.groupingBy { it }.eachCount()
     return WakeAppUiState(
         app = apps.identity(app.packageName),
         status = wakeStatus(state.allBlocked, app.verdict),
         backgroundStarts = app.backgroundStarts,
         relations = relations,
         methods = methods,
+        potential = dormant.map { entry ->
+            val path = entry.state.path
+            val shortName = path.component?.substringAfterLast('.')
+            val duplicateShort = (shortNameCounts[shortName] ?: 0) > 1
+            val relative = path.component?.removePrefix("${path.target}.")
+            val label = when {
+                !duplicateShort -> shortName
+                (relativeNameCounts[relative] ?: 0) > 1 -> path.component
+                else -> relative
+            }
+            facts.potentialRow(entry, label?.let { WakeText.Literal(it) }, duplicateShort)
+        },
         normal = app.justified,
+        environment = state.environment,
         loaded = true,
     )
 }
@@ -171,11 +215,15 @@ private fun makeRow(
     screenOff: Boolean = false,
 ): WakeDetailRow {
     val blockable = paths.mapNotNull { state.paths[it.pathKey] }.distinctBy { it.path.pathKey }
-    val meta = blockedMeta(blockable, lastCheckedMillis) ?: when {
+    val blocked = blockedMeta(blockable, lastCheckedMillis)
+    val reEnabled = blocked == null && blockable.any { it.reEnabledByApp }
+    val meta = when {
+        reEnabled -> WakeText.Resource(string.feature_wake_api_re_enabled_by_app)
+        blocked != null -> blocked
         screenOff -> WakeText.Duration(paths.sumOf(WakePath::screenOffNanos))
         else -> paths.maxOfOrNull(WakePath::lastSeenMillis)?.let { WakeText.Latest(paths.sumOf(WakePath::count), it) }
     }
-    return WakeDetailRow(key, title, meta, facts, paths = blockable)
+    return WakeDetailRow(key, title, meta, facts, paths = blockable, reEnabledByApp = reEnabled)
 }
 
 private fun blockedMeta(paths: List<WakePathState>, lastCheckedMillis: Long?): WakeText? = when {
@@ -195,6 +243,23 @@ internal fun AppWakeState.visibleComponentNames(): Set<String> = buildSet {
     activity.peers.forEach { link -> (link.inbound + link.outbound).firstNamedPath()?.component?.let(::add) }
     activity.own.forEach { method -> method.paths.firstNamedPath()?.component?.let(::add) }
     automatic.forEach { add(it.component) }
+}
+
+internal fun AppWakeState.observedComponentNames(): Set<String> = buildSet {
+    fun addComponentPaths(observed: List<WakePath>) {
+        for (path in observed) {
+            if (path.target != activity.packageName) continue
+            val method = paths[path.pathKey]?.path?.blockMethod ?: path.blockMethod
+            if (method == WakeBlockMethod.COMPONENT) path.component?.takeIf(String::isNotBlank)?.let(::add)
+        }
+    }
+    activity.peers.forEach { link ->
+        addComponentPaths(link.inbound)
+        addComponentPaths(link.outbound)
+    }
+    activity.own.forEach { addComponentPaths(it.paths) }
+    automatic.filter { it.method == "PM" && it.target == activity.packageName }
+        .mapNotNullTo(this) { it.component.takeIf(String::isNotBlank) }
 }
 
 private fun List<WakePath>.firstNamedPath(): WakePath? = firstOrNull { !it.component.isNullOrBlank() }
@@ -223,17 +288,49 @@ private class WakeFacts(
         automatic = block,
     )
 
-    private fun build(name: String?, type: ComponentType?, target: String?, callers: List<String>, action: String?) = buildList {
+    fun potentialRow(entry: PotentialWakeEntry, componentLabel: WakeText.Literal?, duplicate: Boolean): WakeDetailRow {
+        val state = entry.state
+        val path = state.path
+        val blocked = state.block != WakePathBlock.NONE
+        val reEnabled = !blocked && state.reEnabledByApp
+        val status = when {
+            reEnabled -> WakeText.Resource(string.feature_wake_api_re_enabled_by_app)
+            blocked -> WakeText.Resource(string.feature_wake_api_blocked)
+            else -> null
+        }
+        return WakeDetailRow(
+            key = "potential:${path.pathKey}",
+            title = WakeText.Resource(entry.category.title),
+            meta = if (duplicate && componentLabel != null && status != null) {
+                WakeText.Resource(string.feature_wake_api_list_pair, componentLabel, status)
+            } else {
+                status ?: componentLabel
+            },
+            facts = build(path.component, path.componentType, path.target, emptyList(), path.action, qualifiedName = true),
+            paths = listOf(state),
+            reEnabledByApp = reEnabled,
+            componentLabel = componentLabel,
+        )
+    }
+
+    private fun build(
+        name: String?,
+        type: ComponentType?,
+        target: String?,
+        callers: List<String>,
+        action: String?,
+        qualifiedName: Boolean = false,
+    ) = buildList {
         if (!name.isNullOrBlank()) {
-            val short = name.substringAfterLast('.')
+            val displayName = if (qualifiedName) name else name.substringAfterLast('.')
             val value = when {
-                type == null -> WakeText.Literal(short)
+                type == null -> WakeText.Literal(displayName)
 
                 target == null || target == packageName ->
-                    WakeText.Resource(string.feature_wake_api_fact_component_value, short, WakeText.Resource(type.label))
+                    WakeText.Resource(string.feature_wake_api_fact_component_value, displayName, WakeText.Resource(type.label))
 
                 else ->
-                    WakeText.Resource(string.feature_wake_api_fact_component_of_app, short, apps.identity(target).label, WakeText.Resource(type.label))
+                    WakeText.Resource(string.feature_wake_api_fact_component_of_app, displayName, apps.identity(target).label, WakeText.Resource(type.label))
             }
             add(WakeFact(string.feature_wake_api_fact_component, value))
         }
@@ -251,6 +348,14 @@ private class WakeFacts(
             add(WakeFact(appString.feature_appdetail_api_blocking_effect, WakeText.Literal(it)))
         }
     }
+}
+
+private val PotentialWakeCategory.title get() = when (this) {
+    PotentialWakeCategory.BOOT_AUTOSTART -> string.feature_wake_api_potential_boot
+    PotentialWakeCategory.PUSH_RECEIVER -> string.feature_wake_api_potential_push
+    PotentialWakeCategory.SCHEDULED_JOB -> string.feature_wake_api_potential_job
+    PotentialWakeCategory.ACCOUNT_SYNC -> string.feature_wake_api_potential_sync
+    PotentialWakeCategory.SYSTEM_BROADCAST -> string.feature_wake_api_potential_system_broadcast
 }
 
 private fun Map<String, InstalledApp>.identity(packageName: String): WakeAppIdentity = this[packageName]?.let {

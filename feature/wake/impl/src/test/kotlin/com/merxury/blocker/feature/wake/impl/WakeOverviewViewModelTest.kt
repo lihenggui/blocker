@@ -17,12 +17,15 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.DeviceUser
 import com.merxury.blocker.core.model.system.UserKind
 import com.merxury.blocker.core.model.wake.AppWakeSummary
+import com.merxury.blocker.core.model.wake.WakeBlock
+import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeHeadline
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
 import com.merxury.blocker.core.testing.repository.wake.FakeAutomaticWakeBlockRepository
+import com.merxury.blocker.core.testing.repository.wake.FakeWakeBlockRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestWakeRunRequester
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,6 +55,7 @@ class WakeOverviewViewModelTest {
         on { hasFindings() } doReturn this@WakeOverviewViewModelTest.hasFindings
     }
     private val overview = mock<ObserveWakeOverviewUseCase>()
+    private val manual = FakeWakeBlockRepository()
     private val installedApps = FakeInstalledAppRepository()
     private val selectedUsers = FakeSelectedUserRepository()
     private val runs = TestWakeRunRequester()
@@ -61,6 +65,7 @@ class WakeOverviewViewModelTest {
             availability,
             overview,
             FakeAutomaticWakeBlockRepository(),
+            manual,
             installedApps,
             selectedUsers,
             runs,
@@ -149,6 +154,33 @@ class WakeOverviewViewModelTest {
 
             runs.isRunning.value = true
             assertThat(awaitItem()).isEqualTo(ready.copy(checking = true))
+        }
+    }
+
+    @Test
+    fun givenInstalledApps_whenStaticBlocksChange_thenBlockedAndDormantRowsUpdate() = runTest {
+        installedApps.sendApps(listOf(wakeTestApp("silent"), wakeTestApp("manual"), wakeTestApp("handled")))
+        whenever(overview(7)).thenReturn(
+            flowOf(
+                listOf(
+                    AppWakeSummary("handled", WakeVerdict.KEEP_ALIVE, 1, 0, WakeHeadline.TimedWakeups(2), allBlocked = true),
+                    AppWakeSummary("manual", WakeVerdict.NORMAL, 0, 0, WakeHeadline.BackgroundStarts(1)),
+                ),
+            ),
+        )
+        hasFindings.value = true
+        channel.setState(channel.connectResult)
+
+        viewModel.uiState.test {
+            assertThat(awaitItem()).isEqualTo(WakeOverviewUiState.Loading)
+            val ready = awaitItem() as WakeOverviewUiState.Ready
+            assertThat(ready.blockedApps.map { it.packageName }).containsExactly("handled")
+            assertThat(ready.dormantApps.map { it.packageName }).containsExactly("manual", "silent").inOrder()
+            manual.restoreBlocks(listOf(WakeBlock("STATIC|manual", "manual", WakeBlockMethod.COMPONENT, null, null, "manual.Receiver", null, 42)))
+            val updated = awaitItem() as WakeOverviewUiState.Ready
+            assertThat(updated.blockedApps.map { it.packageName }).containsExactly("handled", "manual")
+            assertThat(updated.dormantApps.map { it.packageName }).containsExactly("silent")
+            assertThat(updated.otherApps).isEqualTo(1)
         }
     }
 }

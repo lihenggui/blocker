@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,10 +53,15 @@ internal fun WakeBlockSheet(
         enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
     )
     val scope = rememberCoroutineScope()
-    val initialChoices = remember { choices }
-    var unchecked by remember { mutableStateOf(emptySet<String>()) }
+    var initialized by rememberSaveable { mutableStateOf(false) }
+    var selectedKeys by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var closing by remember { mutableStateOf(false) }
-    val selected = initialChoices.mapTo(mutableSetOf()) { it.key } - unchecked
+    if (!initialized && choices.isNotEmpty()) {
+        selectedKeys = choices.map { it.key }.filterNot { it == FORCE_STOP_CHOICE }
+        initialized = true
+    }
+    val liveKeys = choices.mapTo(mutableSetOf()) { it.key }
+    val selected = selectedKeys.filterTo(mutableSetOf()) { it in liveKeys }
     val close: (Boolean) -> Unit = { confirm ->
         if (!closing) {
             closing = true
@@ -73,7 +79,7 @@ internal fun WakeBlockSheet(
                 Modifier.padding(horizontal = WakeContentSpacing),
                 style = MaterialTheme.typography.headlineSmall,
             )
-            initialChoices.forEach { choice ->
+            choices.forEach { choice ->
                 // The checkbox list pattern: the whole row toggles, and the row keeps the sheet's color.
                 ListItem(
                     headlineContent = { Text(choice.title.resolve()) },
@@ -81,7 +87,7 @@ internal fun WakeBlockSheet(
                         value = choice.key in selected,
                         enabled = !closing,
                         role = Role.Checkbox,
-                        onValueChange = { unchecked = if (it) unchecked - choice.key else unchecked + choice.key },
+                        onValueChange = { selectedKeys = if (it) selectedKeys + choice.key else selectedKeys - choice.key },
                     ),
                     leadingContent = { Checkbox(choice.key in selected, onCheckedChange = null, enabled = !closing) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -92,7 +98,7 @@ internal fun WakeBlockSheet(
                 horizontalArrangement = Arrangement.spacedBy(WakeGridUnit, Alignment.End),
             ) {
                 TextButton(onClick = { close(false) }, enabled = !closing) { Text(stringResource(string.feature_wake_api_cancel)) }
-                Button(onClick = { close(true) }, enabled = !closing && selected.isNotEmpty()) {
+                Button(onClick = { close(true) }, enabled = !closing && selected.any { it != FORCE_STOP_CHOICE }) {
                     Text(stringResource(string.feature_wake_api_block))
                 }
             }

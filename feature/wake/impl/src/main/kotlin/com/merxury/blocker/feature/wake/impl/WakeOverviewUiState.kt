@@ -7,6 +7,7 @@ import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.wake.AppWakeSummary
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.WakeAvailability
+import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeHeadline
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import com.merxury.blocker.core.ui.coil.ApkIcon
@@ -24,6 +25,8 @@ internal sealed interface WakeOverviewUiState {
         val automaticBlocks: Int,
         val otherApps: Int,
         val checking: Boolean,
+        val blockedApps: List<WakeAppRow> = emptyList(),
+        val dormantApps: List<WakeAppIdentity> = emptyList(),
     ) : WakeOverviewUiState
 }
 
@@ -31,7 +34,7 @@ internal data class WakeAppRow(
     val packageName: String,
     val label: String,
     val icon: ApkIcon?,
-    val headline: WakeHeadline,
+    val headline: WakeHeadline?,
 )
 
 internal fun wakeOverviewUiState(
@@ -40,19 +43,21 @@ internal fun wakeOverviewUiState(
     summaries: List<AppWakeSummary> = emptyList(),
     automaticBlocks: List<AutomaticWakeBlock> = emptyList(),
     installedApps: List<InstalledApp> = emptyList(),
+    wakeBlocks: List<WakeBlock> = emptyList(),
 ): WakeOverviewUiState = when (availability) {
     null -> WakeOverviewUiState.Loading
     WakeAvailability.NoAccess -> WakeOverviewUiState.NoAccess
     WakeAvailability.NotOwnerProfile -> WakeOverviewUiState.NotOwnerProfile
     WakeAvailability.ReadsRefused -> WakeOverviewUiState.ReadsRefused
     WakeAvailability.Collecting -> WakeOverviewUiState.Collecting(checking)
-    is WakeAvailability.Ready -> readyOverview(summaries, automaticBlocks, installedApps, checking)
+    is WakeAvailability.Ready -> readyOverview(summaries, automaticBlocks, installedApps, wakeBlocks, checking)
 }
 
 private fun readyOverview(
     summaries: List<AppWakeSummary>,
     automaticBlocks: List<AutomaticWakeBlock>,
     installedApps: List<InstalledApp>,
+    wakeBlocks: List<WakeBlock>,
     checking: Boolean,
 ): WakeOverviewUiState.Ready {
     val apps = installedApps.associateBy { it.key.packageName }
@@ -79,13 +84,37 @@ private fun readyOverview(
         )
     }
 
+    val activeAutomatic = automaticBlocks.filter { it.active }
+    val blockedPackages = buildSet {
+        summaries.filter { it.allBlocked }.mapTo(this) { it.packageName }
+        for (block in wakeBlocks) {
+            add(block.target)
+            block.sender?.let(::add)
+        }
+        for (block in activeAutomatic) {
+            add(block.target)
+            add(block.caller)
+        }
+    }
+    val visiblePackages = (keepAlive + attention).mapTo(mutableSetOf()) { it.packageName }
+    val summariesByPackage = summaries.associateBy { it.packageName }
+    val remaining = apps.values.filter { it.key.packageName !in visiblePackages }.sortedBy { it.label.lowercase() }
+    val (blocked, dormant) = remaining.partition { it.key.packageName in blockedPackages }
+    val blockedApps = blocked.map { app ->
+        val name = app.key.packageName
+        WakeAppRow(name, app.label, app.wakeIcon(), summariesByPackage[name]?.headline)
+    }
+    val dormantApps = dormant.map { WakeAppIdentity(it.key.packageName, it.label, it.wakeIcon()) }
+
     return WakeOverviewUiState.Ready(
         keepAlive = keepAlive,
         attention = attention,
         handledKeepAlive = handledKeepAlive,
-        automaticBlocks = automaticBlocks.count { it.active },
-        otherApps = apps.size - keepAlive.size - attention.size,
+        automaticBlocks = activeAutomatic.size,
+        otherApps = dormantApps.size,
         checking = checking,
+        blockedApps = blockedApps,
+        dormantApps = dormantApps,
     )
 }
 

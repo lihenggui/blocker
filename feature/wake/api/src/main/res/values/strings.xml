@@ -157,4 +157,35 @@
     <string name="feature_wake_api_undo_failed">Some changes could not be undone</string>
     <string name="feature_wake_api_sender_unsupported">This system cannot block a single sender</string>
     <string name="feature_wake_api_background_not_changeable">Android does not allow changing background usage for this app</string>
+    <plurals name="feature_wake_api_potential_entries">
+        <item quantity="one">%d dormant autostart entry</item>
+        <item quantity="other">%d dormant autostart entries</item>
+    </plurals>
+    <string name="feature_wake_api_re_enabled_by_app">Enabled again</string>
+    <string name="feature_wake_api_potential_boot">Starts after reboot</string>
+    <string name="feature_wake_api_potential_push">Push wake entry</string>
+    <string name="feature_wake_api_potential_job">Scheduled background job</string>
+    <string name="feature_wake_api_potential_sync">Account sync service</string>
+    <string name="feature_wake_api_potential_system_broadcast">System broadcast receiver</string>
+    <string name="feature_wake_api_deep_restriction">Deep background restriction</string>
+    <string name="feature_wake_api_deep_restriction_desc">Restricts standby bucket, background execution, and exact alarms</string>
+    <string name="feature_wake_api_environment">Background exemptions</string>
+    <string name="feature_wake_api_battery_allowlist">Battery optimization allowlist</string>
+    <string name="feature_wake_api_accessibility">Accessibility</string>
+    <string name="feature_wake_api_notification_listener">Notification listener</string>
+    <string name="feature_wake_api_device_admin">Device admin</string>
+    <string name="feature_wake_api_always_on_vpn">Always-on VPN</string>
+    <string name="feature_wake_api_companion_device">Companion device</string>
+    <string name="feature_wake_api_input_method">Input method</string>
+    <string name="feature_wake_api_live_wallpaper">Live wallpaper</string>
+    <string name="feature_wake_api_home_widget">Home widget</string>
+    <string name="feature_wake_api_account_sync">Account sync</string>
+    <string name="feature_wake_api_sheet_deep_restriction">Also enable deep background restriction</string>
+    <string name="feature_wake_api_sheet_force_stop">Force stop after blocking</string>
+    <plurals name="feature_wake_api_section_blocked_apps">
+        <item quantity="one">%d blocked app</item>
+        <item quantity="other">%d blocked apps</item>
+    </plurals>
+    <string name="feature_wake_api_force_stop_failed">Could not force stop %s</string>
+    <string name="feature_wake_api_choice_with_component">%1$s · %2$s</string>
 </resources>

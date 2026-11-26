@@ -56,6 +56,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
                 row.action,
                 active = row.configured && !row.disabledByUser,
                 allowed = row.disabledByUser,
+                method = row.method,
             )
         }
     }.distinctUntilChanged()

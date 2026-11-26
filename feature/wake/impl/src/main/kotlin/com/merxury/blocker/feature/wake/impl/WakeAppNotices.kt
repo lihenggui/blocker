@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import com.merxury.blocker.core.data.device.AppRestrictionFailure
 import com.merxury.blocker.core.data.device.BackgroundUsageFailure
 import com.merxury.blocker.core.domain.wake.RestoreAppWakeChangesUseCase
 import com.merxury.blocker.core.domain.wake.SetWakePathsBlockedUseCase
@@ -14,7 +15,7 @@ import com.merxury.blocker.core.ui.R.string as coreString
 internal data class WakeNotice(val id: Long, val text: WakeText, val undo: WakeUndo?)
 
 internal sealed interface WakeUndo {
-    data class Block(val token: SetWakePathsBlockedUseCase.Undo, val background: Boolean) : WakeUndo
+    data class Block(val token: SetWakePathsBlockedUseCase.Undo, val background: Boolean, val deepRestrictionChanged: Boolean) : WakeUndo
     data class Restore(val token: RestoreAppWakeChangesUseCase.Undo) : WakeUndo
 }
 
@@ -36,4 +37,10 @@ internal fun BackgroundUsageFailure.wakeFailure(): WakeBlockFailure = when (this
     BackgroundUsageFailure.NO_ACCESS -> WakeBlockFailure.NoAccess
     BackgroundUsageFailure.NOT_CHANGEABLE -> WakeBlockFailure.BackgroundNotChangeable
     else -> WakeBlockFailure.SystemError(name)
+}
+
+internal fun AppRestrictionFailure.wakeFailure(): WakeBlockFailure = when (this) {
+    AppRestrictionFailure.NO_ACCESS -> WakeBlockFailure.NoAccess
+    AppRestrictionFailure.NOT_CHANGEABLE -> WakeBlockFailure.BackgroundNotChangeable
+    AppRestrictionFailure.NOT_INSTALLED, AppRestrictionFailure.SYSTEM_ERROR -> WakeBlockFailure.SystemError(null)
 }

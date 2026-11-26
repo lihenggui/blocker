@@ -9,6 +9,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.system.BackgroundUsage
+import com.merxury.blocker.core.model.system.DeepBackgroundRestriction
 import com.merxury.blocker.core.model.wake.AppWakeState
 import com.merxury.blocker.core.model.wake.JustifiedStarts
 import com.merxury.blocker.core.model.wake.OwnWakeKind
@@ -85,7 +86,24 @@ class WakeAppScreenScreenshotTest {
     }
 
     @Test
-    fun givenAllowedChoices_whenOpeningBlockSheet_thenCapturesConfirmation() = capture("WakeAppBlockSheet", state(), sheet = true)
+    fun givenAllowedChoices_whenOpeningBlockSheet_thenCapturesConfirmation() {
+        val entries = listOf(potentialEntry(), potentialEntry(name = "RefreshReceiver"))
+        val state = buildWakeAppState(base, lastWake + 2, apps, mapOf(component.name to component), entries).copy(
+            background = BackgroundUsage(true, true),
+            deepRestriction = DeepBackgroundRestriction(false, false, false, changeable = true),
+        )
+        capture("WakeAppBlockSheet", state, sheet = true)
+    }
+
+    @Test
+    fun givenPartialDeepRestriction_whenViewingWithoutWakeHistory_thenCapturesTheClearableSwitch() {
+        val empty = detailState(verdict = WakeVerdict.NORMAL, normal = JustifiedStarts(0, 0, 0, 0))
+        val state = state(empty.copy(activity = empty.activity.copy(backgroundStarts = 0))).copy(
+            background = null,
+            deepRestriction = DeepBackgroundRestriction(false, true, false, changeable = true),
+        )
+        capture("WakeAppDeepRestriction", state)
+    }
 
     private fun state(app: AppWakeState = base) = buildWakeAppState(app, lastWake + 2, apps, mapOf(component.name to component)).copy(background = BackgroundUsage(true, true))
 

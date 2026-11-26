@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.device.InstalledAppRepository
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository
+import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.data.wake.WakeRunRequester
 import com.merxury.blocker.core.domain.wake.ObserveWakeAvailabilityUseCase
 import com.merxury.blocker.core.domain.wake.ObserveWakeOverviewUseCase
@@ -35,6 +36,7 @@ internal class WakeOverviewViewModel @Inject constructor(
     observeAvailability: ObserveWakeAvailabilityUseCase,
     observeOverview: ObserveWakeOverviewUseCase,
     automaticBlocks: AutomaticWakeBlockRepository,
+    wakeBlocks: WakeBlockRepository,
     installedApps: InstalledAppRepository,
     selectedUsers: SelectedUserRepository,
     runs: WakeRunRequester,
@@ -55,8 +57,9 @@ internal class WakeOverviewViewModel @Inject constructor(
                     automaticBlocks.blocks,
                     installedApps.apps(selectedUsers.ownUser),
                     runs.isRunning,
-                ) { summaries, blocks, apps, checking ->
-                    wakeOverviewUiState(availability, checking, summaries, blocks, apps)
+                    wakeBlocks.blocks,
+                ) { summaries, blocks, apps, checking, manual ->
+                    wakeOverviewUiState(availability, checking, summaries, blocks, apps, manual)
                 }
 
                 WakeAvailability.Collecting -> runs.isRunning.map { wakeOverviewUiState(availability, it) }
