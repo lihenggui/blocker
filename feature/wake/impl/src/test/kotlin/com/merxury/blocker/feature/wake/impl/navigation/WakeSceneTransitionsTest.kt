@@ -3,7 +3,9 @@
 
 package com.merxury.blocker.feature.wake.impl.navigation
 
-import androidx.compose.ui.unit.Density
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MotionScheme
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.scene.SceneStrategyScope
@@ -12,6 +14,7 @@ import com.merxury.blocker.feature.wake.api.navigation.WakeAppNavKey
 import com.merxury.blocker.feature.wake.api.navigation.WakeOverviewNavKey
 import org.junit.Test
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 class WakeSceneTransitionsTest {
     @Test
     fun givenWakeStack_whenUsingOnePane_thenEachEntryHasADistinctSceneForBack() {
@@ -36,7 +39,7 @@ class WakeSceneTransitionsTest {
         assertThat(scene(listOf(entry(WakeOverviewNavKey), unmarked))).isNull()
     }
 
-    private fun entry(key: NavKey) = NavEntry(key, metadata = wakeSceneTransitions(Density(1f))) {}
+    private fun entry(key: NavKey) = NavEntry(key, metadata = wakeSceneTransitions(MotionScheme.standard(), LayoutDirection.Ltr)) {}
 
     private fun scene(entries: List<NavEntry<NavKey>>) = with(CompactWakeSceneStrategy) {
         SceneStrategyScope<NavKey>().calculateScene(entries)

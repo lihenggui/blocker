@@ -3,9 +3,11 @@
 
 package com.merxury.blocker.feature.wake.impl.navigation
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
-import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -17,13 +19,14 @@ import com.merxury.blocker.feature.wake.api.navigation.navigateToWakeApp
 import com.merxury.blocker.feature.wake.impl.WakeAppRoute
 import com.merxury.blocker.feature.wake.impl.WakeAppViewModel
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.wakeAppEntry(navigator: Navigator, density: Density) {
-    entry<WakeAppNavKey>(metadata = ListDetailSceneStrategy.detailPane() + wakeSceneTransitions(density)) { key ->
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3ExpressiveApi::class)
+fun EntryProviderScope<NavKey>.wakeAppEntry(navigator: Navigator, motion: MotionScheme, layoutDirection: LayoutDirection) {
+    entry<WakeAppNavKey>(metadata = ListDetailSceneStrategy.detailPane() + wakeSceneTransitions(motion, layoutDirection)) { key ->
         WakeAppRoute(
             viewModel = hiltViewModel<WakeAppViewModel, WakeAppViewModel.Factory>(key = key.packageName) {
                 it.create(key.packageName)
             },
+            active = navigator.isCurrent(key),
             onBack = navigator::goBack,
             onPeerClick = navigator::navigateToWakeApp,
             onComponents = { navigator.navigateToAppDetail(key.packageName, tab = FIRST_COMPONENT_TAB) },

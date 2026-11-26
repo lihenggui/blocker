@@ -4,16 +4,15 @@
 package com.merxury.blocker.feature.wake.impl.navigation
 
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.ui.unit.Density
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MotionScheme
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.scene.Scene
@@ -34,19 +33,26 @@ object CompactWakeSceneStrategy : SceneStrategy<NavKey> {
     }
 }
 
-internal fun wakeSceneTransitions(density: Density): Map<String, Any> {
-    val distance = with(density) { 30.dp.roundToPx() }
+// Use one eighth of the pane width for the shared-axis offset so it scales with the layout.
+private const val SHARED_AXIS_WIDTH_DIVISOR = 8
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+internal fun wakeSceneTransitions(motion: MotionScheme, layoutDirection: LayoutDirection): Map<String, Any> {
+    val forward = layoutDirection == LayoutDirection.Ltr
     return mapOf(WAKE_DESTINATION to true) +
-        NavDisplay.transitionSpec { wakeTransition(distance) } +
-        NavDisplay.popTransitionSpec { wakeTransition(-distance) } +
-        NavDisplay.predictivePopTransitionSpec { _ -> wakeTransition(-distance) }
+        NavDisplay.transitionSpec { wakeTransition(motion, forward) } +
+        NavDisplay.popTransitionSpec { wakeTransition(motion, !forward) } +
+        NavDisplay.predictivePopTransitionSpec { _ -> wakeTransition(motion, !forward) }
 }
 
-private fun wakeTransition(distance: Int): ContentTransform {
-    val slide = tween<IntOffset>(300, easing = CubicBezierEasing(0.2f, 0f, 0f, 1f))
-    val enter = fadeIn(tween(210, delayMillis = 90, easing = CubicBezierEasing(0f, 0f, 0f, 1f))) +
-        slideInHorizontally(slide) { distance }
-    val exit = fadeOut(tween(90, easing = CubicBezierEasing(0.3f, 0f, 1f, 1f))) +
-        slideOutHorizontally(slide) { -distance }
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun wakeTransition(motion: MotionScheme, towardLeft: Boolean): ContentTransform {
+    val slide = motion.defaultSpatialSpec<IntOffset>()
+    val offset: (Int) -> Int = { width ->
+        val distance = width / SHARED_AXIS_WIDTH_DIVISOR
+        if (towardLeft) distance else -distance
+    }
+    val enter = fadeIn(motion.defaultEffectsSpec()) + slideInHorizontally(slide, initialOffsetX = offset)
+    val exit = fadeOut(motion.fastEffectsSpec()) + slideOutHorizontally(slide) { -offset(it) }
     return enter togetherWith exit
 }

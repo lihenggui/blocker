@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.BackgroundUsageFailure
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.domain.wake.ObserveAppWakeActivityUseCase
 import com.merxury.blocker.core.domain.wake.ObserveAppWakeStateUseCase
 import com.merxury.blocker.core.domain.wake.ObserveWakeAvailabilityUseCase
@@ -19,6 +20,7 @@ import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.OwnWakeKind
 import com.merxury.blocker.core.model.wake.WakeAvailability
 import com.merxury.blocker.core.model.wake.WakeBlock
+import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
@@ -28,6 +30,7 @@ import com.merxury.blocker.core.testing.repository.wake.FakeAutomaticWakeBlockRe
 import com.merxury.blocker.core.testing.repository.wake.FakeWakeBlockRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.feature.wake.api.R.string
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
@@ -35,7 +38,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -51,6 +53,10 @@ class WakeAppViewModelTest {
 
     private val manual = FakeWakeBlockRepository()
     private val automatic = FakeAutomaticWakeBlockRepository()
+    private var finishBlock: CompletableDeferred<Unit>? = null
+    private val manualBatch = object : WakeBlockRepository by manual {
+        override suspend fun blockRecordingChanges(requests: List<Pair<WakePath, WakeBlockMethod>>) = manual.blockRecordingChanges(requests).also { finishBlock?.await() }
+    }
     private val background = FakeBackgroundUsageRepository()
     private val appKey = AppKey(DETAIL_PACKAGE, UserId.SYSTEM)
     private val first = detailPath("restart")
@@ -71,7 +77,7 @@ class WakeAppViewModelTest {
         val details = mock<ComponentDetailRepository> { on { getLocalComponentDetails(any()) } doReturn flowOf(emptyMap()) }
         WakeAppViewModel(
             DETAIL_PACKAGE, state, availability, FakeInstalledAppRepository(), FakeSelectedUserRepository(), details,
-            background, SetWakePathsBlockedUseCase(manual, automatic), RestoreAppWakeChangesUseCase(activity, manual, automatic, background),
+            background, SetWakePathsBlockedUseCase(manualBatch, automatic), RestoreAppWakeChangesUseCase(activity, manual, automatic, background),
         )
     }
 
@@ -97,7 +103,7 @@ class WakeAppViewModelTest {
     }
 
     @Test
-    fun givenThreeChoices_whenBlockingThenUndoing_thenStaggersRowsAndRestoresOnlyThatBatch() = runTest {
+    fun givenThreeChoices_whenBlockingThenUndoing_thenShowsRealRowsAndRestoresOnlyThatBatch() = runTest {
         val existing = detailPath("outside").record()
         manual.blocks.value = listOf(existing)
         automatic.blocks.value = listOf(known)
@@ -106,19 +112,7 @@ class WakeAppViewModelTest {
         runCurrent()
         assertThat(manual.blocks.value.map { it.pathKey }).containsExactly("outside", "restart", "self")
         assertThat(automatic.allowedIds).isEmpty()
-        assertThat(current.rows.map { it.blocked }).containsExactly(false, false, false).inOrder()
-
-        advanceTimeBy(280)
-        runCurrent()
-        assertThat(current.rows.map { it.blocked }).containsExactly(true, false, false).inOrder()
-        advanceTimeBy(110)
-        runCurrent()
-        assertThat(current.rows.map { it.blocked }).containsExactly(true, true, false).inOrder()
-        advanceTimeBy(110)
-        runCurrent()
         assertThat(current.rows.map { it.blocked }).containsExactly(true, true, true).inOrder()
-        advanceTimeBy(270)
-        runCurrent()
         assertThat(current.background?.allowed).isFalse()
         val notice = requireNotNull(current.notice)
         assertThat(notice.text).isEqualTo(blockedCount(3))
@@ -136,7 +130,6 @@ class WakeAppViewModelTest {
         manual.excluded = setOf("self")
         observe()
         viewModel.blockAll(current.methods.mapTo(mutableSetOf()) { it.key })
-        advanceTimeBy(551)
         runCurrent()
         val notice = requireNotNull(current.notice)
         assertThat(notice.text).isEqualTo(blockFailureText(null, 1, 1))
@@ -152,7 +145,6 @@ class WakeAppViewModelTest {
     fun givenBatchUndoNotice_whenTogglingAnotherPath_thenOldUndoCannotRun() = runTest {
         observe()
         viewModel.blockAll(setOf(current.methods.first().key))
-        advanceTimeBy(551)
         runCurrent()
         val notice = requireNotNull(current.notice)
         assertThat(notice.undo).isNotNull()
@@ -166,10 +158,45 @@ class WakeAppViewModelTest {
     }
 
     @Test
+    fun givenBatchUndoNotice_whenLeavingDetail_thenOldUndoCannotRun() = runTest {
+        observe()
+        viewModel.blockAll(setOf(current.methods.first().key))
+        runCurrent()
+        val notice = requireNotNull(current.notice)
+        assertThat(notice.undo).isNotNull()
+
+        viewModel.leaveScreen()
+        viewModel.undo(notice.id)
+        runCurrent()
+
+        assertThat(current.notice).isNull()
+        assertThat(manual.blocks.value.map { it.pathKey }).containsExactly("restart")
+    }
+
+    @Test
+    fun givenBlockStillRunning_whenLeavingDetail_thenShowsLiveRowsAndDiscardsLateUndo() = runTest {
+        val finish = CompletableDeferred<Unit>()
+        finishBlock = finish
+        observe()
+        viewModel.blockAll(setOf(current.methods.first().key))
+        runCurrent()
+        assertThat(current.methods.first().blocked).isTrue()
+        assertThat(current.busy).isTrue()
+        assertThat(current.notice).isNull()
+
+        viewModel.leaveScreen()
+        finish.complete(Unit)
+        runCurrent()
+
+        assertThat(current.busy).isFalse()
+        assertThat(current.notice).isNull()
+        assertThat(manual.blocks.value.map { it.pathKey }).containsExactly("restart")
+    }
+
+    @Test
     fun givenBatchUndoNotice_whenUndoFails_thenShowsUndoFailure() = runTest {
         observe()
         viewModel.blockAll(current.methods.mapTo(mutableSetOf()) { it.key })
-        advanceTimeBy(661)
         runCurrent()
         val notice = requireNotNull(current.notice)
         manual.excluded = setOf("restart")

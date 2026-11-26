@@ -195,7 +195,7 @@ private const val EXPANDED_CHEVRON_ROTATION = 180f
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun NormalWakeStarts(normal: JustifiedStarts, expanded: Boolean, modifier: Modifier = Modifier, onExpand: () -> Unit) {
+internal fun NormalWakeStarts(normal: JustifiedStarts, expanded: Boolean, onExpand: () -> Unit, modifier: Modifier = Modifier) {
     val parts = normal.parts()
     val total = parts.sumOf { it.amount }
     if (total == 0L) return

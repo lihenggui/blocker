@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -47,7 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -131,7 +132,7 @@ fun BlockerApp(
 }
 
 @Composable
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3AdaptiveApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3ExpressiveApi::class)
 internal fun BlockerApp(
     appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,
@@ -151,8 +152,9 @@ internal fun BlockerApp(
         }
     }
 
-    val density = LocalDensity.current
-    val entryProvider = remember(navigator, updateIconThemingState, density) {
+    val motion = MaterialTheme.motionScheme
+    val layoutDirection = LocalLayoutDirection.current
+    val entryProvider = remember(navigator, updateIconThemingState, motion, layoutDirection) {
         entryProvider {
             appListEntry(
                 navigator = navigator,
@@ -169,8 +171,8 @@ internal fun BlockerApp(
             ifwRuleEditorEntry(navigator)
             ruleDetailEntry(navigator)
             debloaterEntry(navigator)
-            wakeOverviewEntry(navigator, density)
-            wakeAppEntry(navigator, density)
+            wakeOverviewEntry(navigator, motion, layoutDirection)
+            wakeAppEntry(navigator, motion, layoutDirection)
             searchEntry(navigator)
             supportAndFeedbackEntry(navigator)
             licensesEntry(navigator)

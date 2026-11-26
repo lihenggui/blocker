@@ -25,10 +25,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -62,9 +59,11 @@ internal class WakeAppViewModel @AssistedInject constructor(
     private val appKey = AppKey(packageName, selectedUsers.ownUser)
     private val background = MutableStateFlow<BackgroundUsage?>(null)
     private var backgroundRead = false
-    private val pending = MutableStateFlow(Pending())
+    private val busy = MutableStateFlow(false)
     private val notices = MutableStateFlow<WakeNotice?>(null)
     private var nextNoticeId = 0L
+    private var screenGeneration = 0L
+    private var actionScreen = 0L
 
     private val observed = observeState(packageName)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 1)
@@ -94,17 +93,10 @@ internal class WakeAppViewModel @AssistedInject constructor(
             }
             emitAll(background)
         },
-        pending,
+        busy,
         notices,
-    ) { state, usage, operation, notice ->
-        state.copy(
-            relations = state.relations.map { operation.held[it.key] ?: it },
-            methods = state.methods.map { operation.held[it.key] ?: it },
-            status = operation.status ?: state.status,
-            background = if (operation.holdBackground) operation.background else usage,
-            busy = operation.busy,
-            notice = notice,
-        )
+    ) { state, usage, busy, notice ->
+        state.copy(background = usage, busy = busy, notice = notice)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), data.value)
 
     fun toggle(key: String, allowed: Boolean) = act {
@@ -132,8 +124,6 @@ internal class WakeAppViewModel @AssistedInject constructor(
         val turnOffBackground = BACKGROUND_CHOICE in selected && usage?.allowed == true && usage.changeable
         if (rows.isEmpty() && !turnOffBackground) return@act
 
-        pending.value = Pending(true, rows.associateBy { it.key }, state.status, turnOffBackground, usage)
-        val firstReveal = async { delay(280) }
         val allowed = rows.associateWith { row ->
             row.paths.filter { it.block == WakePathBlock.NONE }.map { it.path.pathKey }.toSet() + listOfNotNull(row.automatic?.pathId)
         }
@@ -145,27 +135,15 @@ internal class WakeAppViewModel @AssistedInject constructor(
             null
         }
 
-        firstReveal.await()
-        val completed = rows.filter { row -> allowed.getValue(row).all { it in result.outcome.done } }
-        val remaining = rows.filter { it !in completed }
-        val reveal = rows.filter { row -> allowed.getValue(row).any { it in result.outcome.done } }
-        pending.value = pending.value.copy(held = reveal.associateBy { it.key })
-        reveal.forEach { row ->
-            val held = pending.value.held - row.key
-            pending.value = pending.value.copy(held = held, status = state.status.takeIf { held.isNotEmpty() })
-            delay(110)
-        }
-        pending.value = Pending(busy = true)
-        delay(160)
-
+        val completed = rows.count { row -> allowed.getValue(row).all { it in result.outcome.done } }
         val backgroundChanged = backgroundResult?.done?.isNotEmpty() == true
         val undo = WakeUndo.Block(result.undo, backgroundChanged).takeIf { result.undo.hasChanges || backgroundChanged }
         val failure = result.outcome.failure ?: backgroundResult?.failure
-        val failed = remaining.size + if (backgroundResult?.failure != null) 1 else 0
+        val failed = rows.size - completed + if (backgroundResult?.failure != null) 1 else 0
         val text = if (failed == 0 && failure == null) {
-            blockedCount(completed.size.coerceAtLeast(if (backgroundChanged) 1 else 0))
+            blockedCount(completed.coerceAtLeast(if (backgroundChanged) 1 else 0))
         } else {
-            blockFailureText(failure, completed.size + if (backgroundChanged) 1 else 0, failed)
+            blockFailureText(failure, completed + if (backgroundChanged) 1 else 0, failed)
         }
         show(text, undo)
     }
@@ -200,15 +178,21 @@ internal class WakeAppViewModel @AssistedInject constructor(
         if (notices.value?.id == id) notices.value = null
     }
 
-    private fun act(action: suspend CoroutineScope.() -> Unit) {
-        if (pending.value.busy) return
+    fun leaveScreen() {
+        screenGeneration++
         notices.value = null
-        pending.value = Pending(busy = true)
+    }
+
+    private fun act(action: suspend () -> Unit) {
+        if (busy.value) return
+        notices.value = null
+        busy.value = true
+        actionScreen = screenGeneration
         viewModelScope.launch {
             try {
                 action()
             } finally {
-                pending.value = Pending()
+                busy.value = false
             }
         }
     }
@@ -234,14 +218,7 @@ internal class WakeAppViewModel @AssistedInject constructor(
     }
 
     private fun show(text: WakeText, undo: WakeUndo? = null) {
-        notices.value = WakeNotice(++nextNoticeId, text, undo)
+        // A write may finish after navigation, even after the same destination is opened again.
+        if (actionScreen == screenGeneration) notices.value = WakeNotice(++nextNoticeId, text, undo)
     }
-
-    private data class Pending(
-        val busy: Boolean = false,
-        val held: Map<String, WakeDetailRow> = emptyMap(),
-        val status: WakeAppStatus? = null,
-        val holdBackground: Boolean = false,
-        val background: BackgroundUsage? = null,
-    )
 }

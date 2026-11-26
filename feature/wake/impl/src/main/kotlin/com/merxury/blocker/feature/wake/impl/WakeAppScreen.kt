@@ -3,46 +3,35 @@
 
 package com.merxury.blocker.feature.wake.impl
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -51,13 +40,17 @@ import com.merxury.blocker.feature.wake.api.R.string
 @Composable
 internal fun WakeAppRoute(
     viewModel: WakeAppViewModel,
+    active: Boolean,
     onBack: () -> Unit,
     onPeerClick: (String) -> Unit,
     onComponents: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    DisposableEffect(viewModel, active) {
+        onDispose { if (active) viewModel.leaveScreen() }
+    }
     WakeAppScreen(
-        state = state,
+        state = if (active) state else state.copy(notice = null),
         onBack = onBack,
         onPeerClick = onPeerClick,
         onComponents = onComponents,
@@ -89,49 +82,56 @@ internal fun WakeAppScreen(
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     var normalExpanded by rememberSaveable { mutableStateOf(false) }
     var sheetOpen by rememberSaveable { mutableStateOf(initiallyShowingSheet) }
-    val expand: (String) -> Unit = { expanded = it.takeUnless { key -> expanded == key } }
-
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical))) {
-        var noticeHeight by remember { mutableStateOf(0.dp) }
-        val fabLift by animateDpAsState(
-            if (noticeHeight == 0.dp) 0.dp else noticeHeight + 8.dp,
-            MaterialTheme.motionScheme.defaultSpatialSpec(),
-            label = "Block all position",
-        )
-        Column(Modifier.fillMaxSize()) {
-            WakeAppBar(state.busy || !state.loaded, onBack, onComponents, onRestore)
-            val bottomPadding = 112.dp + if (state.canBlockAll) fabLift else 0.dp
-            LazyColumn(contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = bottomPadding)) {
-                if (state.loaded) item(key = "hero") { WakeAppHero(state, onPeerClick) }
-                wakeDetailGroup(string.feature_wake_api_section_relations, state.relations, expanded, state.busy, expand, onToggle, onPeerClick)
-                wakeDetailGroup(string.feature_wake_api_section_methods, state.methods, expanded, state.busy, expand, onToggle, onPeerClick)
-                if (state.normal.parts().isNotEmpty()) {
-                    item(key = "normal") {
-                        Box(Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
-                            NormalWakeStarts(state.normal, normalExpanded) { normalExpanded = !normalExpanded }
-                        }
+    var fabHeight by remember { mutableIntStateOf(0) }
+    val fabVisible = state.canBlockAll && !sheetOpen
+    val snackbar = remember { SnackbarHostState() }
+    ShowWakeNotice(snackbar, state.notice, onUndo, onDismissNotice)
+    Scaffold(
+        topBar = { WakeAppBar(state.busy || !state.loaded, onBack, onComponents, onRestore) },
+        snackbarHost = { SnackbarHost(snackbar) },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = { Text(stringResource(string.feature_wake_api_block_all)) },
+                icon = { BlockerActionIcon(BlockerIcons.LinkOff, null, tint = LocalContentColor.current) },
+                onClick = {
+                    if (fabVisible && !state.busy) {
+                        expanded = null
+                        sheetOpen = true
                     }
+                },
+                modifier = Modifier.animateFloatingActionButton(fabVisible, Alignment.BottomEnd)
+                    .onSizeChanged { fabHeight = it.height },
+            )
+        },
+    ) { padding ->
+        // Give the last list item room to scroll clear of the standard FAB.
+        val fabClearance = with(LocalDensity.current) { fabHeight.toDp() }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+            contentPadding = PaddingValues(
+                start = WakeContentSpacing,
+                end = WakeContentSpacing,
+                bottom = if (fabVisible) fabClearance + WakeContentSpacing else WakeContentSpacing,
+            ),
+        ) {
+            if (state.loaded) item(key = "hero") { WakeAppHero(state, onPeerClick) }
+            val expand: (String) -> Unit = { expanded = it.takeUnless { key -> expanded == key } }
+            wakeDetailGroup(string.feature_wake_api_section_relations, state.relations, expanded, state.busy, expand, onToggle, onPeerClick)
+            wakeDetailGroup(string.feature_wake_api_section_methods, state.methods, expanded, state.busy, expand, onToggle, onPeerClick)
+            if (state.normal.parts().isNotEmpty()) {
+                item(key = "normal") {
+                    NormalWakeStarts(
+                        normal = state.normal,
+                        expanded = normalExpanded,
+                        onExpand = { normalExpanded = !normalExpanded },
+                        modifier = Modifier.padding(bottom = WakeContentSpacing),
+                    )
                 }
-                state.background?.let { usage ->
-                    item(key = "background") { WakeBackgroundCard(usage, onBackground, state.busy) }
-                }
+            }
+            state.background?.let { usage ->
+                item(key = "background") { WakeBackgroundCard(usage, onBackground, state.busy) }
             }
         }
-
-        WakeBlockFab(state.canBlockAll && !sheetOpen, fabLift, onClick = {
-            if (!state.busy) {
-                expanded = null
-                sheetOpen = true
-            }
-        }, modifier = Modifier.align(Alignment.BottomEnd))
-        WakeSnackbarHost(
-            state.notice,
-            onUndo,
-            onDismissNotice,
-            undoEnabled = !state.busy,
-            onHeight = { noticeHeight = it },
-            modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-        )
     }
     if (sheetOpen) {
         WakeBlockSheet(
@@ -143,35 +143,20 @@ internal fun WakeAppScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun WakeBlockFab(visible: Boolean, lift: Dp, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val motion = MaterialTheme.motionScheme
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifier.padding(end = 16.dp, bottom = 16.dp + lift),
-        enter = fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.fastSpatialSpec(), initialScale = 0.6f),
-        exit = fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.defaultSpatialSpec(), targetScale = 0.6f),
-    ) {
-        FloatingActionButton(
-            onClick = onClick,
-            modifier = Modifier.heightIn(min = 56.dp),
-            shape = RoundedCornerShape(16.dp),
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ) {
-            Row(
-                modifier = Modifier.padding(start = 16.dp, end = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                BlockerActionIcon(BlockerIcons.LinkOff, null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                Text(
-                    stringResource(string.feature_wake_api_block_all),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
+private fun ShowWakeNotice(
+    host: SnackbarHostState,
+    notice: WakeNotice?,
+    onUndo: (Long) -> Unit,
+    onDismiss: (Long) -> Unit,
+) {
+    val message = notice?.text?.resolve()
+    val undoLabel = if (notice?.undo != null) stringResource(string.feature_wake_api_undo) else null
+    LaunchedEffect(host, notice?.id) {
+        if (notice == null || message == null) return@LaunchedEffect
+        when (host.showSnackbar(message, actionLabel = undoLabel, duration = if (undoLabel == null) SnackbarDuration.Short else SnackbarDuration.Long)) {
+            SnackbarResult.ActionPerformed -> onUndo(notice.id)
+            SnackbarResult.Dismissed -> onDismiss(notice.id)
         }
     }
 }
