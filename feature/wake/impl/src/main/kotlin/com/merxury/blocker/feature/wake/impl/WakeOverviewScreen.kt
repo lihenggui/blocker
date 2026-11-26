@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,20 +60,29 @@ internal fun WakeOverviewScreen(
         Column(modifier.fillMaxSize()) {
             WakeOverviewTopBar(state, onCheckNow)
             if (state != WakeOverviewUiState.Loading) {
-                LazyColumn(contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp)) {
-                    item(key = "hero") {
-                        WakeOverviewHero(state, onGrantAccess, onCheckNow)
-                    }
-                    when (state) {
-                        is WakeOverviewUiState.Ready -> {
-                            wakeAppGroup("keepAlive", string.feature_wake_api_section_keep_alive, state.keepAlive, onAppClick)
-                            wakeAppGroup("attention", string.feature_wake_api_section_attention, state.attention, onAppClick)
-                            wakeOverviewTotals(state)
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                    ) {
+                        item(key = "hero") {
+                            WakeOverviewHero(state, onGrantAccess, onCheckNow)
                         }
+                        when (state) {
+                            is WakeOverviewUiState.Ready -> {
+                                wakeAppGroup("keepAlive", string.feature_wake_api_section_keep_alive, state.keepAlive, onAppClick)
+                                wakeAppGroup("attention", string.feature_wake_api_section_attention, state.attention, onAppClick)
+                                wakeOverviewTotals(state)
+                            }
 
-                        is WakeOverviewUiState.Collecting -> item(key = "firstRun") { WakeFirstRunSection() }
+                            is WakeOverviewUiState.Collecting -> item(key = "firstRun") { WakeFirstRunSection() }
 
-                        else -> Unit
+                            else -> Unit
+                        }
+                    }
+                    if (state is WakeOverviewUiState.Ready && state.checking) {
+                        val description = stringResource(string.feature_wake_api_checking)
+                        LinearProgressIndicator(Modifier.fillMaxWidth().semantics { contentDescription = description })
                     }
                 }
             }
@@ -90,9 +100,5 @@ private fun WakeOverviewTopBar(state: WakeOverviewUiState, onCheckNow: () -> Uni
                 menuList = listOf(DropDownMenuItem(string.feature_wake_api_check_now, onCheckNow, enabled = !state.checking)),
             )
         }
-    }
-    if (state is WakeOverviewUiState.Ready && state.checking) {
-        val description = stringResource(string.feature_wake_api_checking)
-        LinearProgressIndicator(Modifier.fillMaxWidth().semantics { contentDescription = description })
     }
 }

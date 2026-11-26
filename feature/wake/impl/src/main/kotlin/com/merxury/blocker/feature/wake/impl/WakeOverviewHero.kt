@@ -3,31 +3,25 @@
 
 package com.merxury.blocker.feature.wake.impl
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.toPath
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,19 +30,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.graphics.shapes.Morph
-import androidx.graphics.shapes.RoundedPolygon
+import androidx.compose.ui.util.lerp
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.feature.wake.api.R.plurals
 import com.merxury.blocker.feature.wake.api.R.string
+import kotlinx.coroutines.delay
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import com.merxury.blocker.core.ui.R.string as coreString
 
 @Composable
@@ -67,8 +62,10 @@ internal fun WakeOverviewHero(
     }
 
     val ready = state as? WakeOverviewUiState.Ready
+    // The 48 dp touch target extends 4 dp below the visible button.
+    val bottomPadding = if (variant == HeroVariant.Collecting || variant == HeroVariant.NoAccess) 24.dp else 28.dp
     Row(
-        modifier = Modifier.padding(top = 8.dp, bottom = 28.dp),
+        modifier = Modifier.padding(top = 8.dp, bottom = bottomPadding),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -102,14 +99,6 @@ internal fun WakeOverviewHero(
 
 private enum class HeroVariant { KeepAlive, Clean, Collecting, NoAccess, NotOwner, ReadsRefused }
 
-private data class HeroGraphic(val variant: HeroVariant, val handledKeepAlive: Int) {
-    val collecting: Boolean get() = variant == HeroVariant.Collecting
-}
-
-private class HeroMorph(val start: RoundedPolygon, val end: RoundedPolygon) {
-    val shape = Morph(start, end)
-}
-
 @Composable
 private fun heroTitle(variant: HeroVariant, keepAlive: Int): String = when (variant) {
     HeroVariant.KeepAlive -> pluralStringResource(plurals.feature_wake_api_keep_alive_apps, keepAlive, keepAlive)
@@ -125,48 +114,46 @@ private fun HeroBody(text: String) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun HeroButton(text: Int, onClick: () -> Unit, enabled: Boolean = true) {
-    // The column already provides the first 4 dp of separation.
-    FilledTonalButton(onClick = onClick, enabled = enabled, modifier = Modifier.padding(top = 4.dp)) {
+    // The column and minimum touch target already provide 8 dp above the visible button.
+    FilledTonalButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.padding(top = 4.dp),
+        contentPadding = ButtonDefaults.SmallContentPadding,
+    ) {
         Text(stringResource(text))
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalAnimationApi::class)
-@Composable
-private fun WakeHeroGraphic(variant: HeroVariant, handledKeepAlive: Int) {
-    val transition = updateTransition(HeroGraphic(variant, handledKeepAlive), label = "Wake hero loading")
-    transition.Crossfade(
-        modifier = Modifier.size(88.dp),
-        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-        contentKey = { it.collecting },
-    ) { graphic ->
-        if (graphic.collecting) {
-            LoadingIndicator(
-                modifier = Modifier.size(88.dp).clearAndSetSemantics {},
-                color = MaterialTheme.colorScheme.primaryContainer,
-            )
-        } else {
-            WakeHeroBadge(graphic.variant, graphic.handledKeepAlive)
-        }
     }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun WakeHeroBadge(variant: HeroVariant, handledKeepAlive: Int) {
+private fun WakeHeroGraphic(variant: HeroVariant, handledKeepAlive: Int) {
+    val collecting = variant == HeroVariant.Collecting
+    var step by remember(collecting) { mutableIntStateOf(0) }
+    if (collecting) {
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(650)
+                step++
+            }
+        }
+    }
+
     val colors = MaterialTheme.colorScheme
     val motion = MaterialTheme.motionScheme
-    val polygon = when (variant) {
-        HeroVariant.KeepAlive -> MaterialShapes.Cookie12Sided
-        HeroVariant.Clean -> MaterialShapes.Cookie6Sided
-        else -> MaterialShapes.Circle
+    val outline = when (variant) {
+        HeroVariant.KeepAlive -> KeepAliveOutline
+        HeroVariant.Clean -> CleanOutline
+        HeroVariant.Collecting -> CollectingOutlines[step % CollectingOutlines.size]
+        else -> CircleOutline
     }
     val containerColor by animateColorAsState(
         when (variant) {
             HeroVariant.KeepAlive -> colors.errorContainer
-            HeroVariant.Clean -> colors.primaryContainer
+            HeroVariant.Clean, HeroVariant.Collecting -> colors.primaryContainer
             else -> colors.surfaceContainerHighest
         },
         animationSpec = motion.slowEffectsSpec(),
@@ -176,6 +163,7 @@ private fun WakeHeroBadge(variant: HeroVariant, handledKeepAlive: Int) {
         when (variant) {
             HeroVariant.KeepAlive -> colors.onErrorContainer
             HeroVariant.Clean -> colors.onPrimaryContainer
+            HeroVariant.Collecting -> Color.Transparent
             else -> colors.onSurfaceVariant
         },
         animationSpec = motion.slowEffectsSpec(),
@@ -185,75 +173,93 @@ private fun WakeHeroBadge(variant: HeroVariant, handledKeepAlive: Int) {
         when (variant) {
             HeroVariant.KeepAlive -> 30f * handledKeepAlive
             HeroVariant.Clean -> 60f
+            HeroVariant.Collecting -> 60f * step
             else -> 0f
         },
         animationSpec = motion.slowSpatialSpec(),
         label = "Wake hero rotation",
     )
+    val icon = when (variant) {
+        HeroVariant.KeepAlive -> BlockerIcons.Autorenew
+        HeroVariant.Clean -> BlockerIcons.Check
+        HeroVariant.NoAccess -> BlockerIcons.Lock
+        HeroVariant.NotOwner -> BlockerIcons.PersonOff
+        HeroVariant.ReadsRefused -> BlockerIcons.Update
+        HeroVariant.Collecting -> null
+    }
     Box(Modifier.size(88.dp), contentAlignment = Alignment.Center) {
-        WakeHeroShape(polygon, containerColor, Modifier.matchParentSize().graphicsLayer { rotationZ = rotation })
-        Crossfade(
-            targetState = variant,
-            animationSpec = motion.defaultEffectsSpec(),
-            label = "Wake hero icon",
-        ) { badge ->
-            val icon = when (badge) {
-                HeroVariant.KeepAlive -> BlockerIcons.Autorenew
-                HeroVariant.Clean -> BlockerIcons.Check
-                HeroVariant.NoAccess -> BlockerIcons.Lock
-                HeroVariant.NotOwner -> BlockerIcons.PersonOff
-                HeroVariant.ReadsRefused -> BlockerIcons.Update
-                HeroVariant.Collecting -> null
-            }
-            if (icon != null) {
-                BlockerActionIcon(icon, contentDescription = null, Modifier.size(40.dp), tint = iconColor)
-            }
+        WakeHeroShape(outline, containerColor, Modifier.matchParentSize().graphicsLayer { rotationZ = rotation })
+        if (icon != null) {
+            BlockerActionIcon(icon, contentDescription = null, Modifier.size(40.dp), tint = iconColor)
         }
     }
 }
 
+private const val HERO_POINT_COUNT = 120
+private val HeroDirections = Array(HERO_POINT_COUNT) { index ->
+    val angle = heroAngle(index)
+    Offset(cos(angle).toFloat(), sin(angle).toFloat())
+}
+private val KeepAliveOutline = heroRadii(lobes = 12, amplitude = 0.07f)
+private val CleanOutline = heroRadii(lobes = 6, amplitude = 0.035f)
+private val CircleOutline = heroRadii(lobes = 0, amplitude = 0f)
+private val CollectingOutlines = listOf(
+    KeepAliveOutline,
+    heroRadii(lobes = 9, amplitude = 0.07f),
+    heroRadii(lobes = 5, amplitude = 0.08f),
+    heroRadii(lobes = 2, amplitude = 0.12f),
+    heroRadii(lobes = 8, amplitude = 0.05f),
+    heroRadii(lobes = 4, amplitude = 0.09f),
+    CircleOutline,
+)
+
+private fun heroAngle(index: Int): Double = index * (2 * PI / HERO_POINT_COUNT)
+
+private fun heroRadii(lobes: Int, amplitude: Float): FloatArray = FloatArray(HERO_POINT_COUNT) { index ->
+    val wave = if (lobes == 0) 0.0 else amplitude * cos(lobes * heroAngle(index))
+    ((1.0 + wave) / (1.0 + amplitude)).toFloat()
+}
+
+private class HeroMorph(val start: FloatArray, val end: FloatArray) {
+    val progress = Animatable(if (start === end) 1f else 0f)
+
+    fun radiusAt(index: Int, fraction: Float): Float = lerp(start[index], end[index], fraction)
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun WakeHeroShape(polygon: RoundedPolygon, color: Color, modifier: Modifier = Modifier) {
-    val progress = remember { Animatable(1f) }
-    var settled by remember { mutableStateOf(polygon) }
-    var morph by remember { mutableStateOf<HeroMorph?>(null) }
+private fun WakeHeroShape(outline: FloatArray, color: Color, modifier: Modifier = Modifier) {
+    var morph by remember { mutableStateOf(HeroMorph(outline, outline)) }
     val spec = MaterialTheme.motionScheme.slowSpatialSpec<Float>()
-    LaunchedEffect(polygon, spec) {
-        val active = morph
-        when (polygon) {
-            active?.start -> progress.animateTo(0f, spec)
-
-            active?.end -> progress.animateTo(1f, spec)
-
-            else -> {
-                val start = when {
-                    active == null -> settled
-                    progress.value >= 0.5f -> active.end
-                    else -> active.start
-                }
-                if (start != polygon) {
-                    progress.snapTo(0f)
-                    morph = HeroMorph(start, polygon)
-                    progress.animateTo(1f, spec)
-                }
-            }
+    LaunchedEffect(outline, spec) {
+        val previous = morph
+        if (outline !== previous.end) {
+            // A retarget starts from the last drawn radii, including any spring overshoot.
+            val fraction = previous.progress.value
+            val current = FloatArray(HERO_POINT_COUNT) { previous.radiusAt(it, fraction) }
+            morph = HeroMorph(current, outline)
         }
-        settled = polygon
-        morph = null
+        if (morph.progress.value != 1f) {
+            morph.progress.animateTo(1f, spec)
+        }
     }
 
-    val activeMorph = morph
-    if (activeMorph == null) {
-        Box(modifier.background(color, settled.toShape()))
-    } else {
-        val path = remember { Path() }
-        Canvas(modifier) {
-            activeMorph.shape.toPath(progress.value, path)
-            path.translate(Offset(0.5f, 0.5f) - path.getBounds().center)
-            scale(size.width, size.height, pivot = Offset.Zero) {
-                drawPath(path, color)
+    val path = remember { Path() }
+    Canvas(modifier) {
+        val current = morph
+        val fraction = current.progress.value
+        path.rewind()
+        HeroDirections.forEachIndexed { index, direction ->
+            val point = direction * current.radiusAt(index, fraction)
+            val x = center.x * (1 + point.x)
+            val y = center.y * (1 + point.y)
+            if (index == 0) {
+                path.moveTo(x, y)
+            } else {
+                path.lineTo(x, y)
             }
         }
+        path.close()
+        drawPath(path, color)
     }
 }
