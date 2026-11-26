@@ -263,9 +263,9 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
     /** A snapshot witnesses pending alarms at one instant. Older snapshots may contain cancelled alarms. */
     private fun pendingAlarmIntents(boot: String, target: String, elapsedNanos: Long, uid: Int?): List<WakeRecord> {
         val times = alarmSnapshots[boot] ?: return emptyList()
-        val snapshot = times.lastOrNull { it <= elapsedNanos }
-            ?: times.firstOrNull()?.takeIf { it <= elapsedNanos + WakeRevives.JOIN_WINDOW } ?: return emptyList()
-        if (elapsedNanos - snapshot > MAX_ALARM_SNAPSHOT_AGE_NS) return emptyList()
+        val snapshot = times.lastOrNull { it in (elapsedNanos - MAX_ALARM_SNAPSHOT_AGE_NS)..elapsedNanos }
+            ?: times.firstOrNull { it > elapsedNanos && it <= elapsedNanos + WakeRevives.JOIN_WINDOW }
+            ?: return emptyList()
         return alarmIntents[Triple(boot, target, snapshot)].orEmpty().filter { intent ->
             val callerUid = intent.callerUid
             uid == null || callerUid == null || userOfUid(callerUid) == userOfUid(uid)

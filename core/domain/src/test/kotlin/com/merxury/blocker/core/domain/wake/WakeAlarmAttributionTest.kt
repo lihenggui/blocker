@@ -15,6 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Duration
 import java.time.ZoneOffset
 
 @RunWith(RobolectricTestRunner::class)
@@ -111,6 +112,19 @@ class WakeAlarmAttributionTest {
                 assertThat(path.blockMethod).isEqualTo(WakeBlockMethod.COMPONENT)
             }
         }
+    }
+
+    @Test fun givenStaleDailyAlarmSnapshot_whenRoutineSnapshotIsCloseToDelivery_thenTheCreatorIsAttributed() {
+        val sinceDaily = Duration.ofHours(20).toNanos()
+        val prior = registeredAlarm(time = elapsed, creator = caller, token = "daily")
+        val current = registeredAlarm(time = elapsed + sinceDaily + second, creator = caller, token = "routine")
+        val start = cold.copy(elapsedNanos = elapsed + sinceDaily)
+        val delivery = alarm.copy(elapsedNanos = alarm.elapsedNanos + sinceDaily)
+
+        val path = activity(listOf(start, delivery) + prior + current).own.single().paths.single()
+
+        assertThat(path.trigger).isEqualTo(ReviveTrigger.PENDING_INTENT)
+        assertThat(path.actor).isEqualTo(caller)
     }
 
     @Test fun givenActionOnlyRegistration_whenDetecting_thenDottedActionIsPreservedWithoutInventingAComponent() {

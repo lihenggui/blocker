@@ -35,11 +35,11 @@ private val PROFILE_SOURCES = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILIT
 private val EVERY_RUN = listOf(
     WakeCommand.INSTALL, WakeCommand.RENEW, WakeCommand.REPORT, WakeCommand.RENEW, WakeCommand.EVENTS, WakeCommand.EVENTS_HEAD,
     WakeCommand.PROCSTATS, WakeCommand.USERS, WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES,
-    WakeCommand.NOTIFICATIONS, WakeCommand.OVERLAYS, WakeCommand.AUDIO,
+    WakeCommand.NOTIFICATIONS, WakeCommand.OVERLAYS, WakeCommand.AUDIO, WakeCommand.ALARMS, WakeCommand.INTENTS,
 )
 private val DAILY = listOf(
-    WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
-    WakeCommand.DEVICE_POLICY, WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY, WakeCommand.IDLE_WHITELIST,
+    WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
+    WakeCommand.DEVICE_POLICY, WakeCommand.JOBS, WakeCommand.SYNCS, WakeCommand.BATTERY, WakeCommand.IDLE_WHITELIST,
     WakeCommand.STANDBY_BUCKETS, WakeCommand.BACKGROUND_RESTRICTED,
 )
 
@@ -174,6 +174,25 @@ class WakeCollectorTest {
 
         assertThat(capture.batch("OVERLAYS").observations.single().attributes).containsExactly("packages", "example.app/10123")
         assertThat(capture.batch("AUDIO").observations.single().attributes).containsExactly("uids", "10123")
+    }
+
+    @Test
+    fun givenRoutineRun_whenCapturing_thenAlarmAndIntentSnapshotsShareTheSameTimestamp() = runTest {
+        outputs[WakeCommand.ALARMS] = {
+            "Current Alarm Manager state:\n  Pending alarm batches: 0".toByteArray()
+        }
+        outputs[WakeCommand.INTENTS] = {
+            (
+                "#0: PendingIntentRecord{123 example.client broadcastIntent}\n" +
+                    " uid=10123 packageName=example.client\n requestIntent=cmp=example.app/.Receiver"
+                ).toByteArray()
+        }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+        val alarm = capture.batch("ALARMS").observations.single()
+        val intent = capture.batch("INTENTS").observations.single()
+        assertThat(alarm.elapsedNanos).isEqualTo(intent.elapsedNanos)
     }
 
     @Test

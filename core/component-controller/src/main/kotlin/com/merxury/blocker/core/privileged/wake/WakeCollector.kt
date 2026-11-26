@@ -39,10 +39,18 @@ private val SNAPSHOTS = listOf(
     WakeCommand.NOTIFICATIONS,
     WakeCommand.OVERLAYS,
     WakeCommand.AUDIO,
+    WakeCommand.ALARMS,
+    WakeCommand.INTENTS,
 )
 private val DIAGNOSTIC_SNAPSHOTS = listOf(
-    WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
-    WakeCommand.DEVICE_POLICY, WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY,
+    WakeCommand.COMPANIONS,
+    WakeCommand.WALLPAPER,
+    WakeCommand.ROLES,
+    WakeCommand.WIDGETS,
+    WakeCommand.DEVICE_POLICY,
+    WakeCommand.JOBS,
+    WakeCommand.SYNCS,
+    WakeCommand.BATTERY,
 )
 private val PROFILE_SETTINGS = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILITY, WakeCommand.LISTENERS, WakeCommand.VPN)
 
