@@ -22,6 +22,9 @@ import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.core.model.wake.WakePathState
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -29,7 +32,7 @@ import org.junit.Test
 class WakeBlockUseCasesTest {
     @Test fun givenUserPaths_whenBlockingAndAllowing_thenEachUsesItsOwnMethod() = runTest {
         val f = WakeStateTestFixture(this)
-        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val service = finding("service").toWakePath()
         val broadcast = finding("broadcast", ReviveTrigger.PEER_BROADCAST, detail = "example.WAKE").toWakePath()
         val paths = listOf(service, broadcast)
@@ -46,7 +49,7 @@ class WakeBlockUseCasesTest {
 
     @Test fun givenReviewedPaths_whenAllowingAndBlockingAgain_thenTheSameReviewIsToggled() = runTest {
         val f = WakeStateTestFixture(this)
-        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val path = finding("incoming").toWakePath()
         val matched = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "example.BIND", active = true, allowed = false)
         val unapplied = matched.copy(pathId = "unapplied", active = false)
@@ -72,7 +75,7 @@ class WakeBlockUseCasesTest {
 
     @Test fun givenActiveMatchAndStaleAutomaticSelection_whenUndoingBatch_thenOnlyTheManualWriteIsReversed() = runTest {
         val f = WakeStateTestFixture(this)
-        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val path = finding("incoming").toWakePath().copy(action = "action")
         val active = AutomaticWakeBlock("active", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "action", active = true, allowed = false)
         val allowed = active.copy(pathId = "allowed", action = "other", active = false, allowed = true)
@@ -96,7 +99,7 @@ class WakeBlockUseCasesTest {
 
     @Test fun givenLapsedComponentRowAndAllowedReview_whenBlockingAndUndoing_thenBothReturnToTheirPriorState() = runTest {
         val f = WakeStateTestFixture(this)
-        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val path = finding("broadcast", ReviveTrigger.PEER_BROADCAST, detail = "example.WAKE").toWakePath()
         val original = path.blockRow(at = 10)
         f.manual.blocks.value = listOf(original)
@@ -117,7 +120,7 @@ class WakeBlockUseCasesTest {
 
     @Test fun givenManualUndoFailsWithReviewedChange_whenUndoingBatch_thenReviewedChangeIsStillReversed() = runTest {
         val f = WakeStateTestFixture(this)
-        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val path = finding("manual").toWakePath()
         val allowed = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Other", "", active = false, allowed = true)
         f.automatic.blocks.value = listOf(allowed)
@@ -133,7 +136,7 @@ class WakeBlockUseCasesTest {
 
     @Test fun givenAnUnappliedReview_whenBlockingItsPath_thenAUserBlockIsSaved() = runTest {
         val f = WakeStateTestFixture(this)
-        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val path = finding("incoming").toWakePath()
         f.automatic.blocks.value = listOf(AutomaticWakeBlock("unapplied", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = false, allowed = false))
 
@@ -146,7 +149,7 @@ class WakeBlockUseCasesTest {
 
     @Test fun givenAPathBlockedByBothOwners_whenAllowingIt_thenBothBlocksAreRemoved() = runTest {
         val f = WakeStateTestFixture(this)
-        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val path = finding("incoming").toWakePath()
         val reviewed = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false)
         val unapplied = reviewed.copy(pathId = "unapplied", active = false)
@@ -162,7 +165,7 @@ class WakeBlockUseCasesTest {
 
     @Test fun givenMixedPaths_whenUserWriteFails_thenAutomaticOverridesStillApply() = runTest {
         val f = WakeStateTestFixture(this)
-        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val manual = finding("manual").toWakePath()
         val reviewed = finding("automatic", actor = TEST_OTHER, detail = ".Other").toWakePath().copy(action = "example.BIND")
         f.manual.excluded = setOf("manual")
@@ -173,6 +176,92 @@ class WakeBlockUseCasesTest {
 
         assertThat(result).isEqualTo(WakeBlockOutcome(setOf("automatic"), WakeBlockFailure.NotBlockable(listOf("manual"))))
         assertThat(f.automatic.changes).containsExactly(setOf("review") to false)
+    }
+
+    @Test fun givenBackgroundPathsAcrossTargets_whenBlockingAndAllowing_thenWritesOncePerTargetAndCompletesEveryPath() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
+        val app = AppKey(TEST_APP, UserId.SYSTEM)
+        val peer = AppKey(TEST_PEER, UserId.SYSTEM)
+        val paths = listOf(backgroundPath("alarm"), backgroundPath("job"), backgroundPath("peer", TEST_PEER))
+        val expected = WakeBlockOutcome(setOf("alarm", "job", "peer"), null)
+
+        assertThat(setBlocked(paths.map { it.state(WakePathBlock.NONE) }, blocked = true)).isEqualTo(expected)
+        assertThat(f.background.observe(app).first()?.allowed).isFalse()
+        assertThat(f.background.observe(peer).first()?.allowed).isFalse()
+        assertThat(setBlocked(paths.map { it.state(WakePathBlock.USER) }, blocked = false)).isEqualTo(expected)
+        assertThat(f.background.observe(app).first()?.allowed).isTrue()
+        assertThat(f.background.observe(peer).first()?.allowed).isTrue()
+        assertThat(f.background.writes).containsExactly(app to false, peer to false, app to true, peer to true).inOrder()
+        assertThat(f.background.reads).isEmpty()
+        assertThat(f.manual.requests).isEmpty()
+        assertThat(f.manual.unblockedPaths).isEmpty()
+        assertThat(f.automatic.changes).isEmpty()
+    }
+
+    @Test fun givenOneTargetWasAlreadyRestricted_whenBlockingAndUndoing_thenOnlyTheNewRestrictionIsReversed() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
+        val app = AppKey(TEST_APP, UserId.SYSTEM)
+        val peer = AppKey(TEST_PEER, UserId.SYSTEM)
+        f.background.sendUsage(peer, BackgroundUsage(allowed = false, changeable = true))
+        val paths = listOf(backgroundPath("alarm"), backgroundPath("job"), backgroundPath("peer", TEST_PEER))
+
+        val result = setBlocked.blockWithUndo(paths.map { it.state(WakePathBlock.NONE) }, emptyList())
+
+        assertThat(result.outcome).isEqualTo(WakeBlockOutcome(setOf("alarm", "job", "peer"), null))
+        assertThat(result.undo.hasChanges).isTrue()
+        assertThat(result.undo.restrictedPackages).containsExactly(TEST_APP)
+        assertThat(f.background.reads).containsExactly(app, peer).inOrder()
+        assertThat(setBlocked.undo(result.undo)).isEqualTo(WakeBlockOutcome(setOf("background:$TEST_APP"), null))
+        assertThat(f.background.observe(peer).first()?.allowed).isFalse()
+        assertThat(f.background.writes).containsExactly(app to false, peer to false, app to true).inOrder()
+    }
+
+    @Test fun givenBackgroundWriteFailures_whenBlocking_thenReportsTheCorrespondingWakeFailure() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
+        val paths = listOf(backgroundPath("alarm"), backgroundPath("job")).map { it.state(WakePathBlock.NONE) }
+        val notBlockable = WakeBlockFailure.NotBlockable(listOf("alarm", "job"))
+        val failures = mapOf(
+            BackgroundUsageFailure.NO_ACCESS to WakeBlockFailure.NoAccess,
+            BackgroundUsageFailure.NOT_CHANGEABLE to WakeBlockFailure.BackgroundNotChangeable,
+            BackgroundUsageFailure.NOT_INSTALLED to notBlockable,
+            BackgroundUsageFailure.UNSUPPORTED to notBlockable,
+            BackgroundUsageFailure.SYSTEM_ERROR to WakeBlockFailure.SystemError(null),
+        )
+
+        for ((error, failure) in failures) {
+            f.background.writeFailure = error
+            val result = setBlocked.blockWithUndo(paths, emptyList())
+            assertThat(result.outcome).isEqualTo(WakeBlockOutcome(emptySet(), failure))
+            assertThat(result.undo.hasChanges).isFalse()
+        }
+    }
+
+    @Test fun givenBackgroundWriteReturnsAnUnchangedSetting_whenBlocking_thenReportsNotChangeableWithoutUndo() = runTest {
+        val f = WakeStateTestFixture(this)
+        val background = object : BackgroundUsageRepository by f.background {
+            override suspend fun setAllowed(app: AppKey, allowed: Boolean) = f.background.read(app)
+        }
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, background)
+
+        val result = setBlocked.blockWithUndo(listOf(backgroundPath("alarm").state(WakePathBlock.NONE)), emptyList())
+
+        assertThat(result.outcome).isEqualTo(WakeBlockOutcome(emptySet(), WakeBlockFailure.BackgroundNotChangeable))
+        assertThat(result.undo.hasChanges).isFalse()
+    }
+
+    @Test fun givenBackgroundUndoLosesAccess_whenUndoingMixedBlocks_thenReportsFailureAndKeepsCompletedRuleUndo() = runTest {
+        val f = WakeStateTestFixture(this)
+        val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
+        val paths = listOf(finding("incoming").toWakePath(), backgroundPath("alarm"))
+        val result = setBlocked.blockWithUndo(paths.map { it.state(WakePathBlock.NONE) }, emptyList())
+        f.background.writeFailure = BackgroundUsageFailure.NO_ACCESS
+
+        assertThat(setBlocked.undo(result.undo)).isEqualTo(WakeBlockOutcome(setOf("incoming"), WakeBlockFailure.NoAccess))
+        assertThat(f.manual.blocks.value).isEmpty()
+        assertThat(f.background.observe(AppKey(TEST_APP, UserId.SYSTEM)).first()?.allowed).isFalse()
     }
 
     @Test fun givenAnAppWithStoredAndAutomaticBlocks_whenRestoringAndUndoing_thenOnlyCompletedChangesAreReversed() = runTest {
@@ -302,17 +391,23 @@ class WakeBlockUseCasesTest {
 
 private fun WakePath.state(block: WakePathBlock) = WakePathState(this, block, null, false)
 
+private fun backgroundPath(key: String, target: String = TEST_APP) = finding(key, ReviveTrigger.ALARM, target, actor = null, detail = null).toWakePath()
+
 private class FakeBackgroundUsageRepository(
-    var allowed: Boolean,
+    allowed: Boolean,
     private val failure: BackgroundUsageFailure? = null,
 ) : BackgroundUsageRepository {
+    private val state = MutableStateFlow(allowed)
+    val allowed get() = state.value
     val writes = mutableListOf<Pair<AppKey, Boolean>>()
+
+    override fun observe(app: AppKey) = state.map { BackgroundUsage(it, changeable = true).takeIf { failure == null } }
 
     override suspend fun read(app: AppKey): BackgroundUsageResult = failure?.let { BackgroundUsageResult.Failure(it) } ?: BackgroundUsageResult.Success(BackgroundUsage(allowed, changeable = true))
 
     override suspend fun setAllowed(app: AppKey, allowed: Boolean): BackgroundUsageResult {
         writes += app to allowed
-        this.allowed = allowed
+        state.value = allowed
         return read(app)
     }
 }

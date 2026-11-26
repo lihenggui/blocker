@@ -8,7 +8,9 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
+import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
@@ -38,6 +40,7 @@ class ObserveWakeStateTest {
             assertThat(initial.paths.getValue("out").block).isEqualTo(WakePathBlock.NONE)
             assertThat(initial.allBlocked).isFalse()
             assertThat(f.observedApps).containsExactly(AppKey(TEST_APP, UserId.SYSTEM), AppKey(TEST_PEER, UserId.SYSTEM))
+            assertThat(f.observedBackgroundApps).isEmpty()
 
             f.status(outgoing, off = true)
             assertThat(awaitItem().allBlocked).isTrue()
@@ -107,7 +110,7 @@ class ObserveWakeStateTest {
         val first = receiver(TEST_APP, "First")
         val second = receiver(TEST_APP, "Second")
         val path = finding("action", ReviveTrigger.SYSTEM_BROADCAST, actor = "android", detail = action)
-        f.findings.value = listOf(path, finding("alarm", ReviveTrigger.ALARM, actor = null))
+        f.findings.value = listOf(path, finding("unnamed-restart", ReviveTrigger.STICKY_RESTART, actor = null, detail = null))
         f.state(TEST_APP).test {
             assertThat(awaitItem().paths.getValue("action").block).isEqualTo(WakePathBlock.NONE)
         }
@@ -126,12 +129,70 @@ class ObserveWakeStateTest {
             assertThat(blocked.paths.keys).containsExactly("action")
             assertThat(blocked.paths.getValue("action").block).isEqualTo(WakePathBlock.USER)
             assertThat(blocked.paths.getValue("action").seenSinceBlock).isTrue()
-            assertThat(blocked.allBlocked).isTrue()
+            assertThat(blocked.allBlocked).isFalse()
 
             f.status(first, off = false)
             val partlyOff = awaitItem()
             assertThat(partlyOff.paths.getValue("action").block).isEqualTo(WakePathBlock.NONE)
             assertThat(partlyOff.paths.getValue("action").blockedAtMillis).isNull()
+        }
+    }
+
+    @Test fun givenMixedBlocks_whenBackgroundUsageChanges_thenDetailAndOverviewUpdateTogether() = runTest {
+        val f = WakeStateTestFixture(this)
+        val app = AppKey(TEST_APP, UserId.SYSTEM)
+        val incoming = finding("incoming")
+        val alarm = finding("alarm", ReviveTrigger.ALARM, actor = null, detail = null)
+        val wakelock = alarm.copy(pathKey = "wakelock", trigger = null, hold = HoldCause.WAKELOCK.name, screenOffNanos = 100)
+        val broadcast = finding("broadcast", ReviveTrigger.PEER_BROADCAST, detail = "$TEST_APP/.Receiver")
+        val automatic = AutomaticWakeBlock("known", TEST_PEER, TEST_APP, "$TEST_APP.Known", "", active = true, allowed = false)
+        f.findings.value = listOf(incoming, alarm, wakelock, broadcast)
+        f.verdicts.value = listOf(verdict(TEST_APP, WakeVerdict.KEEP_ALIVE))
+        f.manual.blocks.value = listOf(incoming.toWakePath().blockRow(), alarm.toWakePath().blockRow(at = 1))
+        f.status(receiver(TEST_APP, "Receiver"), off = true)
+        f.automatic.blocks.value = listOf(automatic)
+
+        f.overview().test overview@{
+            assertThat(awaitItem().single().allBlocked).isFalse()
+            assertThat(f.observedBackgroundApps).containsExactly(app)
+            f.state(TEST_APP).test {
+                val allowed = awaitItem()
+                assertThat(allowed.paths.keys).containsExactly("incoming", "alarm", "wakelock", "broadcast")
+                assertThat(allowed.paths.getValue("alarm").block).isEqualTo(WakePathBlock.NONE)
+                assertThat(allowed.paths.getValue("wakelock").block).isEqualTo(WakePathBlock.NONE)
+                assertThat(allowed.allBlocked).isFalse()
+
+                f.background.setAllowed(app, false)
+                val restricted = awaitItem()
+                assertThat(restricted.allBlocked).isTrue()
+                assertThat(restricted.paths.getValue("alarm").block).isEqualTo(WakePathBlock.USER)
+                assertThat(restricted.paths.getValue("alarm").blockedAtMillis).isNull()
+                assertThat(restricted.paths.getValue("alarm").seenSinceBlock).isFalse()
+                assertThat(restricted.paths.getValue("wakelock").block).isEqualTo(WakePathBlock.USER)
+                assertThat(this@overview.awaitItem().single().allBlocked).isTrue()
+
+                f.background.sendUsage(app, null)
+                assertThat(awaitItem().allBlocked).isFalse()
+                assertThat(this@overview.awaitItem().single().allBlocked).isFalse()
+            }
+        }
+    }
+
+    @Test fun givenOnlyBackgroundPaths_whenAllowingTheApp_thenKeepsPathsVisibleAndClearsAllBlocked() = runTest {
+        val f = WakeStateTestFixture(this)
+        val app = AppKey(TEST_APP, UserId.SYSTEM)
+        f.findings.value = listOf(finding("job", ReviveTrigger.JOB, actor = null, detail = null))
+        f.background.sendUsage(app, BackgroundUsage(allowed = false, changeable = true))
+
+        f.state(TEST_APP).test {
+            val restricted = awaitItem()
+            assertThat(restricted.paths.getValue("job").block).isEqualTo(WakePathBlock.USER)
+            assertThat(restricted.allBlocked).isTrue()
+
+            f.background.setAllowed(app, true)
+            val allowed = awaitItem()
+            assertThat(allowed.paths.getValue("job").block).isEqualTo(WakePathBlock.NONE)
+            assertThat(allowed.allBlocked).isFalse()
         }
     }
 
@@ -237,9 +298,24 @@ class ObserveWakeStateTest {
         }
     }
 
+    @Test fun givenBlockedAndUnblockablePaths_whenObserving_thenTheAppIsNotFullyBlocked() = runTest {
+        val f = WakeStateTestFixture(this)
+        val incoming = finding("incoming")
+        val uncontrollable = finding("unnamed-restart", ReviveTrigger.STICKY_RESTART, actor = null, detail = null)
+        assertThat(uncontrollable.toWakePath().blockMethod).isEqualTo(WakeBlockMethod.NONE)
+        f.findings.value = listOf(incoming, uncontrollable)
+        f.manual.blocks.value = listOf(incoming.toWakePath().blockRow())
+
+        f.state(TEST_APP).test {
+            val state = awaitItem()
+            assertThat(state.paths.getValue("incoming").block).isEqualTo(WakePathBlock.USER)
+            assertThat(state.allBlocked).isFalse()
+        }
+    }
+
     @Test fun givenOnlyUnblockableEvidence_whenObserving_thenAnAppWithNoBlockChoicesStaysVisible() = runTest {
         val f = WakeStateTestFixture(this)
-        f.findings.value = listOf(finding("alarm", ReviveTrigger.ALARM, actor = null))
+        f.findings.value = listOf(finding("unnamed-restart", ReviveTrigger.STICKY_RESTART, actor = null, detail = null))
         f.state(TEST_APP).test {
             val state = awaitItem()
             assertThat(state.paths).isEmpty()

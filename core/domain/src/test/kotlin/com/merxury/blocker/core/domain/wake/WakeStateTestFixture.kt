@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.core.domain.wake
 
+import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.wake.WakeReceiverResolver
 import com.merxury.blocker.core.data.wake.WakeRepository
@@ -22,6 +23,7 @@ import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakeVerdict
+import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.wake.FakeAutomaticWakeBlockRepository
 import com.merxury.blocker.core.testing.repository.wake.FakeWakeBlockRepository
@@ -45,13 +47,18 @@ internal class WakeStateTestFixture(scope: TestScope) {
     val verdicts = MutableStateFlow<List<WakeVerdictDay>>(emptyList())
     val manual = FakeWakeBlockRepository()
     val automatic = FakeAutomaticWakeBlockRepository()
+    val background = FakeBackgroundUsageRepository()
     val components = FakeComponentStatusRepository()
     val receivers = mutableMapOf<Pair<String, String>, List<ComponentDeclaration>>()
     val receiverQueries = mutableListOf<Pair<String, String>>()
     val observedApps = mutableListOf<AppKey>()
+    val observedBackgroundApps = mutableListOf<AppKey>()
     private val statuses = mutableMapOf<UserId, MutableMap<ComponentId, ComponentStatus>>()
     private val tracked = object : ComponentStatusRepository by components {
         override fun components(app: AppKey) = components.components(app).also { observedApps += app }
+    }
+    private val trackedBackground = object : BackgroundUsageRepository by background {
+        override fun observe(app: AppKey) = background.observe(app).also { observedBackgroundApps += app }
     }
 
     init {
@@ -68,6 +75,7 @@ internal class WakeStateTestFixture(scope: TestScope) {
         manual,
         automatic,
         tracked,
+        trackedBackground,
         WakeReceiverResolver { target, action ->
             receiverQueries += target to action
             receivers[target to action].orEmpty()
