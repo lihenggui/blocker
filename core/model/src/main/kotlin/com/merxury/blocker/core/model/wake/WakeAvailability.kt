@@ -13,9 +13,12 @@ sealed interface WakeAvailability {
     /** The privileged channel refuses every read, as Shizuku does before version 13. */
     data object ReadsRefused : WakeAvailability
 
-    /** Access is ready and no successful detection is recorded. */
+    /** Access is ready, with no stored findings or recorded successful detection. */
     data object Collecting : WakeAvailability
 
-    /** Results exist, and [lastCheckedMillis] is the wall time of the latest successful detection. */
-    data class Ready(val lastCheckedMillis: Long) : WakeAvailability
+    /**
+     * The latest detection succeeded or findings are stored.
+     * [lastCheckedMillis] is the wall-clock time of the latest detection if it succeeded, or null otherwise.
+     */
+    data class Ready(val lastCheckedMillis: Long?) : WakeAvailability
 }

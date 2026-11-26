@@ -137,6 +137,8 @@ class WakeRepository @Inject constructor(
 
     suspend fun saveDetection(from: Long, through: Long, findings: List<WakeFindingDay>, verdicts: List<WakeVerdictDay>, firstKeptDay: Long) = detection.replaceDetection(from, through, findings, verdicts, firstKeptDay)
 
+    fun hasFindings(): Flow<Boolean> = detection.hasFindings()
+
     fun findingsInvolving(packageName: String, fromDay: Long): Flow<List<WakeFindingDay>> = detection.findingsInvolving(packageName, fromDay)
 
     fun findingsSince(fromDay: Long): Flow<List<WakeFindingDay>> = detection.findingsSince(fromDay)

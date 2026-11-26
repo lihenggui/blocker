@@ -28,9 +28,11 @@ class WakeAvailabilityTest {
     private val unavailable = ChannelState.Unavailable(UnavailableReason.DENIED)
     private val channel = FakePrivilegedChannel(ready)
     private val statuses = MutableStateFlow(emptyList<WakeSourceStatus>())
+    private val findingsExist = MutableStateFlow(false)
     private val repository = mock<WakeRepository> {
         on { isOwnerProfile } doReturn true
         on { statuses() } doReturn this@WakeAvailabilityTest.statuses
+        on { hasFindings() } doReturn findingsExist
     }
     private val observe = ObserveWakeAvailabilityUseCase(repository, WakeAuthorizationRepository(channel))
     private val runs = TestWakeRunRequester()
@@ -38,6 +40,7 @@ class WakeAvailabilityTest {
     private val waiting = WakeSourceStatus("authorization", 10L, "WAITING_FOR_PERMISSION")
     private val refused = WakeSourceStatus("protection", 20L, "OBSERVING_NOTHING_READS_REFUSED")
     private val detectionOk = WakeSourceStatus("detection", 30L, "OK")
+    private val detectionFailure = WakeSourceStatus("detection", 50L, "evidence unreadable")
 
     @Test
     fun givenSecondaryProfile_whenAccessChanges_thenOwnerProfileRequirementTakesPrecedence() = runTest {
@@ -82,26 +85,41 @@ class WakeAvailabilityTest {
     }
 
     @Test
-    fun givenReadyChannel_whenDetectionStatusChanges_thenAvailabilityUsesTheRecordedSuccess() = runTest {
+    fun givenNoFindings_whenDetectionSucceeds_thenAvailabilityIsReadyWithTheCheckTime() = runTest {
         observe().test {
             assertThat(awaitItem()).isEqualTo(WakeAvailability.Collecting)
 
-            statuses.value = listOf(waiting, refused)
-            assertThat(awaitItem()).isEqualTo(WakeAvailability.ReadsRefused)
-
-            val protection = refused.copy(checkedAt = 25L, status = "OK")
-            val failure = detectionOk.copy(status = "evidence unreadable")
-            statuses.value = listOf(waiting, protection, failure)
-            assertThat(awaitItem()).isEqualTo(WakeAvailability.Collecting)
-
-            statuses.value = listOf(waiting, protection, detectionOk)
+            statuses.value = listOf(detectionOk)
             assertThat(awaitItem()).isEqualTo(WakeAvailability.Ready(30L))
 
-            statuses.value = listOf(waiting, protection, detectionOk.copy(checkedAt = 40L))
+            statuses.value = listOf(detectionOk.copy(checkedAt = 40L))
             assertThat(awaitItem()).isEqualTo(WakeAvailability.Ready(40L))
+        }
+    }
 
-            statuses.value = listOf(waiting, protection, failure.copy(checkedAt = 50L))
+    @Test
+    fun givenStoredFindings_whenDetectionFails_thenAvailabilityStaysReadyWithoutACheckTime() = runTest {
+        findingsExist.value = true
+        statuses.value = listOf(detectionOk)
+
+        observe().test {
+            assertThat(awaitItem()).isEqualTo(WakeAvailability.Ready(30L))
+
+            statuses.value = listOf(detectionFailure)
+            assertThat(awaitItem()).isEqualTo(WakeAvailability.Ready(null))
+        }
+    }
+
+    @Test
+    fun givenNoFindings_whenDetectionFails_thenAvailabilityIsCollecting() = runTest {
+        val protection = refused.copy(checkedAt = 25L, status = "OK")
+        statuses.value = listOf(protection, detectionFailure)
+
+        observe().test {
             assertThat(awaitItem()).isEqualTo(WakeAvailability.Collecting)
+
+            findingsExist.value = true
+            assertThat(awaitItem()).isEqualTo(WakeAvailability.Ready(null))
         }
     }
 

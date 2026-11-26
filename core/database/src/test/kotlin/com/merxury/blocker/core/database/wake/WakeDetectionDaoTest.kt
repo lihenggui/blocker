@@ -62,6 +62,16 @@ class WakeDetectionDaoTest {
         assertThat(dao.findingsInvolving("other", 0).first()).isEmpty()
     }
 
+    @Test fun givenEmptyFindings_whenInsertingAndRemovingTheOnlyFinding_thenExistenceUpdates() = runTest {
+        dao.hasFindings().test {
+            assertThat(awaitItem()).isFalse()
+            dao.putFindings(listOf(finding(1)))
+            assertThat(awaitItem()).isTrue()
+            dao.clearFindings(1, 1)
+            assertThat(awaitItem()).isFalse()
+        }
+    }
+
     @Test fun givenFindingsOnBothSidesOfTheCutoff_whenObservingAnApp_thenEitherRoleInTheWindowMatches() = runTest {
         val inbound = finding(2, "in", actor = "peer")
         val outbound = finding(3, "out", target = "peer", actor = "pkg")
