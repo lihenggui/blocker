@@ -40,7 +40,10 @@ class SetWakePathsBlockedUseCase @Inject constructor(
     }
 
     /** Changes the manual, automatic and background usage blocks that govern the selected paths. */
-    suspend operator fun invoke(paths: List<WakePathState>, blocked: Boolean): WakeBlockOutcome = change(paths, emptySet(), blocked, recordUndo = false).outcome
+    suspend operator fun invoke(paths: List<WakePathState>, blocked: Boolean): WakeBlockOutcome {
+        currentCoroutineContext().ensureActive()
+        return withContext(NonCancellable) { change(paths, emptySet(), blocked, recordUndo = false).outcome }
+    }
 
     /** Blocks only allowed paths and records the changes made, including partially successful batches. */
     suspend fun blockWithUndo(paths: List<WakePathState>, blocks: Collection<AutomaticWakeBlock>): BatchResult {
@@ -133,7 +136,10 @@ class SetWakePathsBlockedUseCase @Inject constructor(
         return WakeBlockOutcome(if (failure == null) pathKeys.toSet() else emptySet(), failure)
     }
 
-    suspend operator fun invoke(blocks: Collection<AutomaticWakeBlock>, blocked: Boolean): WakeBlockOutcome = automatic.setBlocked(blocks.mapTo(mutableSetOf()) { it.pathId }, blocked).outcome
+    suspend operator fun invoke(blocks: Collection<AutomaticWakeBlock>, blocked: Boolean): WakeBlockOutcome {
+        currentCoroutineContext().ensureActive()
+        return withContext(NonCancellable) { automatic.setBlocked(blocks.mapTo(mutableSetOf()) { it.pathId }, blocked).outcome }
+    }
 }
 
 private val EmptyOutcome = WakeBlockOutcome(emptySet(), null)

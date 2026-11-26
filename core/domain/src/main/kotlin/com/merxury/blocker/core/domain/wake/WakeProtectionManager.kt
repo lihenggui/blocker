@@ -17,6 +17,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.ZoneId
@@ -30,13 +32,16 @@ class WakeProtectionManager @Inject constructor(
     private val lock: WakeRuleLock,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
+    // Keep captures and history imports serial while allowing users to change the rules between phases.
+    private val reconciliation = Mutex()
+
     /** Resets the wake rules of [packageName], or all; false when the channel cannot write them. */
     suspend fun resetFirewall(packageName: String?): Boolean = withContext(ioDispatcher) {
         protection.resetFirewall(packageName)
     }
 
     suspend fun reconcile(): Boolean = withContext(ioDispatcher) {
-        lock.withLock {
+        reconciliation.withLock {
             val now = System.currentTimeMillis()
             try {
                 if (!repository.isOwnerProfile) {
@@ -49,9 +54,12 @@ class WakeProtectionManager @Inject constructor(
                     repository.reportStatus(WakeSourceStatus("authorization", now, "WAITING_FOR_PERMISSION"))
                     return@withLock true
                 }
-                val writes = protection.writeAccess()
-                protection.revokeStaleFirewallRules(writes)
-                syncUserFirewallRules(writes, now)
+                val initialWrites = lock.withLock {
+                    val writes = protection.writeAccess()
+                    protection.revokeStaleFirewallRules(writes)
+                    syncUserFirewallRules(writes, now)
+                    writes
+                }
                 val capture = repository.collect(now - repository.lastDiagnostic >= 86_400_000, identity)
                 val records = repository.attributionRecords(capture.boot)
                 val relations = WakeAttribution.relationships(records)
@@ -66,7 +74,11 @@ class WakeProtectionManager @Inject constructor(
                     repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, "PROFILE_SCOPE_UNAVAILABLE"))
                     return@withLock false
                 }
-                val status = protection.applyReviewedPaths(capture, writes, now)
+                val status = lock.withLock {
+                    val writes = protection.writeAccess()
+                    if (initialWrites != WakeWrites.Enforce) syncUserFirewallRules(writes, now)
+                    protection.applyReviewedPaths(capture, writes, now)
+                }
                 repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, status))
                 // A capture the channel could not finish runs again soon instead of in half an hour.
                 !capture.channelUnavailable

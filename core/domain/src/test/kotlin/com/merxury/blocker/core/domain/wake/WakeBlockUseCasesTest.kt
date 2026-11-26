@@ -34,6 +34,29 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class WakeBlockUseCasesTest {
+    @Test fun givenSingleToggleHasBegunWriting_whenTheCallerIsCancelled_thenTheBlockStillCompletes() = runTest {
+        val f = WakeStateTestFixture(this)
+        val started = CompletableDeferred<Unit>()
+        val finish = CompletableDeferred<Unit>()
+        val manual = object : WakeBlockRepository by f.manual {
+            override suspend fun block(requests: List<Pair<WakePath, WakeBlockMethod>>): WakeBlockOutcome {
+                started.complete(Unit)
+                finish.await()
+                return f.manual.block(requests)
+            }
+        }
+        val setBlocked = SetWakePathsBlockedUseCase(manual, f.automatic, f.background)
+        val path = finding("manual").toWakePath()
+        val caller = launch { setBlocked(listOf(path.state(WakePathBlock.NONE)), blocked = true) }
+        started.await()
+
+        caller.cancel()
+        finish.complete(Unit)
+        caller.join()
+
+        assertThat(f.manual.blocks.value.map { it.pathKey }).containsExactly(path.pathKey)
+    }
+
     @Test fun givenPartialBatchSuccess_whenBlockingAndUndoing_thenNoAppsAreStopped() = runTest {
         val f = WakeStateTestFixture(this)
         val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
