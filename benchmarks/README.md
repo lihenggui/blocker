@@ -53,15 +53,15 @@ graph TB
       :feature:settings:api[api]:::android-library
       :feature:settings:impl[impl]:::android-library
     end
-    subgraph :feature:appdetail
-      direction TB
-      :feature:appdetail:api[api]:::android-library
-      :feature:appdetail:impl[impl]:::android-library
-    end
     subgraph :feature:ruledetail
       direction TB
       :feature:ruledetail:api[api]:::android-library
       :feature:ruledetail:impl[impl]:::android-library
+    end
+    subgraph :feature:appdetail
+      direction TB
+      :feature:appdetail:api[api]:::android-library
+      :feature:appdetail:impl[impl]:::android-library
     end
   end
   subgraph :sync
@@ -255,6 +255,7 @@ graph TB
   :feature:wake:impl -.-> :core:designsystem
   :feature:wake:impl -.-> :core:domain
   :feature:wake:impl -.-> :core:ui
+  :feature:wake:impl -.-> :feature:appdetail:api
   :feature:wake:impl -.-> :feature:wake:api
   :sync:work -.-> :core:analytics
   :sync:work -.-> :core:data

@@ -18,6 +18,10 @@ graph TB
       :feature:wake:api[api]:::android-library
       :feature:wake:impl[impl]:::android-library
     end
+    subgraph :feature:appdetail
+      direction TB
+      :feature:appdetail:api[api]:::android-library
+    end
   end
   subgraph :core
     direction TB
@@ -78,6 +82,8 @@ graph TB
   :core:ui --> :core:designsystem
   :core:ui --> :core:ifw-api
   :core:ui --> :core:model
+  :feature:appdetail:api --> :core:navigation
+  :feature:appdetail:api -.-> :core:ui
   :feature:wake:api --> :core:navigation
   :feature:wake:api -.-> :core:ui
   :feature:wake:impl -.-> :core:component-controller
@@ -85,6 +91,7 @@ graph TB
   :feature:wake:impl -.-> :core:designsystem
   :feature:wake:impl -.-> :core:domain
   :feature:wake:impl -.-> :core:ui
+  :feature:wake:impl -.-> :feature:appdetail:api
   :feature:wake:impl -.-> :feature:wake:api
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
