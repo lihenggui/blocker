@@ -164,8 +164,9 @@ abstract class WakeDetectionDao {
           'ApplicationStartInfo','ProcessStartTime','am_proc_start','am_kill','AppProcessDied','am_schedule_service_restart',
           'ServiceRequestEventReported','BroadcastDeliveryEventReported','ProviderAcquisitionEventReported','AppStartOccurred',
           'ScheduledJobStateChanged','SyncStateChanged','WakeupAlarmOccurred','AlarmBatchDelivered','NotificationReported',
-          'ForegroundServiceStateChanged','LongPartialWakelockStateChanged',
-          'SystemBinding','RoleHolder','CompanionAssociation','WallpaperBinding','HeldConnection','NotificationsOff'
+          'ForegroundServiceStateChanged','LongPartialWakelockStateChanged','BalAllowed','InteractiveStateChanged',
+          'SystemBinding','RoleHolder','CompanionAssociation','WallpaperBinding','HeldConnection','NotificationsOff',
+          'OverlayWindow','AudioPlayback'
         ) ORDER BY elapsedNanos
         """,
     )

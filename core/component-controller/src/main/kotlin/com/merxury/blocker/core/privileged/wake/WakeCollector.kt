@@ -30,7 +30,14 @@ private const val CLOCK_ELAPSED = "start-info clock/elapsed"
 // How long after boot the event log may begin. logd starts in early init; unmeasured, chosen generously.
 private const val BOOT_LOG_DELAY_MILLIS = 120_000L
 
-private val SNAPSHOTS = listOf(WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES, WakeCommand.NOTIFICATIONS)
+private val SNAPSHOTS = listOf(
+    WakeCommand.SERVICES,
+    WakeCommand.PROVIDERS,
+    WakeCommand.PROCESSES,
+    WakeCommand.NOTIFICATIONS,
+    WakeCommand.OVERLAYS,
+    WakeCommand.AUDIO,
+)
 private val DIAGNOSTIC_SNAPSHOTS = listOf(
     WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
     WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY,

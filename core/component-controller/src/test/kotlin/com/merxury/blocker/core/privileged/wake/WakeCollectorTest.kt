@@ -35,7 +35,7 @@ private val PROFILE_SOURCES = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILIT
 private val EVERY_RUN = listOf(
     WakeCommand.INSTALL, WakeCommand.RENEW, WakeCommand.REPORT, WakeCommand.RENEW, WakeCommand.EVENTS, WakeCommand.EVENTS_HEAD,
     WakeCommand.PROCSTATS, WakeCommand.USERS, WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES,
-    WakeCommand.NOTIFICATIONS,
+    WakeCommand.NOTIFICATIONS, WakeCommand.OVERLAYS, WakeCommand.AUDIO,
 )
 private val DAILY = listOf(
     WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
@@ -126,6 +126,27 @@ class WakeCollectorTest {
         val metadata = context.getSharedPreferences("wake_stats_owner", Context.MODE_PRIVATE)
         assertThat(metadata.getString("lastRenewedBoot/0", null)).isEqualTo(BOOT.toString())
         assertThat(metadata.getLong("lastRenewedElapsedNanos/0", -1L)).isEqualTo(SystemClock.elapsedRealtimeNanos())
+    }
+
+    @Test
+    fun givenStealthSnapshots_whenCapturing_thenOnlyCompactEvidenceIsCollected() = runTest {
+        outputs[WakeCommand.OVERLAYS] = {
+            """
+            WINDOW MANAGER WINDOWS (dumpsys window windows)
+              Window #0 Window{abc u0 private title}:
+                mOwnerUid=10123 package=example.app appop=SYSTEM_ALERT_WINDOW
+                mAttrs={(0,0) ty=APPLICATION_OVERLAY}
+                mHasSurface=true isReadyForDisplay()=true
+            """.trimIndent().toByteArray()
+        }
+        outputs[WakeCommand.AUDIO] = {
+            "players:\n AudioPlaybackConfiguration piid:8 u/pid:10123/25 state:started attr:private audio tag".toByteArray()
+        }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+        assertThat(capture.batch("OVERLAYS").observations.single().attributes).containsExactly("packages", "example.app/10123")
+        assertThat(capture.batch("AUDIO").observations.single().attributes).containsExactly("uids", "10123")
     }
 
     @Test

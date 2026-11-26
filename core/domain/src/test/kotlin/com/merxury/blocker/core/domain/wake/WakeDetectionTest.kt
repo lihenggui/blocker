@@ -18,6 +18,9 @@ import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.WakeFinding
 import com.merxury.blocker.core.model.wake.WakeVerdict
+import com.merxury.blocker.core.privileged.wake.WAKE_AUDIO_PLAYBACK
+import com.merxury.blocker.core.privileged.wake.WAKE_NOTIFICATIONS_OFF
+import com.merxury.blocker.core.privileged.wake.WAKE_OVERLAY_WINDOWS
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Test
@@ -68,6 +71,7 @@ internal fun started(info: WakeRecord) = arrayOf(
 
 class WakeDetectionTest {
     private val coldStart = wakeRecord("start", "ProcessStartTime", START, component = "$TARGET/.Wake", startType = 3, process = TARGET)
+    private val activityStart = coldStart.copy(attributes = """{"hosting_type_id":"1"}""")
 
     private fun evidence(
         records: List<WakeRecord>,
@@ -82,6 +86,10 @@ class WakeDetectionTest {
     private fun joined(request: WakeRecord, vararg records: WakeRecord) = revive(coldStart, request, *records, relations = listOf(WakeRelation(request.id, coldStart.id, "MATCHING_CALLER")))
 
     private fun request(kind: String, caller: Int, callerPackage: String? = null, action: String? = null, state: Pair<String, String>? = null) = wakeRecord("request", kind, START - SECOND, callerUid = caller, callerPackage = callerPackage, component = ".Wake", action = action, startType = 3, attributes = listOfNotNull(state).toMap())
+
+    private fun screenState(state: Int, elapsed: Long = START, boot: String = coldStart.boot) = wakeRecord("screen-$state-$elapsed-$boot", "InteractiveStateChanged", elapsed, targetUid = null, targetPackage = null, attributes = mapOf("state" to state.toString())).copy(boot = boot)
+
+    private fun bal(callerUid: Int, realUid: Int, elapsed: Long = START, component: String? = "$TARGET/.Wake") = wakeRecord("bal", "BalAllowed", elapsed, callerUid = callerUid, component = component, targetUid = null, targetPackage = null, attributes = mapOf("real_calling_uid" to realUid.toString()))
 
     @Test fun givenOneStartFromEverySource_whenDetecting_thenItIsOneReviveWithTheBestRecord() {
         val info = wakeRecord(
@@ -210,6 +218,157 @@ class WakeDetectionTest {
         assertThat(launched.justification).isEqualTo(Justification.USER_INITIATED)
         val info = wakeRecord("info", "ApplicationStartInfo", START, source = "START_INFO", startType = 3, process = TARGET, attributes = mapOf("reason" to "START ACTIVITY"))
         assertThat(revive(*started(info)).justification).isEqualTo(Justification.USER_INITIATED)
+    }
+
+    @Test fun givenScreenOffActivity_whenDetecting_thenItIsAnUnjustifiedSelfStart() {
+        val shown = wakeRecord("shown", "AppStartOccurred", START + SECOND, component = "$TARGET.Wake")
+        val records = listOf(activityStart, shown, screenState(0))
+        val detected = WakeDetection.detect(evidence(records))
+        val finding = detected.single().finding
+
+        assertThat(finding.trigger).isEqualTo(ReviveTrigger.PEER_ACTIVITY)
+        assertThat(finding.actor).isEqualTo(TARGET)
+        assertThat(finding.detail).isEqualTo("$TARGET.Wake")
+        assertThat(finding.confidence).isEqualTo(Confidence.DIRECT)
+        assertThat(finding.actorInBackground).isTrue()
+        assertThat(finding.justification).isEqualTo(Justification.NONE)
+        val verdict = WakeDetection.verdicts(detected, ZoneOffset.UTC).single()
+        assertThat(verdict.noneRevives).isEqualTo(1)
+        assertThat(verdict.peerBackgroundNoneRevives).isEqualTo(0)
+        assertThat(verdict.wakesOthers).isEqualTo(0)
+    }
+
+    @Test fun givenAppBalLaunch_whenDetecting_thenTheEffectiveCallerIsAnUnjustifiedPeer() {
+        val shown = wakeRecord("shown", "AppStartOccurred", START + SECOND, component = "$TARGET.Wake", startType = 3)
+        val records = listOf(activityStart, shown, screenState(1), bal(PEER_UID, 10033, component = "ComponentInfo{$TARGET/$TARGET.Wake}"))
+        val detected = WakeDetection.detect(evidence(records, listOf(WakeRelation(shown.id, activityStart.id, "MATCHING_COMPONENT"))))
+        val finding = detected.single().finding
+
+        assertThat(finding.trigger).isEqualTo(ReviveTrigger.PEER_ACTIVITY)
+        assertThat(finding.actor).isEqualTo(PEER)
+        assertThat(finding.detail).isEqualTo("$TARGET.Wake")
+        assertThat(finding.confidence).isEqualTo(Confidence.JOINED)
+        assertThat(finding.actorInBackground).isTrue()
+        assertThat(finding.justification).isEqualTo(Justification.NONE)
+        val verdicts = WakeDetection.verdicts(detected, ZoneOffset.UTC).associateBy { it.target }
+        assertThat(verdicts.getValue(TARGET).peerBackgroundNoneRevives).isEqualTo(1)
+        assertThat(verdicts.getValue(PEER).wakesOthers).isEqualTo(1)
+    }
+
+    @Test fun givenComponentlessBal_whenAJoinedCallerMatches_thenTheActivityIsAnUnjustifiedRevive() {
+        val allowed = bal(PEER_UID, 10033, elapsed = START - 3 * SECOND, component = null)
+        val shown = request("AppStartOccurred", 10033)
+        val relation = WakeRelation(shown.id, activityStart.id, "MATCHING_COMPONENT")
+
+        for (request in listOf(shown, shown.copy(callerUid = PEER_UID))) {
+            val finding = revive(activityStart, screenState(1), allowed, request, relations = listOf(relation))
+            assertThat(finding.actor).isEqualTo(PEER)
+            assertThat(finding.justification).isEqualTo(Justification.NONE)
+        }
+        val packageOnly = shown.copy(callerUid = null, callerPackage = PEER)
+        val packageMatch = revive(activityStart, screenState(1), allowed.copy(elapsedNanos = START - SECOND), packageOnly, relations = listOf(relation))
+        assertThat(packageMatch.actor).isEqualTo(PEER)
+        assertThat(packageMatch.justification).isEqualTo(Justification.NONE)
+        val unrelated = shown.copy(callerUid = TARGET_UID)
+        assertThat(revive(activityStart, screenState(1), allowed, unrelated, relations = listOf(relation)).justification)
+            .isEqualTo(Justification.USER_INITIATED)
+        val unknown = shown.copy(callerUid = null)
+        assertThat(revive(activityStart, screenState(1), allowed.copy(elapsedNanos = START), unknown, relations = listOf(relation)).justification)
+            .isEqualTo(Justification.USER_INITIATED)
+    }
+
+    @Test fun givenNoJoinedRequest_whenComponentlessBalIsAmbiguousOrSelfInitiated_thenTheActivityStaysUserInitiated() {
+        val allowed = bal(PEER_UID, 1000, elapsed = START - SECOND, component = "")
+        val screen = screenState(1)
+
+        assertThat(revive(activityStart, screen, allowed).justification).isEqualTo(Justification.NONE)
+        assertThat(revive(activityStart, screen, allowed, allowed.copy(id = "other", callerUid = 10033)).justification)
+            .isEqualTo(Justification.USER_INITIATED)
+        assertThat(revive(activityStart, screen, allowed.copy(callerUid = TARGET_UID)).justification)
+            .isEqualTo(Justification.USER_INITIATED)
+        assertThat(revive(activityStart, allowed).justification).isEqualTo(Justification.USER_INITIATED)
+    }
+
+    @Test fun givenTwoColdActivitiesInOneComponentlessBalWindow_whenDetecting_thenNeitherIsAttributedToTheCaller() {
+        val other = "other.app"
+        val otherStart = activityStart.copy(
+            id = "other-start",
+            elapsedNanos = START + 2 * SECOND,
+            wallMillis = activityStart.wallMillis + 2_000,
+            targetUid = 10033,
+            targetPackage = other,
+            component = "$other/.Main",
+            processName = other,
+        )
+        val allowed = bal(PEER_UID, 1000, elapsed = START + SECOND, component = null)
+        val findings = WakeDetection.findings(evidence(listOf(activityStart, otherStart, screenState(1), allowed)))
+            .filter { it.trigger != null }
+
+        assertThat(findings.map { it.target }).containsExactly(TARGET, other)
+        assertThat(findings.map { it.actor }).doesNotContain(PEER)
+        assertThat(findings.map { it.justification }).containsExactly(Justification.USER_INITIATED, Justification.USER_INITIATED)
+    }
+
+    @Test fun givenSystemEffectiveBalCaller_whenDetecting_thenAttributionFallsBackToTheAppInitiator() {
+        val allowed = bal(1000, PEER_UID)
+        val finding = revive(activityStart, screenState(1), allowed)
+
+        assertThat(finding.actor).isEqualTo(PEER)
+        assertThat(finding.justification).isEqualTo(Justification.NONE)
+    }
+
+    @Test fun givenOtherScreenStates_whenDetecting_thenOnlyTheLatestPriorStateOfTheSameBootApplies() {
+        val priorBoot = screenState(0, boot = "prior")
+        val future = screenState(0, elapsed = START + SECOND)
+        val previousOff = screenState(0, elapsed = START - SECOND)
+        val currentOn = screenState(1)
+
+        assertThat(revive(activityStart, priorBoot, future).justification).isEqualTo(Justification.USER_INITIATED)
+        assertThat(revive(activityStart, currentOn, previousOff).justification).isEqualTo(Justification.USER_INITIATED)
+        assertThat(revive(activityStart, screenState(1, START + SECOND), previousOff).justification).isEqualTo(Justification.NONE)
+    }
+
+    @Test fun givenScreenOnActivity_whenBalIsUnrelated_thenTheActivityStaysUserInitiated() {
+        val cases = listOf(
+            bal(PEER_UID, 1000, component = "$TARGET/.Other"),
+            bal(PEER_UID, 1000, component = "$PEER/.Wake"),
+            bal(PEER_UID, 1000, elapsed = START - 3 * SECOND, component = ""),
+            bal(PEER_UID, 1000).copy(boot = "previous"),
+            bal(PEER_UID, 1000, elapsed = START - WakeRevives.JOIN_WINDOW - 1),
+            bal(PEER_UID, 1000, elapsed = START + WakeRevives.JOIN_WINDOW + 1),
+        )
+        for (unrelated in cases) {
+            assertThat(revive(activityStart, screenState(1), unrelated).justification).isEqualTo(Justification.USER_INITIATED)
+        }
+        for (elapsed in listOf(START - WakeRevives.JOIN_WINDOW, START + WakeRevives.JOIN_WINDOW)) {
+            val finding = revive(activityStart, screenState(1), bal(PEER_UID, 1000, elapsed))
+            assertThat(finding.actor).isEqualTo(PEER)
+            assertThat(finding.justification).isEqualTo(Justification.NONE)
+        }
+    }
+
+    @Test fun givenSystemAndLauncherBal_whenDetecting_thenTheActivityStaysUserInitiated() {
+        val home = wakeRecord("home", "RoleHolder", START, targetPackage = PEER, action = "android.app.role.HOME")
+        val launcher = wakeRecord("shown", "AppStartOccurred", START, component = "$TARGET.Wake", startType = 3, attributes = mapOf("source_type" to "1"))
+        val relation = WakeRelation(launcher.id, activityStart.id, "MATCHING_COMPONENT")
+
+        assertThat(revive(activityStart, screenState(1), bal(1000, 1001)).justification).isEqualTo(Justification.USER_INITIATED)
+        assertThat(revive(activityStart, screenState(1), bal(PEER_UID, 1000), home).justification).isEqualTo(Justification.USER_INITIATED)
+        assertThat(revive(activityStart, screenState(1), bal(PEER_UID, 1000, component = null), home).justification)
+            .isEqualTo(Justification.USER_INITIATED)
+        assertThat(revive(activityStart, screenState(1), bal(PEER_UID, 1000, component = null), launcher, relations = listOf(relation)).justification)
+            .isEqualTo(Justification.USER_INITIATED)
+        assertThat(revive(activityStart, screenState(1), bal(PEER_UID, 1000), launcher, relations = listOf(relation)).justification)
+            .isEqualTo(Justification.USER_INITIATED)
+    }
+
+    @Test fun givenStealthActivityAfterAServiceStart_whenJudging_thenItDoesNotSupplyUserInitiation() {
+        val shown = wakeRecord("shown", "AppStartOccurred", START + SECOND, component = "$TARGET.Main")
+        val bal = bal(TARGET_UID, 1000, shown.elapsedNanos, "$TARGET/.Main")
+
+        assertThat(revive(coldStart, shown, screenState(0, shown.elapsedNanos)).justification).isEqualTo(Justification.NONE)
+        assertThat(revive(coldStart, shown, screenState(1), bal).justification).isEqualTo(Justification.NONE)
+        assertThat(revive(coldStart, shown, screenState(1)).justification).isEqualTo(Justification.USER_INITIATED)
     }
 
     @Test fun givenStartInfoForComponentsOfOneStartingProcess_whenDetecting_thenTheEarliestDescribesTheOneRevive() {
@@ -617,6 +776,88 @@ class WakeDetectionTest {
         fun enter(types: Int) = wakeRecord("enter", "ForegroundServiceStateChanged", 0, component = ".Service", attributes = mapOf("state" to "1", "fgs_types" to types.toString()))
         assertThat(service(off("a", 1_000), enter(2))).isEqualTo(Justification.PRODUCTIVE)
         assertThat(service(off("a", 1_000), enter(1))).isEqualTo(Justification.NONE)
+    }
+
+    @Test fun givenOverlayAndOtherHoldEvidence_whenAttributing_thenTheOverlayExplainsOnlyTheRemainder() {
+        val period = WakeHoldPeriod("p", WALL, WALL + 10_000, 0)
+        val process = WakeHoldProcess("p", TARGET, TARGET_UID, TARGET, 4_000, 0, 1_000, 0)
+        val association = WakeHoldAssociation("p", TARGET, TARGET_UID, ".Service", PEER, PEER_UID, 1_000, 1_000)
+        val overlay = snapshot(WAKE_OVERLAY_WINDOWS, 10_000, "packages" to "${TARGET}x,$TARGET")
+        fun holds(record: WakeRecord) = WakeDetection.detect(evidence(listOf(record), periods = listOf(period), processes = listOf(process), associations = listOf(association)), ZoneOffset.UTC)
+            .associateBy { it.finding.hold }
+
+        val holds = holds(overlay)
+        assertThat(holds.keys).containsExactly(HoldCause.FOREGROUND_SERVICE, HoldCause.BOUND_BY_PEER, HoldCause.OVERLAY_WINDOW)
+        val held = holds.getValue(HoldCause.OVERLAY_WINDOW)
+        assertThat(held.finding.justification).isEqualTo(Justification.NONE)
+        assertThat(held.finding.confidence).isEqualTo(Confidence.SNAPSHOT)
+        assertThat(held.finding.durationNanos).isEqualTo(2 * SECOND)
+        assertThat(held.screenOffNanos).isEqualTo(2 * SECOND)
+        assertThat(holds(snapshot(WAKE_OVERLAY_WINDOWS, 0, "packages" to "$TARGET/$TARGET_UID"))).containsKey(HoldCause.OVERLAY_WINDOW)
+        assertThat(holds(snapshot(WAKE_OVERLAY_WINDOWS, 0, "packages" to "$TARGET/${TARGET_UID + 10 * UIDS_PER_USER}")).keys)
+            .containsExactly(HoldCause.FOREGROUND_SERVICE, HoldCause.BOUND_BY_PEER, HoldCause.UNKNOWN)
+        assertThat(holds(overlay.copy(wallMillis = period.endMillis + 1))).containsKey(HoldCause.UNKNOWN)
+        assertThat(holds(snapshot(WAKE_OVERLAY_WINDOWS, 0, "packages" to "${TARGET}x"))).containsKey(HoldCause.UNKNOWN)
+    }
+
+    @Test fun givenHiddenMediaService_whenJudging_thenItRequiresPlaybackEvidenceBeforeCallingItSilent() {
+        val period = WakeHoldPeriod("p", WALL, WALL + 10_000, 0)
+        val process = WakeHoldProcess("p", TARGET, TARGET_UID, TARGET, 8_000, 0, 8_000, 0)
+        val hidden = snapshot(WAKE_NOTIFICATIONS_OFF, 1_000, "apps" to "$TARGET/$TARGET_UID")
+        val quiet = snapshot(WAKE_AUDIO_PLAYBACK, 2_000, "uids" to "")
+        val playing = snapshot(WAKE_AUDIO_PLAYBACK, 3_000, "uids" to "$PEER_UID,$TARGET_UID")
+        val otherProfile = snapshot(WAKE_AUDIO_PLAYBACK, 4_000, "uids" to (TARGET_UID + UIDS_PER_USER).toString())
+        fun service(types: Int, vararg records: WakeRecord) = serviceHold(period, process, types, hidden, *records).finding.justification
+
+        assertThat(service(2)).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(service(2, quiet)).isEqualTo(Justification.NONE)
+        assertThat(service(2, quiet, otherProfile)).isEqualTo(Justification.NONE)
+        assertThat(service(2, quiet, playing)).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(service(2, quiet.copy(wallMillis = period.startMillis - 1))).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(service(1 or 2, quiet)).isEqualTo(Justification.NONE)
+        assertThat(service(2 or 4, quiet)).isEqualTo(Justification.PRODUCTIVE)
+    }
+
+    @Test fun givenVisibleNotification_whenJudgingPersistentFgs_thenDurationTypeAndSpecialAccessProtectLegitimateServices() {
+        val threshold = 30 * 60 * 1_000L
+        val period = WakeHoldPeriod("p", WALL, WALL + 2 * threshold, 0)
+        val process = WakeHoldProcess("p", TARGET, TARGET_UID, TARGET, threshold + 1, threshold, threshold, threshold)
+        val allowed = snapshot(WAKE_NOTIFICATIONS_OFF, 1_000, "apps" to "")
+        val quiet = snapshot(WAKE_AUDIO_PLAYBACK, 2_000, "uids" to "")
+        fun service(types: Int, fgsOff: Long = threshold, vararg records: WakeRecord) = serviceHold(period, process.copy(fgsScreenOffMillis = fgsOff), types, allowed, quiet, *records).finding.justification
+
+        for (type in listOf(0, 1 shl 30)) {
+            assertThat(service(type)).isEqualTo(Justification.NONE)
+            assertThat(service(type, threshold - 1)).isEqualTo(Justification.PRODUCTIVE)
+        }
+        for (type in listOf(1 shl 0, 1 shl 1, 1 shl 3, 1 shl 4, 1 shl 10, (1 shl 30) or (1 shl 8))) {
+            assertThat(service(type)).isEqualTo(Justification.PRODUCTIVE)
+        }
+        val granted = wakeRecord("vpn", "SystemBinding", 0, component = TARGET, action = "VPN")
+        val bound = wakeRecord("ime", "SystemBinding", 0, component = "$TARGET/.Service", action = "INPUT")
+        assertThat(service(1 shl 30, threshold, granted)).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(service(1 shl 30, threshold, bound)).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(service(1 shl 30, threshold, bound.copy(component = "$TARGET/.Other"))).isEqualTo(Justification.NONE)
+    }
+
+    @Test fun givenPersistentDataSyncFgs_whenJudging_thenOnlyTheHiddenServiceIsUnjustified() {
+        val threshold = 30 * 60 * 1_000L
+        val period = WakeHoldPeriod("p", WALL, WALL + 2 * threshold, 0)
+        val process = WakeHoldProcess("p", TARGET, TARGET_UID, TARGET, threshold + 1, threshold, threshold, threshold)
+        val visible = snapshot(WAKE_NOTIFICATIONS_OFF, 1_000, "apps" to "")
+        val hidden = snapshot(WAKE_NOTIFICATIONS_OFF, 1_000, "apps" to "$TARGET/$TARGET_UID")
+
+        assertThat(serviceHold(period, process, 1, visible).finding.justification).isEqualTo(Justification.PRODUCTIVE)
+        assertThat(serviceHold(period, process, 1, hidden).finding.justification).isEqualTo(Justification.NONE)
+    }
+
+    private fun snapshot(kind: String, millis: Long, attribute: Pair<String, String>) = wakeRecord("$kind-$millis", kind, millis * 1_000_000, targetUid = null, targetPackage = null, attributes = mapOf(attribute))
+
+    private fun serviceHold(period: WakeHoldPeriod, process: WakeHoldProcess, types: Int, vararg records: WakeRecord): Detected {
+        val service = wakeRecord("enter", "ForegroundServiceStateChanged", 0, component = "$TARGET/.Service", attributes = mapOf("state" to "1", "fgs_types" to types.toString()))
+        val exit = service.copy(id = "exit", elapsedNanos = (period.endMillis - WALL) * 1_000_000, wallMillis = period.endMillis, attributes = """{"state":"2"}""")
+        return WakeDetection.detect(evidence(listOf(service, exit, *records), periods = listOf(period), processes = listOf(process)), ZoneOffset.UTC)
+            .single { it.finding.hold == HoldCause.FOREGROUND_SERVICE }
     }
 
     @Test fun givenPeriodCrossingMidnight_whenDetecting_thenEachDayGetsItsShareOfTheHold() {

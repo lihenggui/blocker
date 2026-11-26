@@ -44,6 +44,8 @@ internal enum class WakeCommand(val args: List<String>) {
     PROVIDERS(listOf("dumpsys", "-t", "5", "activity", "providers")),
     PROCESSES(listOf("dumpsys", "-t", "5", "activity", "oom")),
     NOTIFICATIONS(listOf("dumpsys", "-t", "5", "notification")),
+    OVERLAYS(listOf("dumpsys", "-t", "5", "window", "windows")),
+    AUDIO(listOf("dumpsys", "-t", "5", "audio")),
     USERS(listOf("pm", "list", "users")),
     PACKAGES(listOf("pm", "list", "packages", "-f", "-U", "--show-versioncode", "--user")),
     INTENTS(listOf("dumpsys", "-t", "5", "activity", "intents")),

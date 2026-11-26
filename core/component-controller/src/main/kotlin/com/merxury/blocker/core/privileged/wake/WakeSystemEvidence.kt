@@ -4,11 +4,16 @@
 package com.merxury.blocker.core.privileged.wake
 
 import com.merxury.blocker.core.model.component.UIDS_PER_USER
+import com.merxury.blocker.core.model.component.isRegularAppUid
 import com.merxury.blocker.core.model.wake.WakeObservation
 import java.math.BigDecimal
 
 /** One snapshot of the apps that may not show notifications: attribute "apps" lists them as `package/uid`. */
 const val WAKE_NOTIFICATIONS_OFF = "NotificationsOff"
+
+/** Snapshots of visible overlay packages and app UIDs with started, unmuted audio tracks. */
+const val WAKE_OVERLAY_WINDOWS = "OverlayWindow"
+const val WAKE_AUDIO_PLAYBACK = "AudioPlayback"
 
 internal object WakeSystemEvidence {
     private val logLine = Regex("""^\s*(\d+\.\d+)\s+(?:1000|system)\s+\d+\s+\d+\s+I\s+(am_proc_start|am_proc_died|am_kill|am_schedule_service_restart)\s*:\s*\[(.*)]\s*$""")
@@ -193,6 +198,8 @@ internal object WakeSystemEvidence {
             WakeCommand.SERVICES, WakeCommand.PROVIDERS -> heldConnections(source, output, now)
             WakeCommand.PROCESSES -> processImportance(lines, now)
             WakeCommand.NOTIFICATIONS -> notificationsOff(lines, now, sdk)
+            WakeCommand.OVERLAYS -> overlayWindows(output, now)
+            WakeCommand.AUDIO -> audioPlayback(output, now)
             WakeCommand.WIDGETS -> widgetProviders(lines, now)
             WakeCommand.ROLES -> roleHolders(lines, now, profile)
             WakeCommand.INPUT, WakeCommand.LISTENERS, WakeCommand.ACCESSIBILITY, WakeCommand.VPN -> systemBindings(lines, now, source, profile)
@@ -221,6 +228,89 @@ internal object WakeSystemEvidence {
         val allowed = settings.filter { it.groupValues[3].isNotEmpty() && it.groupValues[3] != "NONE" }.map { it.groupValues[2] }.toSet()
         val off = settings.filter { it.groupValues[3] == "NONE" || (sdk >= NOTIFICATION_PERMISSION_SDK && it.groupValues[3].isEmpty() && it.groupValues[2] !in allowed) }
         return listOf(WakeObservation(WAKE_NOTIFICATIONS_OFF, now, attributes = mapOf("apps" to off.joinToString(",") { "${it.groupValues[1]}/${it.groupValues[2]}" })))
+    }
+
+    private val windowHeader = Regex("""^Window #\d+ Window\{\S+ u\d+ (.*)\}:$""")
+    private val overlayType = Regex("""(?:^|[\s{])ty=(?:TYPE_)?(?:APPLICATION_OVERLAY|SYSTEM_ALERT|SYSTEM_OVERLAY|PHONE|2038|2003|2006|2002)(?=$|[\s}])""")
+    private val ownerUid = Regex("""\bmOwnerUid=(\d+)\b""")
+    private val ownerPackage = Regex("""(?:^|\s)(?:ownerPackageName|package)=([a-zA-Z][\w]*(?:\.[\w]+)*)(?=$|[\s}])""")
+    private val packageTitle = Regex("""([a-zA-Z][\w]*(?:\.[\w]+)+)(?:/[\w.$]+)?""")
+    private val hiddenWindow = Regex("""\b(?:mHasSurface=false|mViewVisibility=(?!0x0\b)0x[0-9a-fA-F]+|isVisible=false|isOnScreen=false)\b""")
+    private val windowSurface = Regex("""\bmHasSurface=true\b""")
+    private val windowViewVisible = Regex("""\bmViewVisibility=0x0\b""")
+    private val windowVisible = Regex("""\b(?:isVisible|isOnScreen)=true\b""")
+
+    private fun overlayWindows(output: String, now: Long): List<WakeObservation> {
+        val packages = sortedSetOf<String>()
+        var window: MatchResult? = null
+        var indent = 0
+        var foundWindow = false
+        val fields = StringBuilder()
+        fun finishWindow() {
+            val title = window?.groupValues?.get(1) ?: return
+            if (overlayType.containsMatchIn(fields) && !hiddenWindow.containsMatchIn(fields) &&
+                (windowSurface.containsMatchIn(fields) || (windowViewVisible.containsMatchIn(fields) && windowVisible.containsMatchIn(fields)))
+            ) {
+                // Window titles are app-provided. Prefer the package reported by WindowManager.
+                val pkg = ownerPackage.find(fields)?.groupValues?.get(1) ?: packageTitle.matchEntire(title)?.groupValues?.get(1)
+                if (pkg != null) {
+                    val uid = ownerUid.find(fields)?.groupValues?.get(1)?.toIntOrNull()
+                    packages += if (uid != null) "$pkg/$uid" else pkg
+                }
+            }
+            window = null
+            fields.clear()
+        }
+        for (line in output.lineSequence()) {
+            val text = line.trim()
+            if (text.isEmpty()) continue
+            val lineIndent = line.indexOfFirst { !it.isWhitespace() }
+            val header = windowHeader.matchEntire(text)
+            if (header != null || lineIndent <= indent) finishWindow()
+            if (header != null) {
+                window = header
+                indent = lineIndent
+                foundWindow = true
+            } else if (window != null) {
+                fields.appendLine(text)
+            }
+        }
+        finishWindow()
+        return if (foundWindow) listOf(WakeObservation(WAKE_OVERLAY_WINDOWS, now, attributes = mapOf("packages" to packages.joinToString(",")))) else emptyList()
+    }
+
+    private val audioPlayer = Regex("""^(?:\(not logged\)\s*)?(?:AudioPlaybackConfiguration\s+piid:|ID:\d+\b)""")
+    private val audioState = Regex("""(?:^|\s)state:(\w+)\b""")
+    private val audioUid = Regex("""(?:^|\s)u/pid:(\d+)/\d+\b""")
+    private val mutedAudio = Regex("""(?:^|\s)(?:muted:true\b|mutedState:(?!none\b|0\b)\w+|(?:vol|volume):0(?:\.0+)?(?=$|\s))""")
+
+    private fun audioPlayback(output: String, now: Long): List<WakeObservation> {
+        val active = sortedSetOf<Int>()
+        var playersIndent: Int? = null
+        for (line in output.lineSequence()) {
+            val text = line.trim()
+            if (playersIndent == null) {
+                if (text == "players:") playersIndent = line.indexOfFirst { !it.isWhitespace() }
+                continue
+            }
+            if (!audioPlayer.containsMatchIn(text)) {
+                // A peer section header ends the player inventory.
+                if (text.isEmpty() || (
+                        ':' in text && line.indexOfFirst { !it.isWhitespace() } <= playersIndent &&
+                            !text.startsWith("ID:") && !text.startsWith("AudioPlaybackConfiguration") &&
+                            !text.startsWith("(not logged)") && "state:" !in text && "u/pid:" !in text
+                        )
+                ) {
+                    break
+                }
+                return emptyList()
+            }
+            val state = audioState.find(text)?.groupValues?.get(1) ?: return emptyList()
+            if (state != "started") continue
+            val uid = audioUid.find(text)?.groupValues?.get(1)?.toIntOrNull() ?: return emptyList()
+            if (isRegularAppUid(uid) && !mutedAudio.containsMatchIn(text)) active += uid
+        }
+        return if (playersIndent != null) listOf(WakeObservation(WAKE_AUDIO_PLAYBACK, now, attributes = mapOf("uids" to active.joinToString(",")))) else emptyList()
     }
 
     private fun processImportance(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
