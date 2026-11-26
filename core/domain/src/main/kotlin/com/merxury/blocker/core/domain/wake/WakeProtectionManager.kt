@@ -40,7 +40,7 @@ class WakeProtectionManager @Inject constructor(
             val now = System.currentTimeMillis()
             try {
                 if (!repository.isOwnerProfile) {
-                    repository.reportStatus(WakeSourceStatus("protection", now, "OWNER_PROFILE_REQUIRED"))
+                    repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, "OWNER_PROFILE_REQUIRED"))
                     return@withLock true
                 }
                 // The channel the user chose reads as any identity; it is the only way in.
@@ -59,20 +59,20 @@ class WakeProtectionManager @Inject constructor(
                 detect(now)
                 if (capture.everyReadRefused) {
                     // Shizuku before 13 refuses the calls reads need; retrying cannot change that.
-                    repository.reportStatus(WakeSourceStatus("protection", now, "OBSERVING_NOTHING_READS_REFUSED"))
+                    repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, READS_REFUSED_STATUS))
                     return@withLock true
                 }
                 if (capture.profiles.isEmpty()) {
-                    repository.reportStatus(WakeSourceStatus("protection", now, "PROFILE_SCOPE_UNAVAILABLE"))
+                    repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, "PROFILE_SCOPE_UNAVAILABLE"))
                     return@withLock false
                 }
                 val status = protection.applyReviewedPaths(capture, writes, now)
-                repository.reportStatus(WakeSourceStatus("protection", now, status))
+                repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, status))
                 // A capture the channel could not finish runs again soon instead of in half an hour.
                 !capture.channelUnavailable
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                repository.reportStatus(WakeSourceStatus("protection", now, e.message ?: e.javaClass.simpleName))
+                repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, e.message ?: e.javaClass.simpleName))
                 false
             }
         }
@@ -101,13 +101,18 @@ class WakeProtectionManager @Inject constructor(
             val since = WakeDetection.dayStartMillis(window.from, zone) - WakeRevives.KILL_WINDOW / 1_000_000
             val detected = WakeDetection.detect(repository.detectionEvidence(since, now), zone)
             repository.saveDetection(window.from, window.through, WakeDetection.daily(detected, zone), WakeDetection.verdicts(detected, zone), window.firstKeptDay)
-            repository.reportStatus(WakeSourceStatus("detection", now, "OK"))
+            repository.reportStatus(WakeSourceStatus(DETECTION_SOURCE, now, DETECTION_OK_STATUS))
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            repository.reportStatus(WakeSourceStatus("detection", now, e.message ?: e.javaClass.simpleName))
+            repository.reportStatus(WakeSourceStatus(DETECTION_SOURCE, now, e.message ?: e.javaClass.simpleName))
         }
     }
 }
+
+internal const val PROTECTION_SOURCE = "protection"
+internal const val READS_REFUSED_STATUS = "OBSERVING_NOTHING_READS_REFUSED"
+internal const val DETECTION_SOURCE = "detection"
+internal const val DETECTION_OK_STATUS = "OK"
 
 @Module
 @InstallIn(SingletonComponent::class)

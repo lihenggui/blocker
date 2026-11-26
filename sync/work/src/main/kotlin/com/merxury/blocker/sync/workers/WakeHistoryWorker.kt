@@ -15,7 +15,9 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.data.wake.WakeAuthorizationRepository
 import com.merxury.blocker.core.data.wake.WakeRunRequester
@@ -25,6 +27,9 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -51,9 +56,14 @@ class WakeWork @Inject constructor(
     private val authorization: WakeAuthorizationRepository,
     @param:ApplicationScope private val scope: CoroutineScope,
 ) : WakeRunRequester {
+    override val isRunning: Flow<Boolean>
+        get() = WorkManager.getInstance(context).getWorkInfosFlow(activeOneTimeWork)
+            .map { it.isNotEmpty() }
+            .distinctUntilChanged()
+
     override fun requestRun() {
         // A collector may already have read the old overrides or be waiting to retry.
-        enqueue(context, ExistingWorkPolicy.REPLACE, "wake-history-requested")
+        enqueue(context, ExistingWorkPolicy.REPLACE, REQUESTED_WORK)
     }
 
     fun initialize() {
@@ -83,10 +93,18 @@ class WakeWork @Inject constructor(
     }
 
     companion object {
+        private const val UPDATE_WORK = "wake-history-update"
+        private const val REQUESTED_WORK = "wake-history-requested"
+        internal const val PACKAGE_CHANGE_WORK = "wake-history-package-change"
+        private val activeOneTimeWork = WorkQuery.Builder
+            .fromUniqueWorkNames(listOf(UPDATE_WORK, REQUESTED_WORK, PACKAGE_CHANGE_WORK))
+            .addStates(listOf(WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING))
+            .build()
+
         internal fun enqueue(
             context: Context,
             policy: ExistingWorkPolicy = ExistingWorkPolicy.KEEP,
-            name: String = "wake-history-update",
+            name: String = UPDATE_WORK,
         ) = WorkManager.getInstance(context).enqueueUniqueWork(
             name,
             policy,
@@ -105,7 +123,7 @@ class WakePackagesChangedReceiver : BroadcastReceiver() {
                 val pending = goAsync()
                 try {
                     // A package update must run even if the regular collector is backing off.
-                    WakeWork.enqueue(context, ExistingWorkPolicy.REPLACE, "wake-history-package-change").result.addListener(pending::finish, Runnable::run)
+                    WakeWork.enqueue(context, ExistingWorkPolicy.REPLACE, WakeWork.PACKAGE_CHANGE_WORK).result.addListener(pending::finish, Runnable::run)
                 } catch (e: RuntimeException) {
                     pending.finish()
                     throw e

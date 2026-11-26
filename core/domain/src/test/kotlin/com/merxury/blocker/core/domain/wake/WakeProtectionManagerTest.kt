@@ -269,6 +269,7 @@ class WakeProtectionManagerTest {
         authorizedWith(path.copy(configured = true))
         whenever(repository.isOwnerProfile).thenReturn(false)
         assertThat(manager.reconcile()).isTrue()
+        verify(repository).reportStatus(argThat { source == "protection" && status == "OWNER_PROFILE_REQUIRED" })
         verify(repository, never()).collect(any(), any())
         verifyNoInteractions(rules, components)
     }

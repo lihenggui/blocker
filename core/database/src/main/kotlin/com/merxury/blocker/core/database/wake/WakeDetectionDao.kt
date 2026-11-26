@@ -243,6 +243,9 @@ abstract class WakeDetectionDao {
         expireVerdicts(firstKeptDay)
     }
 
+    @Query("SELECT EXISTS(SELECT 1 FROM WakeFinding)")
+    abstract fun hasFindings(): Flow<Boolean>
+
     @Query("SELECT * FROM WakeFinding WHERE day >= :fromDay AND (target = :packageName OR actor = :packageName) ORDER BY day DESC, count DESC, pathKey")
     abstract fun findingsInvolving(packageName: String, fromDay: Long): Flow<List<WakeFindingDay>>
 

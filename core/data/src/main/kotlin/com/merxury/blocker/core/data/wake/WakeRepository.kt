@@ -117,6 +117,8 @@ class WakeRepository @Inject constructor(
 
     suspend fun reportStatus(status: WakeSourceStatus) = history.status(status)
 
+    fun statuses(): Flow<List<WakeSourceStatus>> = history.statuses()
+
     fun retentionStart(now: Long) = now - WAKE_HISTORY_RETENTION_MILLIS
 
     suspend fun oldestRecord() = detection.oldestRecord()
@@ -134,6 +136,8 @@ class WakeRepository @Inject constructor(
     )
 
     suspend fun saveDetection(from: Long, through: Long, findings: List<WakeFindingDay>, verdicts: List<WakeVerdictDay>, firstKeptDay: Long) = detection.replaceDetection(from, through, findings, verdicts, firstKeptDay)
+
+    fun hasFindings(): Flow<Boolean> = detection.hasFindings()
 
     fun findingsInvolving(packageName: String, fromDay: Long): Flow<List<WakeFindingDay>> = detection.findingsInvolving(packageName, fromDay)
 
