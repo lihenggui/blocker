@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,8 +47,12 @@ internal fun WakeAppRoute(
     onComponents: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val activity = LocalActivity.current
     DisposableEffect(viewModel, active) {
-        onDispose { if (active) viewModel.leaveScreen() }
+        onDispose {
+            // Recreating the activity for a configuration change does not leave the screen.
+            if (active && activity?.isChangingConfigurations != true) viewModel.leaveScreen()
+        }
     }
     WakeAppScreen(
         state = if (active) state else state.copy(notice = null),
