@@ -61,6 +61,8 @@ import androidx.navigation3.scene.NavigationBackHandler
 import androidx.navigation3.scene.rememberNavigationEventState
 import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.defaultPopTransitionSpec
+import androidx.navigation3.ui.defaultTransitionSpec
 import androidx.navigationevent.NavigationEventTransitionState.InProgress
 import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
@@ -87,6 +89,7 @@ import com.merxury.blocker.feature.search.impl.navigation.searchEntry
 import com.merxury.blocker.feature.wake.impl.navigation.wakeAppEntry
 import com.merxury.blocker.feature.wake.impl.navigation.wakeOverviewEntry
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
+import com.merxury.blocker.navigation.topLevelTransition
 
 @Composable
 fun BlockerApp(
@@ -177,8 +180,8 @@ internal fun BlockerApp(
     val navigationEventState = rememberNavigationEventState(sceneState)
     NavigationBackHandler(sceneState, navigationEventState, onBackCompleted = navigator::goBack)
     val previewingBack = navigationEventState.transitionState is InProgress
+    val roots = remember(entryProvider) { TOP_LEVEL_NAV_ITEMS.keys.associateBy { entryProvider(it).contentKey } }
     val previewRoot = if (previewingBack) {
-        val roots = TOP_LEVEL_NAV_ITEMS.keys.associateBy { entryProvider(it).contentKey }
         sceneState.currentScene.previousEntries.asReversed().firstNotNullOfOrNull { roots[it.contentKey] }
     } else {
         null
@@ -269,7 +272,12 @@ internal fun BlockerApp(
                         ),
                     ),
             ) {
-                NavDisplay(sceneState = sceneState, navigationEventState = navigationEventState)
+                NavDisplay(
+                    sceneState = sceneState,
+                    navigationEventState = navigationEventState,
+                    transitionSpec = { topLevelTransition(roots) ?: defaultTransitionSpec<NavKey>()(this) },
+                    popTransitionSpec = { topLevelTransition(roots) ?: defaultPopTransitionSpec<NavKey>()(this) },
+                )
             }
         }
 
