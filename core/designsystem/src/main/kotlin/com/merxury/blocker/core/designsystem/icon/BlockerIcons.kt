@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoFixHigh
+import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Check
@@ -52,12 +53,19 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.IosShare
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.PersonOff
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
+import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.ViewDay
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -117,6 +125,14 @@ object BlockerIcons {
     val MoreVert = Icons.Default.MoreVert
     val ShortText = Icons.AutoMirrored.Rounded.ShortText
     val ViewDay = Icons.Rounded.ViewDay
+    val Autorenew = Icons.Rounded.Autorenew
+    val Bedtime = Icons.Outlined.Bedtime
+    val Lock = Icons.Outlined.Lock
+    val PersonOff = Icons.Outlined.PersonOff
+    val RestartAlt = Icons.Rounded.RestartAlt
+    val SwapHoriz = Icons.Rounded.SwapHoriz
+    val Update = Icons.Rounded.Update
+    val VerifiedUser = Icons.Outlined.VerifiedUser
 }
 
 /**

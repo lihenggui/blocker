@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">النشاط في الخلفية</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="zero">لا توجد تطبيقات تبقي نفسها قيد التشغيل (%d)</item>
+        <item quantity="one">تطبيق واحد يبقي نفسه قيد التشغيل (%d)</item>
+        <item quantity="two">تطبيقان يبقيان نفسيهما قيد التشغيل (%d)</item>
+        <item quantity="few">%d تطبيقات تبقي نفسها قيد التشغيل</item>
+        <item quantity="many">%d تطبيقًا يبقي نفسه قيد التشغيل</item>
+        <item quantity="other">%d تطبيق يبقي نفسه قيد التشغيل</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="zero">لا توجد تطبيقات أخرى تستدعي الانتباه (%d)</item>
+        <item quantity="one">تطبيق آخر يستدعي الانتباه (%d)</item>
+        <item quantity="two">تطبيقان آخران يستدعيان الانتباه (%d)</item>
+        <item quantity="few">%d تطبيقات أخرى تستدعي الانتباه</item>
+        <item quantity="many">%d تطبيقًا آخر يستدعي الانتباه</item>
+        <item quantity="other">%d تطبيق آخر يستدعي الانتباه</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">يدير النظام جميع التطبيقات</string>
+    <string name="feature_wake_api_none_found">لم يُرصد سلوك يبقي التطبيقات قيد التشغيل</string>
+    <string name="feature_wake_api_section_keep_alive">تبقي نفسها قيد التشغيل</string>
+    <string name="feature_wake_api_section_attention">تستدعي الانتباه</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="zero">%d مرة</item>
+        <item quantity="one">مرة واحدة (%d)</item>
+        <item quantity="two">مرتين (%d)</item>
+        <item quantity="few">%d مرات</item>
+        <item quantity="many">%d مرة</item>
+        <item quantity="other">%d مرة</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="zero">أُعيد تشغيله %d مرة بعد إغلاقه</item>
+        <item quantity="one">أُعيد تشغيله مرة واحدة بعد إغلاقه (%d)</item>
+        <item quantity="two">أُعيد تشغيله مرتين بعد إغلاقه (%d)</item>
+        <item quantity="few">أُعيد تشغيله %d مرات بعد إغلاقه</item>
+        <item quantity="many">أُعيد تشغيله %d مرة بعد إغلاقه</item>
+        <item quantity="other">أُعيد تشغيله %d مرة بعد إغلاقه</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="zero">شغّل %d تطبيق آخر</item>
+        <item quantity="one">شغّل تطبيقًا آخر (%d)</item>
+        <item quantity="two">شغّل تطبيقين آخرين (%d)</item>
+        <item quantity="few">شغّل %d تطبيقات أخرى</item>
+        <item quantity="many">شغّل %d تطبيقًا آخر</item>
+        <item quantity="other">شغّل %d تطبيق آخر</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="zero">شُغّل %2$s بواسطة %1$d تطبيق</item>
+        <item quantity="one">شُغّل %2$s بواسطة تطبيق واحد (%1$d)</item>
+        <item quantity="two">شُغّل %2$s بواسطة تطبيقين (%1$d)</item>
+        <item quantity="few">شُغّل %2$s بواسطة %1$d تطبيقات</item>
+        <item quantity="many">شُغّل %2$s بواسطة %1$d تطبيقًا</item>
+        <item quantity="other">شُغّل %2$s بواسطة %1$d تطبيق</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">عمل لمدة %s والشاشة مطفأة</string>
+    <string name="feature_wake_api_reason_boot">يبدأ عند تشغيل الجهاز</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="zero">بدأ %d مرة بإشارة من النظام</item>
+        <item quantity="one">بدأ مرة واحدة بإشارة من النظام (%d)</item>
+        <item quantity="two">بدأ مرتين بإشارتين من النظام (%d)</item>
+        <item quantity="few">بدأ %d مرات بإشارات من النظام</item>
+        <item quantity="many">بدأ %d مرة بإشارات من النظام</item>
+        <item quantity="other">بدأ %d مرة بإشارات من النظام</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="zero">استيقظ %d مرة بمؤقت</item>
+        <item quantity="one">استيقظ مرة واحدة بمؤقت (%d)</item>
+        <item quantity="two">استيقظ مرتين بمؤقت (%d)</item>
+        <item quantity="few">استيقظ %d مرات بمؤقت</item>
+        <item quantity="many">استيقظ %d مرة بمؤقت</item>
+        <item quantity="other">استيقظ %d مرة بمؤقت</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="zero">بدأ في الخلفية %d مرة</item>
+        <item quantity="one">بدأ في الخلفية مرة واحدة (%d)</item>
+        <item quantity="two">بدأ في الخلفية مرتين (%d)</item>
+        <item quantity="few">بدأ في الخلفية %d مرات</item>
+        <item quantity="many">بدأ في الخلفية %d مرة</item>
+        <item quantity="other">بدأ في الخلفية %d مرة</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="zero">لم تُحظر أي طريقة معروفة لإبقاء التطبيقات قيد التشغيل (%d)</item>
+        <item quantity="one">حُظرت تلقائيًا طريقة معروفة لإبقاء التطبيقات قيد التشغيل (%d)</item>
+        <item quantity="two">حُظرت تلقائيًا طريقتان معروفتان لإبقاء التطبيقات قيد التشغيل (%d)</item>
+        <item quantity="few">حُظرت تلقائيًا %d طرق معروفة لإبقاء التطبيقات قيد التشغيل</item>
+        <item quantity="many">حُظرت تلقائيًا %d طريقة معروفة لإبقاء التطبيقات قيد التشغيل</item>
+        <item quantity="other">حُظرت تلقائيًا %d طريقة معروفة لإبقاء التطبيقات قيد التشغيل</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="zero">لا توجد تطبيقات أخرى (%d)</item>
+        <item quantity="one">لم يُرصد نشاط غير معتاد في التطبيق الآخر (%d)</item>
+        <item quantity="two">لم يُرصد نشاط غير معتاد في التطبيقين الآخرين (%d)</item>
+        <item quantity="few">لم يُرصد نشاط غير معتاد في %d تطبيقات أخرى</item>
+        <item quantity="many">لم يُرصد نشاط غير معتاد في %d تطبيقًا آخر</item>
+        <item quantity="other">لم يُرصد نشاط غير معتاد في %d تطبيق آخر</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">التحقق الآن</string>
+    <string name="feature_wake_api_checking">جارٍ التحقق</string>
+    <string name="feature_wake_api_needs_access">يلزم الوصول بصلاحية الروت أو Shizuku</string>
+    <string name="feature_wake_api_owner_only">النشاط في الخلفية متاح فقط في ملف المالك</string>
+    <string name="feature_wake_api_update_shizuku">حدّث Shizuku إلى الإصدار 13 أو أحدث</string>
+    <string name="feature_wake_api_collecting_title">جارٍ قراءة سجلات الخلفية</string>
+    <string name="feature_wake_api_collecting_body">تظهر النتائج الأولى بعد نحو 30 دقيقة.</string>
+    <string name="feature_wake_api_looks_for">يبحث Blocker عن</string>
+    <string name="feature_wake_api_looks_for_restart">التطبيقات التي تُعيد تشغيل نفسها بعد إغلاقها</string>
+    <string name="feature_wake_api_looks_for_each_other">التطبيقات التي تشغّل بعضها بعضًا</string>
+    <string name="feature_wake_api_looks_for_screen_off">التطبيقات التي تواصل العمل عند إطفاء الشاشة</string>
+</resources>

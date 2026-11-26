@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">背景活動</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="other">%d 個應用會持續執行</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="other">另有 %d 個應用需要留意</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">所有應用均由系統管理</string>
+    <string name="feature_wake_api_none_found">未發現持續執行的行為</string>
+    <string name="feature_wake_api_section_keep_alive">會持續執行</string>
+    <string name="feature_wake_api_section_attention">需要留意</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="other">%d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="other">關閉後重新啟動 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="other">喚醒了 %d 個應用</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="other">被 %1$d 個應用喚醒 %2$s</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">螢幕關閉後執行了 %s</string>
+    <string name="feature_wake_api_reason_boot">開機時啟動</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="other">收到系統廣播後啟動 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="other">定時喚醒 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="other">在背景啟動 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="other">已自動阻止 %d 種已知的持續執行方式</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="other">其餘 %d 個應用未發現異常</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">立即檢查</string>
+    <string name="feature_wake_api_checking">正在檢查</string>
+    <string name="feature_wake_api_needs_access">需要 Root 或 Shizuku 權限</string>
+    <string name="feature_wake_api_owner_only">背景活動僅適用於主要使用者</string>
+    <string name="feature_wake_api_update_shizuku">請將 Shizuku 更新至第 13 版或更新版本</string>
+    <string name="feature_wake_api_collecting_title">正在讀取背景活動記錄</string>
+    <string name="feature_wake_api_collecting_body">首次結果約在 30 分鐘後顯示。</string>
+    <string name="feature_wake_api_looks_for">Blocker 會找出</string>
+    <string name="feature_wake_api_looks_for_restart">關閉後重新啟動的應用</string>
+    <string name="feature_wake_api_looks_for_each_other">互相喚醒的應用</string>
+    <string name="feature_wake_api_looks_for_screen_off">螢幕關閉後持續執行的應用</string>
+</resources>

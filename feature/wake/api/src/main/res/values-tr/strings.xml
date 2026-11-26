@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">Arka plan etkinliği</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="one">%d uygulama çalışmayı sürdürüyor</item>
+        <item quantity="other">%d uygulama çalışmayı sürdürüyor</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="one">%d uygulama daha dikkat gerektiriyor</item>
+        <item quantity="other">%d uygulama daha dikkat gerektiriyor</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">Tüm uygulamaları sistem yönetiyor</string>
+    <string name="feature_wake_api_none_found">Çalışmayı sürdüren uygulama bulunmadı</string>
+    <string name="feature_wake_api_section_keep_alive">Çalışmayı sürdürüyor</string>
+    <string name="feature_wake_api_section_attention">Dikkat gerektiriyor</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="one">%d kez</item>
+        <item quantity="other">%d kez</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="one">Kapatıldıktan sonra %d kez yeniden başladı</item>
+        <item quantity="other">Kapatıldıktan sonra %d kez yeniden başladı</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="one">%d başka uygulamayı başlattı</item>
+        <item quantity="other">%d başka uygulamayı başlattı</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="one">%1$d uygulama tarafından %2$s başlatıldı</item>
+        <item quantity="other">%1$d uygulama tarafından %2$s başlatıldı</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">Ekran kapalıyken %s çalıştı</string>
+    <string name="feature_wake_api_reason_boot">Cihaz açılırken başlıyor</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="one">Sistem yayınıyla %d kez başladı</item>
+        <item quantity="other">Sistem yayınıyla %d kez başladı</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="one">Zamanlayıcıyla %d kez uyandı</item>
+        <item quantity="other">Zamanlayıcıyla %d kez uyandı</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="one">Arka planda %d kez başladı</item>
+        <item quantity="other">Arka planda %d kez başladı</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="one">Bilinen %d çalışmayı sürdürme yöntemi otomatik olarak engellendi</item>
+        <item quantity="other">Bilinen %d çalışmayı sürdürme yöntemi otomatik olarak engellendi</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="one">Diğer %d uygulamada olağan dışı etkinlik bulunmadı</item>
+        <item quantity="other">Diğer %d uygulamada olağan dışı etkinlik bulunmadı</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">Şimdi denetle</string>
+    <string name="feature_wake_api_checking">Denetleniyor</string>
+    <string name="feature_wake_api_needs_access">Root veya Shizuku erişimi gerekli</string>
+    <string name="feature_wake_api_owner_only">Arka plan etkinliği yalnızca sahip profilinde kullanılabilir</string>
+    <string name="feature_wake_api_update_shizuku">Shizuku’yu 13 veya daha yeni bir sürüme güncelleyin</string>
+    <string name="feature_wake_api_collecting_title">Arka plan kayıtları okunuyor</string>
+    <string name="feature_wake_api_collecting_body">İlk sonuçlar yaklaşık 30 dakika içinde görünür.</string>
+    <string name="feature_wake_api_looks_for">Blocker şunları arar</string>
+    <string name="feature_wake_api_looks_for_restart">Kapatıldıktan sonra yeniden başlayan uygulamalar</string>
+    <string name="feature_wake_api_looks_for_each_other">Birbirini başlatan uygulamalar</string>
+    <string name="feature_wake_api_looks_for_screen_off">Ekran kapalıyken çalışmayı sürdüren uygulamalar</string>
+</resources>

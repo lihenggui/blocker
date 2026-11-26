@@ -38,6 +38,9 @@ import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
+import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository
+import com.merxury.blocker.core.data.wake.WakeBlockRepository
+import com.merxury.blocker.core.data.wake.WakeReceiverResolver
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.manifest.AndroidManifest
@@ -47,6 +50,8 @@ import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserReposito
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
+import com.merxury.blocker.core.testing.repository.wake.FakeAutomaticWakeBlockRepository
+import com.merxury.blocker.core.testing.repository.wake.FakeWakeBlockRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -115,6 +120,17 @@ internal interface TestDataModule {
         @Provides
         @Singleton
         fun catalogRepository(): CatalogRepository = TestCatalogRepository()
+
+        @Provides
+        @Singleton
+        fun wakeBlockRepository(): WakeBlockRepository = FakeWakeBlockRepository()
+
+        @Provides
+        @Singleton
+        fun automaticWakeBlockRepository(): AutomaticWakeBlockRepository = FakeAutomaticWakeBlockRepository()
+
+        @Provides
+        fun wakeReceiverResolver(): WakeReceiverResolver = WakeReceiverResolver { _, _ -> emptyList() }
 
         @Provides
         fun debloaterMetadataRepository(): DebloaterMetadataRepository = object : DebloaterMetadataRepository {

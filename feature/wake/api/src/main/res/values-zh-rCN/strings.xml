@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">后台活动</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="other">%d 个应用存在保活行为</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="other">另有 %d 个应用需要留意</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">所有应用均由系统管理</string>
+    <string name="feature_wake_api_none_found">未发现保活行为</string>
+    <string name="feature_wake_api_section_keep_alive">存在保活行为</string>
+    <string name="feature_wake_api_section_attention">需要留意</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="other">%d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="other">关闭后重新启动 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="other">唤醒了 %d 个应用</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="other">被 %1$d 个应用唤醒 %2$s</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">熄屏后运行 %s</string>
+    <string name="feature_wake_api_reason_boot">开机时启动</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="other">收到系统广播后启动 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="other">定时唤醒 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="other">后台启动 %d 次</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="other">已自动阻止 %d 种已知保活方式</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="other">其余 %d 个应用未发现异常</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">立即检测</string>
+    <string name="feature_wake_api_checking">正在检测</string>
+    <string name="feature_wake_api_needs_access">需要 Root 或 Shizuku 权限</string>
+    <string name="feature_wake_api_owner_only">后台活动仅在主用户中可用</string>
+    <string name="feature_wake_api_update_shizuku">请将 Shizuku 更新到 13 或更高版本</string>
+    <string name="feature_wake_api_collecting_title">正在读取后台记录</string>
+    <string name="feature_wake_api_collecting_body">首次结果约在 30 分钟后显示。</string>
+    <string name="feature_wake_api_looks_for">Blocker 会找出</string>
+    <string name="feature_wake_api_looks_for_restart">关闭后重新启动</string>
+    <string name="feature_wake_api_looks_for_each_other">应用之间互相唤醒</string>
+    <string name="feature_wake_api_looks_for_screen_off">熄屏后持续运行</string>
+</resources>

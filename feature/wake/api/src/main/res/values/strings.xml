@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">Background activity</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="one">%d app keeps itself running</item>
+        <item quantity="other">%d apps keep themselves running</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="one">%d more app needs attention</item>
+        <item quantity="other">%d more apps need attention</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">The system manages all apps</string>
+    <string name="feature_wake_api_none_found">No keep-alive behavior found</string>
+    <string name="feature_wake_api_section_keep_alive">Keep themselves running</string>
+    <string name="feature_wake_api_section_attention">Need attention</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="one">%d time</item>
+        <item quantity="other">%d times</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="one">Restarted %d time after being closed</item>
+        <item quantity="other">Restarted %d times after being closed</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="one">Started %d other app</item>
+        <item quantity="other">Started %d other apps</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="one">Started %2$s by %1$d app</item>
+        <item quantity="other">Started %2$s by %1$d apps</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">Ran for %s with the screen off</string>
+    <string name="feature_wake_api_reason_boot">Starts at boot</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="one">Started %d time by a system broadcast</item>
+        <item quantity="other">Started %d times by system broadcasts</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="one">Woke %d time on a timer</item>
+        <item quantity="other">Woke %d times on a timer</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="one">Started %d time in the background</item>
+        <item quantity="other">Started %d times in the background</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="one">%d known keep-alive method blocked automatically</item>
+        <item quantity="other">%d known keep-alive methods blocked automatically</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="one">No unusual activity in the other %d app</item>
+        <item quantity="other">No unusual activity in the other %d apps</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">Check now</string>
+    <string name="feature_wake_api_checking">Checking</string>
+    <string name="feature_wake_api_needs_access">Root or Shizuku access is required</string>
+    <string name="feature_wake_api_owner_only">Background activity is only available in the owner profile</string>
+    <string name="feature_wake_api_update_shizuku">Update Shizuku to version 13 or later</string>
+    <string name="feature_wake_api_collecting_title">Reading background records</string>
+    <string name="feature_wake_api_collecting_body">The first results appear in about 30 minutes.</string>
+    <string name="feature_wake_api_looks_for">Blocker looks for</string>
+    <string name="feature_wake_api_looks_for_restart">Apps that restart after being closed</string>
+    <string name="feature_wake_api_looks_for_each_other">Apps that start each other</string>
+    <string name="feature_wake_api_looks_for_screen_off">Apps that keep running with the screen off</string>
+</resources>

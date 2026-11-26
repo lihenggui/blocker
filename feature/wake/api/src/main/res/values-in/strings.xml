@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">Aktivitas latar belakang</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="other">%d aplikasi mempertahankan prosesnya tetap berjalan</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="other">%d aplikasi lainnya perlu diperhatikan</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">Sistem mengelola semua aplikasi</string>
+    <string name="feature_wake_api_none_found">Tidak ditemukan aplikasi yang mempertahankan prosesnya</string>
+    <string name="feature_wake_api_section_keep_alive">Tetap berjalan</string>
+    <string name="feature_wake_api_section_attention">Perlu diperhatikan</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="other">%d kali</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="other">Dimulai ulang %d kali setelah ditutup</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="other">Memulai %d aplikasi lain</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="other">Dimulai %2$s oleh %1$d aplikasi</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">Berjalan selama %s saat layar mati</string>
+    <string name="feature_wake_api_reason_boot">Dimulai saat perangkat dinyalakan</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="other">Dimulai %d kali oleh siaran sistem</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="other">Terbangun %d kali oleh pewaktu</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="other">Dimulai %d kali di latar belakang</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="other">%d cara yang diketahui untuk tetap berjalan diblokir secara otomatis</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="other">Tidak ada aktivitas tidak biasa di %d aplikasi lainnya</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">Periksa sekarang</string>
+    <string name="feature_wake_api_checking">Sedang memeriksa</string>
+    <string name="feature_wake_api_needs_access">Akses root atau Shizuku diperlukan</string>
+    <string name="feature_wake_api_owner_only">Aktivitas latar belakang hanya tersedia di profil pemilik</string>
+    <string name="feature_wake_api_update_shizuku">Perbarui Shizuku ke versi 13 atau yang lebih baru</string>
+    <string name="feature_wake_api_collecting_title">Membaca catatan latar belakang</string>
+    <string name="feature_wake_api_collecting_body">Hasil pertama muncul dalam sekitar 30 menit.</string>
+    <string name="feature_wake_api_looks_for">Blocker mencari</string>
+    <string name="feature_wake_api_looks_for_restart">Aplikasi yang dimulai ulang setelah ditutup</string>
+    <string name="feature_wake_api_looks_for_each_other">Aplikasi yang saling memulai</string>
+    <string name="feature_wake_api_looks_for_screen_off">Aplikasi yang tetap berjalan saat layar mati</string>
+</resources>

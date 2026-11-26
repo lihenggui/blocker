@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">Фоновая активность</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="one">%d приложение поддерживает свою работу</item>
+        <item quantity="few">%d приложения поддерживают свою работу</item>
+        <item quantity="many">%d приложений поддерживают свою работу</item>
+        <item quantity="other">%d приложения поддерживают свою работу</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="one">Ещё %d приложение требует внимания</item>
+        <item quantity="few">Ещё %d приложения требуют внимания</item>
+        <item quantity="many">Ещё %d приложений требуют внимания</item>
+        <item quantity="other">Ещё %d приложения требуют внимания</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">Система управляет всеми приложениями</string>
+    <string name="feature_wake_api_none_found">Приложений с постоянной фоновой активностью не найдено</string>
+    <string name="feature_wake_api_section_keep_alive">Поддерживают свою работу</string>
+    <string name="feature_wake_api_section_attention">Требуют внимания</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="one">%d раз</item>
+        <item quantity="few">%d раза</item>
+        <item quantity="many">%d раз</item>
+        <item quantity="other">%d раза</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="one">Перезапустилось %d раз после закрытия</item>
+        <item quantity="few">Перезапустилось %d раза после закрытия</item>
+        <item quantity="many">Перезапустилось %d раз после закрытия</item>
+        <item quantity="other">Перезапустилось %d раза после закрытия</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="one">Запустило %d другое приложение</item>
+        <item quantity="few">Запустило %d других приложения</item>
+        <item quantity="many">Запустило %d других приложений</item>
+        <item quantity="other">Запустило %d другого приложения</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="one">Запущено %2$s другим приложением (%1$d)</item>
+        <item quantity="few">Запущено %2$s %1$d другими приложениями</item>
+        <item quantity="many">Запущено %2$s %1$d другими приложениями</item>
+        <item quantity="other">Запущено %2$s %1$d другими приложениями</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">Работало %s с выключенным экраном</string>
+    <string name="feature_wake_api_reason_boot">Запускается при включении устройства</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="one">Запустилось %d раз по сигналу системы</item>
+        <item quantity="few">Запустилось %d раза по сигналам системы</item>
+        <item quantity="many">Запустилось %d раз по сигналам системы</item>
+        <item quantity="other">Запустилось %d раза по сигналам системы</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="one">Активировалось %d раз по таймеру</item>
+        <item quantity="few">Активировалось %d раза по таймеру</item>
+        <item quantity="many">Активировалось %d раз по таймеру</item>
+        <item quantity="other">Активировалось %d раза по таймеру</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="one">Запустилось %d раз в фоне</item>
+        <item quantity="few">Запустилось %d раза в фоне</item>
+        <item quantity="many">Запустилось %d раз в фоне</item>
+        <item quantity="other">Запустилось %d раза в фоне</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="one">Автоматически заблокирован %d известный способ поддержания работы</item>
+        <item quantity="few">Автоматически заблокированы %d известных способа поддержания работы</item>
+        <item quantity="many">Автоматически заблокировано %d известных способов поддержания работы</item>
+        <item quantity="other">Автоматически заблокировано %d известного способа поддержания работы</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="one">В %d другом приложении необычной активности не обнаружено</item>
+        <item quantity="few">В %d других приложениях необычной активности не обнаружено</item>
+        <item quantity="many">В %d других приложениях необычной активности не обнаружено</item>
+        <item quantity="other">В %d других приложениях необычной активности не обнаружено</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">Проверить сейчас</string>
+    <string name="feature_wake_api_checking">Идёт проверка</string>
+    <string name="feature_wake_api_needs_access">Требуется root-доступ или Shizuku</string>
+    <string name="feature_wake_api_owner_only">Фоновая активность доступна только в профиле владельца</string>
+    <string name="feature_wake_api_update_shizuku">Обновите Shizuku до версии 13 или более поздней</string>
+    <string name="feature_wake_api_collecting_title">Чтение журнала фоновой активности</string>
+    <string name="feature_wake_api_collecting_body">Первые результаты появятся примерно через 30 минут.</string>
+    <string name="feature_wake_api_looks_for">Blocker ищет</string>
+    <string name="feature_wake_api_looks_for_restart">Приложения, которые перезапускаются после закрытия</string>
+    <string name="feature_wake_api_looks_for_each_other">Приложения, которые запускают друг друга</string>
+    <string name="feature_wake_api_looks_for_screen_off">Приложения, которые продолжают работать с выключенным экраном</string>
+</resources>

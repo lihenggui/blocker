@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">Activité en arrière-plan</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="one">%d application reste active</item>
+        <item quantity="many">%d applications restent actives</item>
+        <item quantity="other">%d applications restent actives</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="one">%d autre application nécessite une attention</item>
+        <item quantity="many">%d autres applications nécessitent une attention</item>
+        <item quantity="other">%d autres applications nécessitent une attention</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">Le système gère toutes les applications</string>
+    <string name="feature_wake_api_none_found">Aucun maintien en activité détecté</string>
+    <string name="feature_wake_api_section_keep_alive">Restent actives</string>
+    <string name="feature_wake_api_section_attention">Nécessitent une attention</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="one">%d fois</item>
+        <item quantity="many">%d fois</item>
+        <item quantity="other">%d fois</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="one">A redémarré %d fois après sa fermeture</item>
+        <item quantity="many">A redémarré %d fois après sa fermeture</item>
+        <item quantity="other">A redémarré %d fois après sa fermeture</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="one">A lancé %d autre application</item>
+        <item quantity="many">A lancé %d autres applications</item>
+        <item quantity="other">A lancé %d autres applications</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="one">Lancée %2$s par %1$d application</item>
+        <item quantity="many">Lancée %2$s par %1$d applications</item>
+        <item quantity="other">Lancée %2$s par %1$d applications</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">A fonctionné pendant %s avec l’écran éteint</string>
+    <string name="feature_wake_api_reason_boot">Se lance au démarrage</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="one">Lancée %d fois par un signal système</item>
+        <item quantity="many">Lancée %d fois par des signaux système</item>
+        <item quantity="other">Lancée %d fois par des signaux système</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="one">Réactivée %d fois par un minuteur</item>
+        <item quantity="many">Réactivée %d fois par un minuteur</item>
+        <item quantity="other">Réactivée %d fois par un minuteur</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="one">Lancée %d fois en arrière-plan</item>
+        <item quantity="many">Lancée %d fois en arrière-plan</item>
+        <item quantity="other">Lancée %d fois en arrière-plan</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="one">%d méthode connue de maintien en activité bloquée automatiquement</item>
+        <item quantity="many">%d méthodes connues de maintien en activité bloquées automatiquement</item>
+        <item quantity="other">%d méthodes connues de maintien en activité bloquées automatiquement</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="one">Aucune activité inhabituelle dans l’autre application (%d)</item>
+        <item quantity="many">Aucune activité inhabituelle dans les %d autres applications</item>
+        <item quantity="other">Aucune activité inhabituelle dans les %d autres applications</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">Vérifier maintenant</string>
+    <string name="feature_wake_api_checking">Vérification en cours</string>
+    <string name="feature_wake_api_needs_access">Un accès root ou Shizuku est requis</string>
+    <string name="feature_wake_api_owner_only">L’activité en arrière-plan est réservée au profil propriétaire</string>
+    <string name="feature_wake_api_update_shizuku">Installez la version 13 de Shizuku ou une version ultérieure</string>
+    <string name="feature_wake_api_collecting_title">Lecture des journaux d’activité en arrière-plan</string>
+    <string name="feature_wake_api_collecting_body">Les premiers résultats s’affichent après environ 30 minutes.</string>
+    <string name="feature_wake_api_looks_for">Blocker recherche</string>
+    <string name="feature_wake_api_looks_for_restart">Les applications qui redémarrent après leur fermeture</string>
+    <string name="feature_wake_api_looks_for_each_other">Les applications qui se lancent mutuellement</string>
+    <string name="feature_wake_api_looks_for_screen_off">Les applications qui restent actives avec l’écran éteint</string>
+</resources>
