@@ -26,12 +26,18 @@ internal data class StaticWakeDeclaration(
 internal object StaticWakeScanner {
     fun scan(manifest: AndroidManifest): List<StaticWakeDeclaration> {
         val packageName = manifest.packageName
+        val hasBootPermission = manifest.usesPermissions.any { it.name == RECEIVE_BOOT_COMPLETED }
+        val targetSdk = manifest.targetSdkVersion
+        val allowsPreOreoActions = targetSdk != null && targetSdk < 26
+        val allowsPreNougatActions = targetSdk != null && targetSdk < 24
         val receivers = manifest.application.receivers.mapNotNull { receiver ->
             val actions = receiver.intentFilters.flatMap { it.actions }
-            val boot = actions.firstOrNull(bootActions::contains)
+            val boot = actions.firstOrNull { it in otherBootActions || (hasBootPermission && it in permissionGatedBootActions) }
             val push = actions.firstOrNull(pushActions::contains)
             val system = actions.firstOrNull {
-                it in systemActions || (it == CONNECTIVITY_CHANGE && manifest.targetSdkVersion?.let { sdk -> sdk < 24 } == true)
+                it in alwaysDeliverableSystemActions ||
+                    (allowsPreOreoActions && it in preOreoSystemActions) ||
+                    (allowsPreNougatActions && it in preNougatSystemActions)
             }
             val (category, action) = when {
                 boot != null -> BOOT_AUTOSTART to boot
@@ -68,12 +74,15 @@ internal object StaticWakeScanner {
         return StaticWakeDeclaration(packageName, component, type, category, action, enabled)
     }
 
-    private const val CONNECTIVITY_CHANGE = "android.net.conn.CONNECTIVITY_CHANGE"
     private const val JOB_PERMISSION = "android.permission.BIND_JOB_SERVICE"
+    private const val RECEIVE_BOOT_COMPLETED = "android.permission.RECEIVE_BOOT_COMPLETED"
 
-    private val bootActions = setOf(
+    private val permissionGatedBootActions = setOf(
         "android.intent.action.BOOT_COMPLETED",
         "android.intent.action.LOCKED_BOOT_COMPLETED",
+    )
+
+    private val otherBootActions = setOf(
         "android.intent.action.QUICKBOOT_POWERON",
         "com.htc.intent.action.QUICKBOOT_POWERON",
         "android.intent.action.REBOOT",
@@ -99,16 +108,21 @@ internal object StaticWakeScanner {
         "android.accounts.AccountAuthenticator",
     )
 
-    private val systemActions = setOf(
+    private val alwaysDeliverableSystemActions = setOf(
         "android.intent.action.MY_PACKAGE_REPLACED",
+        "android.intent.action.TIME_SET",
+        "android.intent.action.TIMEZONE_CHANGED",
+        "android.intent.action.LOCALE_CHANGED",
+    )
+
+    private val preOreoSystemActions = setOf(
         "android.intent.action.USER_PRESENT",
         "android.intent.action.ACTION_POWER_CONNECTED",
         "android.intent.action.ACTION_POWER_DISCONNECTED",
         "android.intent.action.PACKAGE_ADDED",
         "android.intent.action.PACKAGE_REPLACED",
         "android.intent.action.PACKAGE_RESTARTED",
-        "android.intent.action.TIME_SET",
-        "android.intent.action.TIMEZONE_CHANGED",
-        "android.intent.action.LOCALE_CHANGED",
     )
+
+    private val preNougatSystemActions = setOf("android.net.conn.CONNECTIVITY_CHANGE")
 }

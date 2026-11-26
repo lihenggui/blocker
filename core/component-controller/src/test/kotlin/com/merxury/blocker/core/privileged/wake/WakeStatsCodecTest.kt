@@ -52,7 +52,7 @@ class WakeStatsCodecTest {
     }
 
     @Test fun givenTracedJobComponent_whenDecoding_thenOnlyTheComponentIsRetained() {
-        for (prefix in listOf("#trace#", "#trace#@sync@")) {
+        for (prefix in listOf("#trace#", "#trace#@sync@", "#sync task#@sync@")) {
             assertThat(decodedString(8, 2, "job_name", "${prefix}com.example.app/.SyncJobService"))
                 .isEqualTo("com.example.app/.SyncJobService")
         }
@@ -65,6 +65,13 @@ class WakeStatsCodecTest {
             "@sync@com.example/.MyJobService?account=alice",
             "@sync@com.example.MyJobService",
             "@unsafe/name@com.example/.MyJobService",
+            "#unsafe/tag#@sync@com.example/.MyJobService",
+            "#unsafe#tag#@sync@com.example/.MyJobService",
+            "#unsafe\rtag#@sync@com.example/.MyJobService",
+            "#unsafe\ntag#@sync@com.example/.MyJobService",
+            "#unsafe\ttag#@sync@com.example/.MyJobService",
+            "#unsafe\u007Ftag#@sync@com.example/.MyJobService",
+            "#sync task#@sync@com.example/.MyJobService?account=alice",
             "com.example/.MyJobService?account=alice",
             "com.example/.My JobService",
             "com.example/.MyJobService/alice",

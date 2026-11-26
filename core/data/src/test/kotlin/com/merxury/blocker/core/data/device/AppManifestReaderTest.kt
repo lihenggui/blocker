@@ -10,6 +10,8 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.manifest.AndroidManifest
 import com.merxury.blocker.core.model.manifest.ManifestApplication
+import com.merxury.blocker.core.model.manifest.ManifestIntentFilter
+import com.merxury.blocker.core.model.manifest.ManifestPermission
 import com.merxury.blocker.core.model.manifest.ManifestReceiver
 import com.merxury.blocker.core.model.manifest.ManifestService
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
@@ -44,10 +46,13 @@ class AppManifestReaderTest {
             sendApps(listOf(installedApp(app.packageName, app.userId).copy(apkPath = basePath)))
         }
         val reader = LocalAppManifestReader(apps, context, StandardTestDispatcher(testScheduler))
+        val bootPermission = ManifestPermission("android.permission.RECEIVE_BOOT_COMPLETED")
+        val boot = ManifestReceiver(".Boot", intentFilters = listOf(ManifestIntentFilter(actions = listOf("android.intent.action.BOOT_COMPLETED"))))
         val base = AndroidManifest(
             app.packageName,
             targetSdkVersion = 34,
-            application = ManifestApplication(receivers = listOf(ManifestReceiver(".Boot"))),
+            usesPermissions = listOf(bootPermission),
+            application = ManifestApplication(receivers = listOf(boot)),
         )
         val feature = AndroidManifest(
             app.packageName,
@@ -70,6 +75,7 @@ class AppManifestReaderTest {
         )
 
         assertThat(merged.targetSdkVersion).isEqualTo(34)
+        assertThat(merged.usesPermissions).containsExactly(bootPermission)
         assertThat(merged.application.receivers.map { it.name }).containsExactly(".Boot", ".Push")
         assertThat(merged.application.services.map { it.name }).containsExactly(".Job")
     }

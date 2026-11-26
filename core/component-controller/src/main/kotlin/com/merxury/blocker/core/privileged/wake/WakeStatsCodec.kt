@@ -42,7 +42,7 @@ internal object WakeStatsCodec {
     // Keep metrics active overnight while bounding recording after disable or uninstall.
     const val LEASE_SECONDS = 12 * 60 * 60L
 
-    private val JOB_METADATA_PREFIX = Regex("""^(?:#[^#/\s]+#)?(?:@[^@/\s]+@)?""")
+    private val JOB_METADATA_PREFIX = Regex("""^(?:#[^#/\p{Cc}]+#)?(?:@[^@/\s]+@)?""")
     private val JOB_COMPONENT_REGEX = Regex("""[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*/\.?[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*""")
 
     fun leaseLabel(id: Long) = id.hashCode() and Int.MAX_VALUE

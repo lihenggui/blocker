@@ -5,6 +5,7 @@ package com.merxury.blocker.feature.wake.impl
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
@@ -14,6 +15,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.lifecycle.Lifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.google.common.truth.Truth.assertThat
@@ -34,6 +36,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -42,6 +45,34 @@ import org.robolectric.annotation.Config
 @Config(application = HiltTestApplication::class)
 class WakeAppRouteTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun givenWakeDetail_whenActivityResumesAgain_thenRefreshesOnlyWhenActive() {
+        val state = MutableStateFlow(WakeAppUiState(WakeAppIdentity(DETAIL_PACKAGE)))
+        val viewModel = mock<WakeAppViewModel> { on { uiState } doReturn state }
+        val active = mutableStateOf(true)
+        compose.setContent {
+            BlockerTheme {
+                WakeAppRoute(viewModel, active = active.value, onBack = {}, onPeerClick = {}, onComponents = {})
+            }
+        }
+
+        compose.waitForIdle()
+        verify(viewModel, never()).refreshRestrictions()
+
+        val scenario = compose.activityRule.scenario
+        scenario.moveToState(Lifecycle.State.STARTED)
+        scenario.moveToState(Lifecycle.State.RESUMED)
+        compose.waitForIdle()
+        verify(viewModel).refreshRestrictions()
+
+        compose.runOnIdle { active.value = false }
+        compose.waitForIdle()
+        scenario.moveToState(Lifecycle.State.STARTED)
+        scenario.moveToState(Lifecycle.State.RESUMED)
+        compose.waitForIdle()
+        verify(viewModel).refreshRestrictions()
+    }
 
     @Test
     fun givenDetailKeptInComposition_whenOpeningPeerAndGoingBack_thenExpiresPreviousUndo() {

@@ -16,6 +16,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.manifest.AndroidManifest
 import com.merxury.blocker.core.model.manifest.ManifestApplication
 import com.merxury.blocker.core.model.manifest.ManifestIntentFilter
+import com.merxury.blocker.core.model.manifest.ManifestPermission
 import com.merxury.blocker.core.model.manifest.ManifestReceiver
 import com.merxury.blocker.core.model.manifest.ManifestService
 import com.merxury.blocker.core.model.wake.PotentialWakeCategory
@@ -97,6 +98,7 @@ class ObservePotentialWakeEntriesUseCaseTest {
         val f = Fixture(this)
         val manifest = f.manifests.manifests.getValue(f.app)
         f.manifests.manifests[f.app] = manifest.copy(
+            targetSdkVersion = 25,
             application = manifest.application.copy(
                 services = listOf(
                     ManifestService(".Push", intentFilters = listOf(ManifestIntentFilter(actions = listOf("com.google.firebase.MESSAGING_EVENT")))),
@@ -213,8 +215,7 @@ class ObservePotentialWakeEntriesUseCaseTest {
         f.observe(TEST_APP).test {
             assertThat(awaitItem().single().state.path.component).isEqualTo("$TEST_APP.BootReceiver")
             f.apps.sendApps(listOf(installed.copy(label = "Renamed")))
-            f.manifests.manifests[f.app] = AndroidManifest(
-                TEST_APP,
+            f.manifests.manifests[f.app] = f.manifests.manifests.getValue(f.app).copy(
                 application = ManifestApplication(
                     receivers = listOf(ManifestReceiver(".NewReceiver", intentFilters = listOf(ManifestIntentFilter(actions = listOf(BOOT_ACTION))))),
                 ),
@@ -231,7 +232,12 @@ class ObservePotentialWakeEntriesUseCaseTest {
         val wake = WakeStateTestFixture(scope)
         val manifests = FakeAppManifestReader().apply {
             val boot = ManifestReceiver(".BootReceiver", enabled = enabled, intentFilters = listOf(ManifestIntentFilter(actions = listOf(BOOT_ACTION))))
-            manifests[app] = AndroidManifest(TEST_APP, application = ManifestApplication(receivers = listOf(boot)))
+            manifests[app] = AndroidManifest(
+                TEST_APP,
+                targetSdkVersion = 34,
+                usesPermissions = listOf(ManifestPermission("android.permission.RECEIVE_BOOT_COMPLETED")),
+                application = ManifestApplication(receivers = listOf(boot)),
+            )
         }
         val apps = FakeInstalledAppRepository()
         val observe = ObservePotentialWakeEntriesUseCase(manifests, apps, wake.components, wake.manual, wake.automatic, StandardTestDispatcher(scope.testScheduler))
