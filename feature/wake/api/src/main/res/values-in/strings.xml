@@ -23,13 +23,6 @@
     <plurals name="feature_wake_api_reason_started_by_others">
         <item quantity="other">Dimulai %2$s oleh %1$d aplikasi</item>
     </plurals>
-    <plurals name="feature_wake_api_duration_minutes">
-        <item quantity="other">%d mnt</item>
-    </plurals>
-    <plurals name="feature_wake_api_duration_hours">
-        <item quantity="other">%d jam</item>
-    </plurals>
-    <string name="feature_wake_api_duration_hours_minutes">%1$s %2$s</string>
     <string name="feature_wake_api_reason_screen_off">Berjalan selama %s saat layar mati</string>
     <string name="feature_wake_api_reason_boot">Dimulai saat perangkat dinyalakan</string>
     <plurals name="feature_wake_api_reason_system_broadcast">

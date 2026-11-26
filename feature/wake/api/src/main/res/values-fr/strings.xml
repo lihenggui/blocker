@@ -35,17 +35,6 @@
         <item quantity="many">Lancée %2$s par %1$d applications</item>
         <item quantity="other">Lancée %2$s par %1$d applications</item>
     </plurals>
-    <plurals name="feature_wake_api_duration_minutes">
-        <item quantity="one">%d min</item>
-        <item quantity="many">%d min</item>
-        <item quantity="other">%d min</item>
-    </plurals>
-    <plurals name="feature_wake_api_duration_hours">
-        <item quantity="one">%d h</item>
-        <item quantity="many">%d h</item>
-        <item quantity="other">%d h</item>
-    </plurals>
-    <string name="feature_wake_api_duration_hours_minutes">%1$s %2$s</string>
     <string name="feature_wake_api_reason_screen_off">A fonctionné pendant %s avec l’écran éteint</string>
     <string name="feature_wake_api_reason_boot">Se lance au démarrage</string>
     <plurals name="feature_wake_api_reason_system_broadcast">

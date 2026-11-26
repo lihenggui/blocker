@@ -53,23 +53,6 @@
         <item quantity="many">شُغّل %2$s بواسطة %1$d تطبيقًا</item>
         <item quantity="other">شُغّل %2$s بواسطة %1$d تطبيق</item>
     </plurals>
-    <plurals name="feature_wake_api_duration_minutes">
-        <item quantity="zero">%d د</item>
-        <item quantity="one">%d د</item>
-        <item quantity="two">%d د</item>
-        <item quantity="few">%d د</item>
-        <item quantity="many">%d د</item>
-        <item quantity="other">%d د</item>
-    </plurals>
-    <plurals name="feature_wake_api_duration_hours">
-        <item quantity="zero">%d س</item>
-        <item quantity="one">%d س</item>
-        <item quantity="two">%d س</item>
-        <item quantity="few">%d س</item>
-        <item quantity="many">%d س</item>
-        <item quantity="other">%d س</item>
-    </plurals>
-    <string name="feature_wake_api_duration_hours_minutes">%1$s %2$s</string>
     <string name="feature_wake_api_reason_screen_off">عمل لمدة %s والشاشة مطفأة</string>
     <string name="feature_wake_api_reason_boot">يبدأ عند تشغيل الجهاز</string>
     <plurals name="feature_wake_api_reason_system_broadcast">
