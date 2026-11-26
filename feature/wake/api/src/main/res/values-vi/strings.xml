@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">Hoạt động nền</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="other">%d ứng dụng tự duy trì hoạt động</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="other">Có thêm %d ứng dụng cần lưu ý</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">Hệ thống quản lý tất cả ứng dụng</string>
+    <string name="feature_wake_api_none_found">Không phát hiện ứng dụng tự duy trì hoạt động</string>
+    <string name="feature_wake_api_section_keep_alive">Tự duy trì hoạt động</string>
+    <string name="feature_wake_api_section_attention">Cần lưu ý</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="other">%d lần</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="other">Khởi động lại %d lần sau khi đóng</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="other">Đã khởi chạy %d ứng dụng khác</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="other">Được %1$d ứng dụng khởi chạy %2$s</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">Đã chạy %s khi màn hình tắt</string>
+    <string name="feature_wake_api_reason_boot">Khởi chạy khi thiết bị khởi động</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="other">Khởi chạy %d lần sau khi nhận phát sóng hệ thống</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="other">Thức dậy %d lần theo hẹn giờ</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="other">Khởi chạy trong nền %d lần</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="other">Đã tự động chặn %d cách duy trì hoạt động đã biết</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="other">Không phát hiện hoạt động bất thường ở %d ứng dụng còn lại</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">Kiểm tra ngay</string>
+    <string name="feature_wake_api_checking">Đang kiểm tra</string>
+    <string name="feature_wake_api_needs_access">Cần quyền root hoặc Shizuku</string>
+    <string name="feature_wake_api_owner_only">Hoạt động nền chỉ có trong hồ sơ chủ sở hữu</string>
+    <string name="feature_wake_api_update_shizuku">Cập nhật Shizuku lên phiên bản 13 trở lên</string>
+    <string name="feature_wake_api_collecting_title">Đang đọc nhật ký hoạt động nền</string>
+    <string name="feature_wake_api_collecting_body">Kết quả đầu tiên xuất hiện sau khoảng 30 phút.</string>
+    <string name="feature_wake_api_looks_for">Blocker tìm</string>
+    <string name="feature_wake_api_looks_for_restart">Ứng dụng khởi động lại sau khi đóng</string>
+    <string name="feature_wake_api_looks_for_each_other">Ứng dụng khởi chạy lẫn nhau</string>
+    <string name="feature_wake_api_looks_for_screen_off">Ứng dụng tiếp tục chạy khi màn hình tắt</string>
+</resources>

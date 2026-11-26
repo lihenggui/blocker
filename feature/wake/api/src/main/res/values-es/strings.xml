@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_wake_api_title">Actividad en segundo plano</string>
+    <plurals name="feature_wake_api_keep_alive_apps">
+        <item quantity="one">%d aplicación se mantiene en ejecución</item>
+        <item quantity="many">%d aplicaciones se mantienen en ejecución</item>
+        <item quantity="other">%d aplicaciones se mantienen en ejecución</item>
+    </plurals>
+    <plurals name="feature_wake_api_more_need_attention">
+        <item quantity="one">%d aplicación más requiere atención</item>
+        <item quantity="many">%d aplicaciones más requieren atención</item>
+        <item quantity="other">%d aplicaciones más requieren atención</item>
+    </plurals>
+    <string name="feature_wake_api_all_managed">El sistema gestiona todas las aplicaciones</string>
+    <string name="feature_wake_api_none_found">No se detectaron aplicaciones que se mantengan en ejecución</string>
+    <string name="feature_wake_api_section_keep_alive">Se mantienen en ejecución</string>
+    <string name="feature_wake_api_section_attention">Requieren atención</string>
+    <plurals name="feature_wake_api_times">
+        <item quantity="one">%d vez</item>
+        <item quantity="many">%d veces</item>
+        <item quantity="other">%d veces</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_restarted">
+        <item quantity="one">Se reinició %d vez después de cerrarse</item>
+        <item quantity="many">Se reinició %d veces después de cerrarse</item>
+        <item quantity="other">Se reinició %d veces después de cerrarse</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_others">
+        <item quantity="one">Inició %d aplicación más</item>
+        <item quantity="many">Inició %d aplicaciones más</item>
+        <item quantity="other">Inició %d aplicaciones más</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_started_by_others">
+        <item quantity="one">Iniciada %2$s por %1$d aplicación</item>
+        <item quantity="many">Iniciada %2$s por %1$d aplicaciones</item>
+        <item quantity="other">Iniciada %2$s por %1$d aplicaciones</item>
+    </plurals>
+    <string name="feature_wake_api_reason_screen_off">Se ejecutó durante %s con la pantalla apagada</string>
+    <string name="feature_wake_api_reason_boot">Se inicia al encender el dispositivo</string>
+    <plurals name="feature_wake_api_reason_system_broadcast">
+        <item quantity="one">Se inició %d vez tras una señal del sistema</item>
+        <item quantity="many">Se inició %d veces tras señales del sistema</item>
+        <item quantity="other">Se inició %d veces tras señales del sistema</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_timed">
+        <item quantity="one">Se activó %d vez por un temporizador</item>
+        <item quantity="many">Se activó %d veces por un temporizador</item>
+        <item quantity="other">Se activó %d veces por un temporizador</item>
+    </plurals>
+    <plurals name="feature_wake_api_reason_background">
+        <item quantity="one">Se inició %d vez en segundo plano</item>
+        <item quantity="many">Se inició %d veces en segundo plano</item>
+        <item quantity="other">Se inició %d veces en segundo plano</item>
+    </plurals>
+    <plurals name="feature_wake_api_automatic_blocks">
+        <item quantity="one">Se bloqueó automáticamente %d método conocido de ejecución persistente</item>
+        <item quantity="many">Se bloquearon automáticamente %d métodos conocidos de ejecución persistente</item>
+        <item quantity="other">Se bloquearon automáticamente %d métodos conocidos de ejecución persistente</item>
+    </plurals>
+    <plurals name="feature_wake_api_other_apps">
+        <item quantity="one">No se detectó actividad inusual en la otra %d aplicación</item>
+        <item quantity="many">No se detectó actividad inusual en las otras %d aplicaciones</item>
+        <item quantity="other">No se detectó actividad inusual en las otras %d aplicaciones</item>
+    </plurals>
+    <string name="feature_wake_api_check_now">Comprobar ahora</string>
+    <string name="feature_wake_api_checking">Comprobando</string>
+    <string name="feature_wake_api_needs_access">Se requiere acceso root o Shizuku</string>
+    <string name="feature_wake_api_owner_only">La actividad en segundo plano solo está disponible en el perfil del propietario</string>
+    <string name="feature_wake_api_update_shizuku">Actualice Shizuku a la versión 13 o posterior</string>
+    <string name="feature_wake_api_collecting_title">Leyendo registros de actividad en segundo plano</string>
+    <string name="feature_wake_api_collecting_body">Los primeros resultados se muestran en unos 30 minutos.</string>
+    <string name="feature_wake_api_looks_for">Blocker busca</string>
+    <string name="feature_wake_api_looks_for_restart">Aplicaciones que se reinician después de cerrarse</string>
+    <string name="feature_wake_api_looks_for_each_other">Aplicaciones que se inician entre sí</string>
+    <string name="feature_wake_api_looks_for_screen_off">Aplicaciones que siguen en ejecución con la pantalla apagada</string>
+</resources>
