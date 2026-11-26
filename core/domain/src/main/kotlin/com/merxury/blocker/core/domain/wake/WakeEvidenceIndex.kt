@@ -375,7 +375,10 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
             }
     }
 
-    private fun WakeRecord.grantKey(): Pair<Int, String>? = targetPackage?.let { (attr("user")?.toIntOrNull() ?: 0) to it }
+    private fun WakeRecord.grantKey(): Pair<Int, String>? {
+        val profile = attr("user")?.toIntOrNull() ?: return null
+        return targetPackage?.let { profile to it }
+    }
 
     // Bound services and active device admins are granted per component. Roles, companion devices,
     // and the always-on VPN package are granted per package.

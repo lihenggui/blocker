@@ -219,6 +219,40 @@ class WakeSystemEvidenceTest {
         }
     }
 
+    @Test fun givenGlobalGrantDumps_whenParsing_thenOnlyExplicitProfileEvidenceSetsTheUser() {
+        val dumps = mapOf(
+            WakeCommand.WIDGETS to """
+                provider=ProviderId{user:10, app:10123, cmp:ComponentInfo{example.work/.Widget}}
+                provider=ComponentInfo{example.unknown/.Widget}
+            """.trimIndent(),
+            WakeCommand.COMPANIONS to """
+                Association{mId=1, mUserId=10, mPackageName='example.work'}
+                Association { userId = 10, packageName = example.legacy }
+                id=2, pkg=u10/example.short
+                Association{id=2, packageName=example.unknown}
+            """.trimIndent(),
+            WakeCommand.WALLPAPER to """
+                mWallpaperComponent=ComponentInfo{example.unknown/.Service}
+                 User 10: id=2
+                 Display state:
+                  mWallpaperComponent=ComponentInfo{example.work/.Service}
+            """.trimIndent(),
+            WakeCommand.SYNCS to """
+                ServiceInfo: SyncAdapterType {name=a, type=b, packageName=example.work}, ComponentInfo{example.work/.Sync}, uid 1010123
+                ServiceInfo: SyncAdapterType {name=a, type=b, packageName=example.unknown}
+            """.trimIndent(),
+        )
+        for ((command, dump) in dumps) {
+            val grants = WakeSystemEvidence.snapshot(command, dump, 7).associate { it.targetPackage to it.attributes["user"] }
+            val expected = mutableMapOf("example.work" to "10", "example.unknown" to null)
+            if (command == WakeCommand.COMPANIONS) {
+                expected["example.legacy"] = "10"
+                expected["example.short"] = "10"
+            }
+            assertThat(grants).containsExactlyEntriesIn(expected)
+        }
+    }
+
     @Test fun givenLegacyAlarmDump_whenParsing_thenThePendingAlarmIsCaptured() {
         val dump = """
             Current Alarm Manager state:

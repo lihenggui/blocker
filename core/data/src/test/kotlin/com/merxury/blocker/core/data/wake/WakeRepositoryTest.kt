@@ -195,6 +195,16 @@ class WakeRepositoryTest {
         assertThat(repository.observeSpecialBindings(targets).first()).containsExactly(owner)
     }
 
+    @Test fun givenWorkAndUnscopedWidgetRows_whenObservingOwnerBindings_thenOnlyTheOwnerWidgetIsShown() = runTest {
+        val targets = listOf("app")
+        val work = WakeRecord("work", "7", 1, now, "WIDGETS", "WidgetProvider", null, null, null, "app", "app/.Work", null, null, null, null, """{"user":"10"}""")
+        val owner = work.copy(id = "owner", component = "app/.Owner", attributes = """{"user":"0"}""")
+        val unscoped = work.copy(id = "unscoped", component = "app/.Unknown", attributes = "{}")
+        whenever(detection.observeSpecialBindings(targets)).thenReturn(flowOf(listOf(work, owner, unscoped)))
+
+        assertThat(repository.observeSpecialBindings(targets).first()).containsExactly(owner)
+    }
+
     @Test fun givenMultipleProfiles_whenCollecting_thenOnlySuccessfulSecondaryPackageReadsAllowIfw() = runTest {
         captureWith()
         val secondary = WakeBatch("PACKAGES/999", emptyList())
