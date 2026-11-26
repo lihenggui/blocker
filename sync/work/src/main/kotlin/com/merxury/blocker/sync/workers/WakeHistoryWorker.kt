@@ -58,7 +58,12 @@ class WakeWork @Inject constructor(
 ) : WakeRunRequester {
     override val isRunning: Flow<Boolean>
         get() = WorkManager.getInstance(context).getWorkInfosFlow(activeOneTimeWork)
-            .map { it.isNotEmpty() }
+            .map { workInfos ->
+                workInfos.any { info ->
+                    info.state == WorkInfo.State.RUNNING ||
+                        (info.state == WorkInfo.State.ENQUEUED && info.runAttemptCount == 0)
+                }
+            }
             .distinctUntilChanged()
 
     override fun requestRun() {
