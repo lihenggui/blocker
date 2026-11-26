@@ -58,7 +58,7 @@ internal class WakeStateObserver @Inject constructor(
         val componentIds = withContext(io) { resolveComponentIds(allPaths) }
         val backgroundTargets = allPaths.filter { it.blockMethod == WakeBlockMethod.BACKGROUND_RESTRICTION }.map { it.target }.distinct()
         return combine(
-            user.blocks.map { it.associateBy { block -> block.pathKey to block.method } },
+            user.blocks.map(::WakeBlockIndex),
             automatic.blocks,
             automatic.ownedComponents,
             observeComponents(componentIds.values),
@@ -145,7 +145,7 @@ internal class WakeStateObserver @Inject constructor(
     private fun state(
         activity: AppWakeActivity,
         blockable: List<WakePath>,
-        blocks: Map<Pair<String, WakeBlockMethod>, WakeBlock>,
+        blocks: WakeBlockIndex,
         automatic: List<AutomaticWakeBlock>,
         backgroundStates: Map<String, BackgroundUsage?>,
         owned: Set<ComponentId>,
@@ -158,8 +158,7 @@ internal class WakeStateObserver @Inject constructor(
                 val block = if (backgroundStates[path.target]?.allowed == false) WakePathBlock.USER else WakePathBlock.NONE
                 return@associate path.pathKey to WakePathState(path, block, blockedAtMillis = null, seenSinceBlock = false)
             }
-            val legacy = if (path.supportsLegacyComponentBlock) blocks[path.pathKey to WakeBlockMethod.COMPONENT] else null
-            val saved = blocks[path.pathKey to path.blockMethod] ?: legacy
+            val saved = blocks.savedFor(path)
             val method = saved?.method ?: path.blockMethod
             val statuses = if (method == WakeBlockMethod.COMPONENT) componentStatuses(path) else emptyList()
             val userBlocked = when (method) {
@@ -210,3 +209,17 @@ private val WakePath.isBlockable get() = blockMethod != WakeBlockMethod.NONE
 // These paths used PackageManager before the user firewall file supported their component types.
 private val WakePath.supportsLegacyComponentBlock get() = blockMethod == WakeBlockMethod.FIREWALL_RULE &&
     trigger == ReviveTrigger.PEER_ACTIVITY
+
+private class WakeBlockIndex(blocks: List<WakeBlock>) {
+    private val byPath = blocks.associateBy { it.pathKey to it.method }
+    private val byComponent = blocks.asSequence()
+        .filter { it.method == WakeBlockMethod.COMPONENT && it.component != null && it.pathKey.startsWith("STATIC|") }
+        .sortedBy { it.blockedAtMillis }
+        .associateBy { it.target to it.component }
+
+    fun savedFor(path: WakePath): WakeBlock? {
+        val direct = byPath[path.pathKey to path.blockMethod]
+        if (direct != null || (path.blockMethod != WakeBlockMethod.COMPONENT && !path.supportsLegacyComponentBlock)) return direct
+        return byPath[path.pathKey to WakeBlockMethod.COMPONENT] ?: byComponent[path.target to path.component]
+    }
+}

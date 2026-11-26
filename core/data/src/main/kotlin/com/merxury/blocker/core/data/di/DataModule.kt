@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.di
 
+import com.merxury.blocker.core.data.device.AppManifestReader
 import com.merxury.blocker.core.data.device.AppRestrictionRepository
 import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.ComponentActions
@@ -25,6 +26,7 @@ import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InMemorySelectedUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppDbPmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.device.LocalAppManifestReader
 import com.merxury.blocker.core.data.device.LocalAppRestrictionRepository
 import com.merxury.blocker.core.data.device.LocalBackgroundUsageRepository
 import com.merxury.blocker.core.data.device.LocalComponentActions
@@ -136,6 +138,9 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindInstalledAppRepository(repository: LocalInstalledAppRepository): InstalledAppRepository
+
+    @Binds
+    internal abstract fun bindAppManifestReader(reader: LocalAppManifestReader): AppManifestReader
 
     @Binds
     internal abstract fun bindComponentStatusRepository(repository: LocalComponentStatusRepository): ComponentStatusRepository

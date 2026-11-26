@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.test
 
+import com.merxury.blocker.core.data.device.AppManifestReader
 import com.merxury.blocker.core.data.device.AppRestrictionRepository
 import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.ComponentActions
@@ -47,6 +48,7 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.manifest.AndroidManifest
 import com.merxury.blocker.core.testing.repository.TestCatalogRepository
+import com.merxury.blocker.core.testing.repository.device.FakeAppManifestReader
 import com.merxury.blocker.core.testing.repository.device.FakeAppRestrictionRepository
 import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
@@ -127,6 +129,10 @@ internal interface TestDataModule {
     fun bindsPmBlockRecordSeeder(seeder: FakePmBlockRecordSeeder): PmBlockRecordSeeder
 
     companion object {
+        @Provides
+        @Singleton
+        fun appManifestReader(): AppManifestReader = FakeAppManifestReader()
+
         @Provides
         @Singleton
         fun catalogRepository(): CatalogRepository = TestCatalogRepository()
