@@ -7,6 +7,7 @@ import com.merxury.blocker.core.database.wake.WakeHoldAssociation
 import com.merxury.blocker.core.database.wake.WakeHoldPeriod
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.component.isRegularAppUid
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.Justification
@@ -175,7 +176,7 @@ internal object WakeHolds {
             fun component(association: WakeHoldAssociation) = qualifiedWakeComponent(target, association.component) ?: association.component
             // Processes of the app that a system binding with a user grant kept during this period.
             val granted = associations[key].orEmpty().filter { !isApp(it.sourceUid) && it.boundMillis > 0 }.map(::component)
-                .filter { it !in providerComponents && grantedSpecialAccess(target, it) }.mapNotNull { hosts[target to it] }.toSet()
+                .filter { it !in providerComponents && grantedSpecialAccess(target, it, userOfUid(uid)) }.mapNotNull { hosts[target to it] }.toSet()
             // Outside causes come first; the app's own processes explain only what they leave.
             for (association in associations[key].orEmpty().sortedWith(compareBy(::sameApp).thenByDescending(::held))) {
                 val component = component(association)
@@ -239,12 +240,12 @@ internal object WakeHolds {
                                 (perceptible == listOf("mediaPlayback") && silentAudio(uid, period.startMillis, period.endMillis))
                         } else {
                             candidateScreenOffMillis >= PERSISTENT_FGS_SCREEN_OFF_MILLIS &&
-                                types.none { it in legitimateOngoingFgsTypes } && !grantedSpecialAccess(target, candidate.detail)
+                                types.none { it in legitimateOngoingFgsTypes } && !grantedSpecialAccess(target, candidate.detail, userOfUid(uid))
                         }
                         if (unjustified) Justification.NONE else Justification.PRODUCTIVE
                     }
 
-                    candidate.cause == HoldCause.BOUND_BY_SYSTEM && grantedSpecialAccess(target, candidate.detail) -> Justification.USER_GRANTED_ROLE
+                    candidate.cause == HoldCause.BOUND_BY_SYSTEM && grantedSpecialAccess(target, candidate.detail, userOfUid(uid)) -> Justification.USER_GRANTED_ROLE
 
                     else -> Justification.NONE
                 }

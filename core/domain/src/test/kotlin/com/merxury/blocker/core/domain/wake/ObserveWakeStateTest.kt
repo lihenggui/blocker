@@ -5,6 +5,7 @@ package com.merxury.blocker.core.domain.wake
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.database.wake.WakeExemption
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
@@ -12,9 +13,11 @@ import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.ReviveTrigger
+import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
 import com.merxury.blocker.core.model.wake.WakePathBlock
+import com.merxury.blocker.core.model.wake.WakeSpecialAccess
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runCurrent
@@ -22,6 +25,58 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class ObserveWakeStateTest {
+    @Test fun givenPowerSnapshots_whenObservingAnAppWithoutFindings_thenEnvironmentUpdatesAndClears() = runTest {
+        val f = WakeStateTestFixture(this)
+        val app = WakeExemption(TEST_APP, "system-excidle,user", 40, null, 10)
+        f.exemptions.value = listOf(app, app.copy(target = TEST_PEER, idleWhitelist = "system", standbyBucket = 50))
+
+        f.state(TEST_APP).test {
+            val initial = awaitItem()
+            assertThat(initial.paths).isEmpty()
+            assertThat(initial.environment).isEqualTo(WakeAppEnvironment(userIdleAllowlisted = true, systemIdleAllowlisted = true, standbyBucket = 40))
+            assertThat(f.observedEnvironmentTargets).containsExactly(listOf(TEST_APP), listOf(TEST_APP))
+
+            f.exemptions.value = listOf(app.copy(idleWhitelist = "system", standbyBucket = 20))
+            assertThat(awaitItem().environment).isEqualTo(WakeAppEnvironment(systemIdleAllowlisted = true, standbyBucket = 20))
+            f.exemptions.value = listOf(app.copy(idleWhitelist = null, standbyBucket = null))
+            assertThat(awaitItem().environment).isEqualTo(WakeAppEnvironment())
+        }
+    }
+
+    @Test fun givenGrantsInHistory_whenLatestSnapshotsChange_thenRevokedAccessDisappears() = runTest {
+        val f = WakeStateTestFixture(this)
+        val rows = listOf(
+            wakeRecord("a11y", "SystemBinding", 10, targetPackage = TEST_APP, action = "ACCESSIBILITY"),
+            wakeRecord("listener", "SystemBinding", 10, targetPackage = TEST_APP, action = "LISTENERS"),
+            wakeRecord("vpn", "SystemBinding", 10, targetPackage = TEST_APP, action = "VPN"),
+            wakeRecord("ime", "SystemBinding", 10, targetPackage = TEST_APP, action = "INPUT"),
+            wakeRecord("admin", "DeviceAdmin", 10, targetPackage = TEST_APP),
+            wakeRecord("companion", "CompanionAssociation", 10, targetPackage = TEST_APP),
+            wakeRecord("wallpaper", "WallpaperBinding", 10, targetPackage = TEST_APP),
+            wakeRecord("widget", "WidgetProvider", 10, targetPackage = TEST_APP),
+            wakeRecord("sync", "SyncAdapter", 10, targetPackage = TEST_APP),
+        )
+        f.bindings.value = rows
+
+        f.state(TEST_APP).test {
+            assertThat(awaitItem().environment.specialAccess).containsExactlyElementsIn(WakeSpecialAccess.entries)
+            val newer = rows.first().wallMillis + 1
+            f.bindings.value = rows + listOf(
+                rows[0].copy(id = "other-a11y", targetPackage = TEST_PEER, wallMillis = newer),
+                rows[1].copy(id = "empty-listeners", targetPackage = null, wallMillis = newer),
+                rows[4].copy(id = "empty-admins", targetPackage = null, wallMillis = newer),
+            )
+            assertThat(awaitItem().environment.specialAccess).containsExactly(
+                WakeSpecialAccess.ALWAYS_ON_VPN,
+                WakeSpecialAccess.INPUT_METHOD,
+                WakeSpecialAccess.COMPANION_DEVICE,
+                WakeSpecialAccess.LIVE_WALLPAPER,
+                WakeSpecialAccess.WIDGET,
+                WakeSpecialAccess.SYNC_ADAPTER,
+            )
+        }
+    }
+
     @Test fun givenMutualPaths_whenTheOwnerComponentsChange_thenBothDirectionsUseTheirOwnTarget() = runTest {
         val f = WakeStateTestFixture(this)
         val incoming = receiver(TEST_APP, "Wake")
@@ -155,6 +210,7 @@ class ObserveWakeStateTest {
         f.overview().test overview@{
             assertThat(awaitItem().single().allBlocked).isFalse()
             assertThat(f.observedBackgroundApps).containsExactly(app)
+            assertThat(f.observedEnvironmentTargets).isEmpty()
             f.state(TEST_APP).test {
                 val allowed = awaitItem()
                 assertThat(allowed.paths.keys).containsExactly("incoming", "alarm", "wakelock", "broadcast")

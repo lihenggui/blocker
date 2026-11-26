@@ -14,6 +14,22 @@ class WakeCommandTest {
         assertThat(WakeCommand.AUDIO.arguments(0, 10111, 7)).containsExactly("dumpsys", "-t", "5", "audio").inOrder()
     }
 
+    @Test fun givenLegacyAndModernSdk_whenListingPackages_thenVersionCodeIsRequestedOnlyWhenSupported() {
+        val common = listOf("pm", "list", "packages", "-f", "-U")
+        for (sdk in listOf(24, 25)) {
+            assertThat(WakeCommand.PACKAGES.arguments(10, 10111, 7, sdk = sdk))
+                .containsExactlyElementsIn(common + listOf("--user", "10")).inOrder()
+        }
+        for (sdk in listOf(26, 35)) {
+            assertThat(WakeCommand.PACKAGES.arguments(10, 10111, 7, sdk = sdk))
+                .containsExactlyElementsIn(common + listOf("--show-versioncode", "--user", "10")).inOrder()
+        }
+    }
+
+    @Test fun givenDevicePolicySnapshot_whenBuildingCommand_thenTheDumpCoversAllUsers() {
+        assertThat(WakeCommand.DEVICE_POLICY.arguments(10, 10111, 7)).containsExactly("dumpsys", "-t", "5", "device_policy").inOrder()
+    }
+
     @Test fun givenResumePoint_whenBuildingEventCommand_thenTimeReplacesTheCountLimit() {
         val argv = WakeCommand.EVENTS.arguments(0, 10111, 7, 1_795_366_000_045L)
         assertThat(argv).containsAtLeast("-T", "1795366000.045").inOrder()

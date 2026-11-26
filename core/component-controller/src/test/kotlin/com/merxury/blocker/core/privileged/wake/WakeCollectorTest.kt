@@ -39,7 +39,7 @@ private val EVERY_RUN = listOf(
 )
 private val DAILY = listOf(
     WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
-    WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY, WakeCommand.IDLE_WHITELIST,
+    WakeCommand.DEVICE_POLICY, WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY, WakeCommand.IDLE_WHITELIST,
     WakeCommand.STANDBY_BUCKETS, WakeCommand.BACKGROUND_RESTRICTED,
 )
 
@@ -56,7 +56,6 @@ class WakeCollectorTest {
     /** What each command prints; a command not listed prints nothing. */
     private val outputs = mutableMapOf<WakeCommand, () -> ByteArray>(
         WakeCommand.USERS to { "Users:\n\tUserInfo{0:Owner:c13} running\n\tUserInfo{10:Work:1030} running\n".toByteArray() },
-        WakeCommand.PACKAGES to { "package:/data/app/a/base.apk=example.app versionCode:12 uid:10123\n".toByteArray() },
         WakeCommand.PROCSTATS to { checkNotNull(javaClass.getResource("/wake/procstats-current.txt")).readBytes() },
         WakeCommand.REPORT to { report(reportOwner) },
     )
@@ -71,7 +70,14 @@ class WakeCollectorTest {
 
     private fun answer(call: PrivilegedCall<*>): CallResult<ByteArray> {
         val read = call as ReadWakeSource
-        return CallResult.Success(outputs[read.command]?.invoke() ?: ByteArray(0))
+        val output = outputs[read.command]?.invoke()
+            ?: if (read.command == WakeCommand.PACKAGES) {
+                val uid = read.user.value * 100_000 + 10123
+                "package:/data/app/a/base.apk=example.app versionCode:12 uid:$uid\n".toByteArray()
+            } else {
+                ByteArray(0)
+            }
+        return CallResult.Success(output)
     }
 
     private fun report(owner: Int): ByteArray {
@@ -89,6 +95,27 @@ class WakeCollectorTest {
     private fun WakeCapture.batch(source: String): WakeBatch = batches.last { it.source == source }
 
     private fun WakeCapture.unreadable(): Map<String, List<String>> = batches.filter { it.gaps.isNotEmpty() }.associate { it.source to it.gaps }
+
+    @Test
+    fun givenUnrecognizedPackagesInAProfile_whenCapturing_thenItsInventoryHasAGap() = runTest {
+        val recognized = "package:work.app uid:1010123"
+        for (output in listOf("Error: profile unavailable", "$recognized\nOEM package record")) {
+            executor.answer = { call ->
+                val read = call as ReadWakeSource
+                if (read.command == WakeCommand.PACKAGES && read.user.value == 10) {
+                    CallResult.Success(output.toByteArray())
+                } else {
+                    answer(call)
+                }
+            }
+
+            val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+            assertThat(capture.batch("PACKAGES").gaps).isEmpty()
+            assertThat(capture.batch("PACKAGES/10").gaps).containsExactly("unrecognized package list")
+            assertThat(capture.packages.any { it.packageName == "work.app" }).isEqualTo(output.startsWith(recognized))
+        }
+    }
 
     @Test
     fun givenReadyChannel_whenCapturing_thenEachSourceIsReadThroughTheExecutorForItsUser() = runTest {
@@ -159,6 +186,26 @@ class WakeCollectorTest {
 
         assertThat(reads.map { it.command }.toSet() - regular).containsExactlyElementsIn(DAILY)
         assertThat(capture.exemptions).isNotNull()
+    }
+
+    @Test
+    fun givenEmptyAndFailedBindingReads_whenCapturing_thenOnlySuccessfulReadsSupersedeEarlierGrants() = runTest {
+        outputs[WakeCommand.ACCESSIBILITY] = { "null\n".toByteArray() }
+        outputs[WakeCommand.LISTENERS] = { "Permission Denial: cannot read settings".toByteArray() }
+        outputs[WakeCommand.DEVICE_POLICY] = { "Current Device Policy Manager state:".toByteArray() }
+
+        val capture = collector.capture(diagnostic = true, PrivilegedIdentity.ROOT)
+
+        val accessibility = capture.batch("ACCESSIBILITY").observations.single()
+        assertThat(accessibility.kind).isEqualTo("SystemBinding")
+        assertThat(accessibility.action).isEqualTo("ACCESSIBILITY")
+        assertThat(accessibility.targetPackage).isNull()
+        assertThat(capture.batch("LISTENERS").observations).isEmpty()
+        assertThat(capture.batch("LISTENERS").gaps).isNotEmpty()
+        val admins = capture.batch("DEVICE_POLICY").observations.single()
+        assertThat(admins.kind).isEqualTo(WAKE_DEVICE_ADMIN)
+        assertThat(admins.targetPackage).isNull()
+        assertThat(admins.elapsedNanos).isEqualTo(accessibility.elapsedNanos)
     }
 
     @Test

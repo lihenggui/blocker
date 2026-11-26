@@ -4,12 +4,15 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.wake.WakeIdentity
+import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -28,6 +31,8 @@ class ReviewedWakePathsTest {
 
     private val pkg = "example.target"
     private val app = WakeIdentity(10122, pkg, "1/10/10", 1, "signed", "", 10, 100)
+    private val peer = app.copy(uid = app.uid + 1, packageName = "example.peer")
+    private val clone = app.copy(uid = 999 * UIDS_PER_USER + app.uid, revision = "profile/1/path")
     private val event = WakeRecord("id", "boot", 12, 12, "statsd", "ServiceRequestEventReported", app.uid, app.uid, pkg, pkg, "$pkg/.Wake", null, 3, 1, pkg, "{}")
     private lateinit var apk: File
     private lateinit var catalog: ReviewedWakePaths
@@ -39,13 +44,27 @@ class ReviewedWakePathsTest {
         val context = mock<Context>()
         val assets = mock<AssetManager>()
         val pm = mock<PackageManager>()
+        val cache = mock<SharedPreferences>()
+        whenever(context.getSharedPreferences("wake_reviewed_sdk", Context.MODE_PRIVATE)).thenReturn(cache)
+        for (identity in listOf(app, peer)) {
+            whenever(cache.getString("${identity.packageName}/Lsdk/", null)).thenReturn("${identity.revision}/${identity.signatures}/fingerprint/y")
+        }
         whenever(context.assets).thenReturn(assets)
         whenever(context.packageManager).thenReturn(pm)
         whenever(pm.getApplicationInfo(pkg, 0)).thenReturn(ApplicationInfo().apply { sourceDir = apk.path })
         whenever(assets.list("reviewed-wake-paths")).thenReturn(arrayOf("test.json"))
-        fun entry(actionJson: String) = """{"target":"$pkg","caller":"$pkg","component":"$pkg.Wake","action":$actionJson,"version":1,
+        fun entry(actionJson: String, proof: String = """"caller":"$pkg"""") = """{"target":"$pkg",$proof,"component":"$pkg.Wake","action":$actionJson,"version":1,
             "signers":"signed","apks":["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],"review":"test"}"""
-        val review = "[${entry("null")},${entry("\"sdk.peer.WAKE\"")}]"
+        val peerSdk = """{"component":"$pkg.Wake","action":"sdk.CROSS_APP","peerSdk":true,
+            "sdkNamespace":"Lsdk/","sdkFingerprint":"fingerprint","review":"sdk-test"}"""
+        val reviews = listOf(
+            entry("null"),
+            entry(""""sdk.peer.WAKE""""),
+            entry(""""sdk.fixedPeer.WAKE"""", """"caller":"${peer.packageName}""""),
+            entry(""""dedicated.WAKE"""", """"method":"PM","dedicated":true"""),
+            peerSdk,
+        )
+        val review = reviews.joinToString(",", "[", "]")
         whenever(assets.open("reviewed-wake-paths/test.json")).thenReturn(review.byteInputStream())
         catalog = ReviewedWakePaths(context)
     }
@@ -56,6 +75,54 @@ class ReviewedWakePathsTest {
         profiles: List<Int> = listOf(0),
         resets: Map<String, Long> = emptyMap(),
     ) = catalog.evaluate(listOf(observed), identities, profiles, emptyList(), resets)
+
+    @Test
+    fun givenOwnerOnlyAppAndUnrelatedWorkApp_whenEvaluating_thenOwnerIfwQualifiesAndIsRetained() {
+        val unrelated = app.copy(uid = 10 * UIDS_PER_USER + app.uid, packageName = "other.work", versionCode = 100)
+        val identities = listOf(app, unrelated)
+        val profiles = listOf(999, 0, 10)
+        val match = candidates(identities = identities, profiles = profiles).single()
+        assertThat(match.targetRevision).isEqualTo(app.revision)
+        assertThat(match.callerRevision).isEqualTo(app.revision)
+        assertThat(catalog.evaluate(emptyList(), identities, profiles, listOf(match))).containsExactly(match)
+    }
+
+    @Test
+    fun givenTargetAlsoInstalledInSecondaryProfile_whenEvaluating_thenOnlyOwnerPmQualifies() {
+        val pm = event.copy(action = "dedicated.WAKE")
+        val previous = listOf(candidates().single(), candidates(pm).single())
+        for (version in listOf(-1L, app.versionCode, app.versionCode + 1)) {
+            val identities = listOf(app, clone.copy(versionCode = version))
+            val profiles = listOf(0, 999)
+            assertThat(candidates(identities = identities, profiles = profiles)).isEmpty()
+            assertThat(candidates(pm, identities, profiles).single().method).isEqualTo("PM")
+            assertThat(catalog.evaluate(emptyList(), identities, profiles, previous).map(WakeProtection::method)).containsExactly("PM")
+        }
+    }
+
+    @Test
+    fun givenSecondaryPeerInstalls_whenEvaluating_thenNeitherFixedNorSdkIfwQualifies() {
+        val fixed = event.copy(callerUid = peer.uid, callerPackage = peer.packageName, action = "sdk.fixedPeer.WAKE")
+        val sdk = fixed.copy(action = "sdk.CROSS_APP")
+        val profiles = listOf(0, 10)
+        val owner = listOf(app, peer)
+        val matches = listOf(candidates(fixed, owner, profiles).single(), candidates(sdk, owner, profiles).single())
+        assertThat(matches.map(WakeProtection::callerRevision)).containsExactly(peer.revision, peer.revision)
+        assertThat(catalog.evaluate(emptyList(), owner, profiles, matches)).containsExactlyElementsIn(matches)
+        val peerCopy = peer.copy(uid = 10 * UIDS_PER_USER + peer.uid, revision = "profile/1/peer")
+        for (version in listOf(-1L, peer.versionCode, peer.versionCode + 1)) {
+            val identities = owner + peerCopy.copy(versionCode = version)
+            assertThat(catalog.evaluate(listOf(fixed, sdk), identities, profiles, matches)).isEmpty()
+        }
+    }
+
+    @Test
+    fun givenOwnerMissingFromProfileScope_whenEvaluating_thenNoMethodQualifies() {
+        val requests = listOf(event, event.copy(action = "dedicated.WAKE"))
+        val previous = catalog.evaluate(requests, listOf(app), listOf(0), emptyList())
+        assertThat(previous.map(WakeProtection::method)).containsExactly("IFW", "PM")
+        assertThat(catalog.evaluate(requests, listOf(app, clone), listOf(999), previous)).isEmpty()
+    }
 
     @Test
     fun givenUnrecordedBindingAcrossReset_whenInspectedLater_thenOnlyUnresetTargetsQualify() {
@@ -96,7 +163,6 @@ class ReviewedWakePathsTest {
         assertThat(candidates(event.copy(wallMillis = 9))).isEmpty()
         assertThat(candidates(identities = listOf(app.copy(signatures = "other")))).isEmpty()
         assertThat(candidates(identities = listOf(app, app.copy(packageName = "shared.uid")))).isEmpty()
-        assertThat(candidates(profiles = listOf(0, 10))).isEmpty()
         assertThat(catalog.evaluate(listOf(event), listOf(app), listOf(0), listOf(match.copy(disabledByUser = true)))).isEmpty()
         apk.writeText("updated APK")
         assertThat(candidates()).isEmpty()

@@ -240,6 +240,75 @@ class WakeSystemEvidenceTest {
         assertThat(WakeSystemEvidence.snapshot(WakeCommand.ALARMS, "alarm service unavailable", 7)).isEmpty()
     }
 
+    @Test fun givenDevicePolicyDump_whenReading_thenOnlyActiveAdminsAndOwnersAreAttributedToTheirUsers() {
+        val dump = """
+            Current Device Policy Manager state:
+              Device Owner:
+                admin=ComponentInfo{example.owner/.Admin}
+                package=example.owner
+                User ID: 11
+
+              Profile Owner (User 10):
+                component=ComponentInfo{example.work/.Owner}
+
+              Enabled Device Admins (User 0, provisioningState: 3):
+                example.personal/.Admin:
+                  uid=10301
+                Removing Device Admins (User 0): [ComponentInfo{example.removed/.Admin}]
+              User 999:
+                ActiveDeviceAdmins:
+                  ComponentInfo{example.clone/.Admin}
+                  component=ComponentInfo{example.clone/.SecondAdmin}
+                Delegation:
+                  admin=ComponentInfo{example.delegate/.Admin}
+              Diagnostics:
+                ComponentInfo{example.invalid/.Admin}
+        """.trimIndent()
+
+        fun admin(name: String, user: Int) = WakeObservation(
+            WAKE_DEVICE_ADMIN,
+            7,
+            targetPackage = name.substringBefore('/'),
+            component = name,
+            attributes = mapOf("user" to user.toString()),
+        )
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.DEVICE_POLICY, dump, 7)).containsExactly(
+            admin("example.owner/.Admin", 11),
+            admin("example.work/.Owner", 10),
+            admin("example.personal/.Admin", 0),
+            admin("example.clone/.Admin", 999),
+            admin("example.clone/.SecondAdmin", 999),
+        )
+    }
+
+    @Test fun givenAdminListWithNestedUsers_whenReading_thenEachAdminUsesItsOwnUser() {
+        val dump = """
+            Active Admins:
+              User 0:
+                ComponentInfo{example.app/.Admin}
+              User 10:
+                admin=ComponentInfo{example.app/.Admin}
+            Device Owner:
+              ComponentInfo{example.owner/.Admin}
+        """.trimIndent()
+
+        val admins = WakeSystemEvidence.snapshot(WakeCommand.DEVICE_POLICY, dump, 7)
+
+        assertThat(admins.map { it.targetPackage to it.attributes["user"] })
+            .containsExactly("example.app" to "0", "example.app" to "10", "example.owner" to "0")
+        assertThat(WakeSystemEvidence.snapshot(WakeCommand.DEVICE_POLICY, "Current Device Policy Manager state:", 7)).isEmpty()
+    }
+
+    @Test fun givenRoleWithoutHolders_whenParsing_thenTheProfileAndRoleStillIdentifyTheEmptySnapshot() {
+        val dump = "user_id=10\nname=android.app.role.DIALER\nholders=[]"
+
+        val role = WakeSystemEvidence.snapshot(WakeCommand.ROLES, dump, 6).single()
+
+        assertThat(role.targetPackage).isNull()
+        assertThat(role.action).isEqualTo("android.app.role.DIALER")
+        assertThat(role.attributes).containsExactly("user", "10")
+    }
+
     @Test fun givenRoleAndJobDumps_whenDispatchingSnapshots_thenEachParserUsesOnlyItsOwnFields() {
         val role = "user_id=10\nname=android.app.role.HOME\nholders=[example.home]"
         val job = "JOB #u0a12/17: example.sync/.JobService"

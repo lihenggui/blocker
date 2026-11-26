@@ -62,7 +62,7 @@ class WakeProtectionManager @Inject constructor(
                     repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, READS_REFUSED_STATUS))
                     return@withLock true
                 }
-                if (capture.profiles.isEmpty()) {
+                if (0 !in capture.profiles) {
                     repository.reportStatus(WakeSourceStatus(PROTECTION_SOURCE, now, "PROFILE_SCOPE_UNAVAILABLE"))
                     return@withLock false
                 }

@@ -14,6 +14,7 @@ const val WAKE_NOTIFICATIONS_OFF = "NotificationsOff"
 /** Snapshots of visible overlay packages and app UIDs with started, unmuted audio tracks. */
 const val WAKE_OVERLAY_WINDOWS = "OverlayWindow"
 const val WAKE_AUDIO_PLAYBACK = "AudioPlayback"
+const val WAKE_DEVICE_ADMIN = "DeviceAdmin"
 
 internal object WakeSystemEvidence {
     private val logLine = Regex("""^\s*(\d+\.\d+)\s+(?:1000|system)\s+\d+\s+\d+\s+I\s+(am_proc_start|am_proc_died|am_kill|am_schedule_service_restart)\s*:\s*\[(.*)]\s*$""")
@@ -48,7 +49,8 @@ internal object WakeSystemEvidence {
         val argument = match.groupValues[1]
         val pkg = argument.substringAfterLast('=')
         val path = argument.removeSuffix("=$pkg").takeIf { it.startsWith("/") && it.endsWith(".apk") }
-        WakePackageUid(pkg, match.groupValues[2].toInt(), version.find(line)?.groupValues?.get(1)?.toLongOrNull(), path)
+        val uid = match.groupValues[2].toIntOrNull() ?: return@mapNotNull null
+        WakePackageUid(pkg, uid, version.find(line)?.groupValues?.get(1)?.toLongOrNull(), path)
     }.toList()
 
     fun logcat(output: String, wallMillis: Long, elapsedNanos: Long): List<WakeObservation> = output.lineSequence().mapNotNull { line ->
@@ -201,6 +203,7 @@ internal object WakeSystemEvidence {
             WakeCommand.OVERLAYS -> overlayWindows(output, now)
             WakeCommand.AUDIO -> audioPlayback(output, now)
             WakeCommand.WIDGETS -> widgetProviders(lines, now)
+            WakeCommand.DEVICE_POLICY -> deviceAdmins(output, now, profile)
             WakeCommand.ROLES -> roleHolders(lines, now, profile)
             WakeCommand.INPUT, WakeCommand.LISTENERS, WakeCommand.ACCESSIBILITY, WakeCommand.VPN -> systemBindings(lines, now, source, profile)
             WakeCommand.JOBS -> scheduledJobs(lines, now)
@@ -345,6 +348,75 @@ internal object WakeSystemEvidence {
         }
     }
 
+    private val policyUser = Regex("""User (\d+):""")
+    private val profileOwner = Regex("""Profile Owner \(User (\d+)\):\s*(.*)""")
+    private val deviceOwner = Regex("""Device Owner:\s*(.*)""")
+    private val activeAdmins = Regex("""(?:ActiveDeviceAdmins|Active (?:Device )?Admins|Enabled Device Admins)(?: \(User (\d+)[^)]*\))?:\s*(.*)""")
+    private val ownerUserId = Regex("""User ID:\s*(\d+)""")
+
+    private fun deviceAdmins(output: String, now: Long, profile: Int): List<WakeObservation> = buildList {
+        var currentUser = profile
+        var sectionUser = profile
+        var sectionIndent = -1
+        var isDeviceOwner = false
+        val admins = mutableListOf<String>()
+
+        fun addAdmin(text: String) {
+            val entry = text.removePrefix("admin=").removePrefix("component=").trimStart()
+            val name = if (entry.startsWith("ComponentInfo{")) {
+                component.matchEntire(entry.substringAfter('{').substringBefore('}'))
+            } else {
+                component.matchEntire(entry.removeSuffix(":"))
+            }
+            name?.value?.let(admins::add)
+        }
+
+        fun recordAdmins() {
+            for (admin in admins) {
+                add(WakeObservation(WAKE_DEVICE_ADMIN, now, targetPackage = admin.substringBefore('/'), component = admin, attributes = mapOf("user" to sectionUser.toString())))
+            }
+            admins.clear()
+        }
+
+        for (line in output.lineSequence()) {
+            val indent = line.indexOfFirst { !it.isWhitespace() }
+            if (indent < 0) continue
+            val text = line.trim()
+            if (indent <= sectionIndent) {
+                recordAdmins()
+                sectionIndent = -1
+            }
+            val userHeader = policyUser.matchEntire(text)?.groupValues?.get(1)?.toIntOrNull()
+            if (userHeader != null) {
+                currentUser = userHeader
+                if (sectionIndent >= 0 && !isDeviceOwner) {
+                    recordAdmins()
+                    sectionUser = userHeader
+                }
+                continue
+            }
+            val owner = deviceOwner.matchEntire(text)
+            val profileHeader = profileOwner.matchEntire(text)
+            val active = activeAdmins.matchEntire(text)
+            val section = owner ?: profileHeader ?: active
+            when {
+                section != null -> {
+                    recordAdmins()
+                    sectionIndent = indent
+                    isDeviceOwner = owner != null
+                    sectionUser = if (isDeviceOwner) 0 else section.groupValues[1].toIntOrNull() ?: currentUser
+                    addAdmin(section.groupValues.last())
+                }
+
+                sectionIndent >= 0 -> {
+                    val ownerId = if (isDeviceOwner) ownerUserId.matchEntire(text)?.groupValues?.get(1)?.toIntOrNull() else null
+                    if (ownerId != null) sectionUser = ownerId else addAdmin(text)
+                }
+            }
+        }
+        recordAdmins()
+    }
+
     private fun roleHolders(lines: Sequence<String>, now: Long, profile: Int): List<WakeObservation> = buildList {
         var host: String? = null
         var sourceUser = profile
@@ -352,8 +424,10 @@ internal object WakeSystemEvidence {
             if (text.startsWith("user_id=")) sourceUser = text.substringAfter('=').toIntOrNull() ?: profile
             if (text.startsWith("name=android.app.role.")) host = text.substringAfter('=')
             if (text.startsWith("holders=") && host != null) {
-                for (pkg in text.substringAfter('=').trim('[', ']').split(", ")) {
-                    if (pkg.matches(Regex("""[\w.]+"""))) this += WakeObservation("RoleHolder", now, targetPackage = pkg, action = host, attributes = mapOf("user" to sourceUser.toString()))
+                val holders = text.substringAfter('=').trim('[', ']').split(", ").filter { it.matches(Regex("""[\w.]+""")) }
+                val user = mapOf("user" to sourceUser.toString())
+                for (pkg in holders.ifEmpty { listOf(null) }) {
+                    add(WakeObservation("RoleHolder", now, targetPackage = pkg, action = host, attributes = user))
                 }
             }
         }

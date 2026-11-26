@@ -314,7 +314,7 @@ internal object WakeRevives {
             fun systemCaller(request: WakeRecord): WakeTrigger = when (request.kind) {
                 "BroadcastDeliveryEventReported" -> WakeTrigger(ReviveTrigger.SYSTEM_BROADCAST, Confidence.JOINED, "android", request.action)
 
-                "ServiceRequestEventReported" -> if (grantedSpecialAccess(target, component)) {
+                "ServiceRequestEventReported" -> if (grantedSpecialAccess(target, component, userOfUid(start.uid))) {
                     WakeTrigger(ReviveTrigger.SYSTEM_BIND, Confidence.JOINED, "android", component)
                 } else {
                     correlated() ?: WakeTrigger(ReviveTrigger.UNKNOWN, Confidence.JOINED, "android", component)
@@ -358,6 +358,7 @@ internal object WakeRevives {
             val restart = restarts[start.boot].orEmpty().lastOrNull { schedule ->
                 val delay = schedule.attr("delay_ms")?.toLongOrNull()?.coerceAtLeast(0) ?: 0
                 component != null && schedule.elapsedNanos <= start.elapsed &&
+                    schedule.attr("user")?.toIntOrNull()?.let { it == userOfUid(start.uid) } != false &&
                     start.elapsed <= schedule.elapsedNanos + delay * 1_000_000 + JOIN_WINDOW &&
                     qualifiedWakeComponent(target, schedule.component) == component
             }
@@ -397,7 +398,7 @@ internal object WakeRevives {
 
                 request != null -> joined(request)
 
-                reason == "SERVICE" && grantedSpecialAccess(target, component) ->
+                reason == "SERVICE" && grantedSpecialAccess(target, component, userOfUid(start.uid)) ->
                     WakeTrigger(ReviveTrigger.SYSTEM_BIND, Confidence.SNAPSHOT, "android", component)
 
                 // Only the platform may send a protected broadcast (`dumpsys package protected-broadcasts`).
@@ -423,7 +424,7 @@ internal object WakeRevives {
             }
             val justification = when {
                 userInitiated -> Justification.USER_INITIATED
-                classified.trigger == ReviveTrigger.SYSTEM_BIND && grantedSpecialAccess(target, component) -> Justification.USER_GRANTED_ROLE
+                classified.trigger == ReviveTrigger.SYSTEM_BIND && grantedSpecialAccess(target, component, userOfUid(start.uid)) -> Justification.USER_GRANTED_ROLE
                 postedNotification(start.boot, start.uid, target, start.elapsed) -> Justification.PRODUCTIVE
                 else -> Justification.NONE
             }

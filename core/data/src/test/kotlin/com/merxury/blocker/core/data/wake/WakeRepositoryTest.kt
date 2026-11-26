@@ -30,6 +30,8 @@ import com.merxury.blocker.core.privileged.wake.WakeProcStatsHold
 import com.merxury.blocker.core.privileged.wake.WakeProcStatsPeriod
 import com.merxury.blocker.core.privileged.wake.WakeResume
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -42,6 +44,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -175,6 +178,36 @@ class WakeRepositoryTest {
             assertThat(repository.readAccess()).isNull()
         }
         assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    @Test fun givenNoEnvironmentTargets_whenObserving_thenEmptyResultsNeedNoDatabaseQuery() = runTest {
+        assertThat(repository.observeExemptions(emptyList()).first()).isEmpty()
+        assertThat(repository.observeSpecialBindings(emptyList()).first()).isEmpty()
+        verifyNoInteractions(detection)
+    }
+
+    @Test fun givenGlobalDeviceAdminSnapshot_whenObservingBindings_thenOnlyOwnerRowsAreShown() = runTest {
+        val targets = listOf("app")
+        val owner = WakeRecord("owner", "7", 1, now, "DEVICE_POLICY", "DeviceAdmin", null, null, null, "app", "app/.Owner", null, null, null, null, """{"user":"0"}""")
+        val work = owner.copy(id = "work", component = "app/.Work", attributes = """{"user":"10"}""")
+        whenever(detection.observeSpecialBindings(targets)).thenReturn(flowOf(listOf(owner, work)))
+
+        assertThat(repository.observeSpecialBindings(targets).first()).containsExactly(owner)
+    }
+
+    @Test fun givenMultipleProfiles_whenCollecting_thenOnlySuccessfulSecondaryPackageReadsAllowIfw() = runTest {
+        captureWith()
+        val secondary = WakeBatch("PACKAGES/999", emptyList())
+        val capture = WakeCapture("7", 2_000_000_000, now, emptyList(), listOf(0, 999), listOf(secondary), false)
+        whenever(collector.capture(any(), any(), any())).thenReturn(
+            capture,
+            capture.copy(batches = listOf(secondary.copy(gaps = listOf("cannot read packages")))),
+        )
+
+        assertThat(repository.collect(false, PrivilegedIdentity.ROOT).secondaryPackagesAvailable).isTrue()
+        assertThat(repository.collect(false, PrivilegedIdentity.ROOT).secondaryPackagesAvailable).isFalse()
+        verify(history).status(WakeSourceStatus("profile scope", now, "OK"))
+        verify(history).status(argThat { source == "profile scope" && status.contains("secondary profile packages unavailable") })
     }
 
     @Test fun givenCaptureTheChannelCouldNotFinish_whenCollecting_thenWhatWasReadIsStoredAndTheImportSaysSo() = runTest {

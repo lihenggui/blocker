@@ -28,6 +28,25 @@ data class AutomaticWakeBlock(
     val allowed: Boolean,
 )
 
+enum class WakeSpecialAccess {
+    ACCESSIBILITY,
+    NOTIFICATION_LISTENER,
+    DEVICE_ADMIN,
+    ALWAYS_ON_VPN,
+    COMPANION_DEVICE,
+    INPUT_METHOD,
+    LIVE_WALLPAPER,
+    WIDGET,
+    SYNC_ADAPTER,
+}
+
+data class WakeAppEnvironment(
+    val userIdleAllowlisted: Boolean = false,
+    val systemIdleAllowlisted: Boolean = false,
+    val standbyBucket: Int? = null,
+    val specialAccess: Set<WakeSpecialAccess> = emptySet(),
+)
+
 data class AppWakeState(
     val activity: AppWakeActivity,
     /** Every blockable path of [activity] by path key. */
@@ -36,4 +55,5 @@ data class AppWakeState(
     val automatic: List<AutomaticWakeBlock>,
     /** Whether every blockable path and every automatic entry is blocked. */
     val allBlocked: Boolean,
+    val environment: WakeAppEnvironment = WakeAppEnvironment(),
 )
