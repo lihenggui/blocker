@@ -167,11 +167,38 @@ abstract class WakeDetectionDao {
           'AppFreezeChanged','AlarmScheduled','PendingAlarm','PendingIntentRegistration',
           'ForegroundServiceStateChanged','LongPartialWakelockStateChanged','BalAllowed','InteractiveStateChanged',
           'SystemBinding','RoleHolder','CompanionAssociation','WallpaperBinding','HeldConnection','NotificationsOff',
-          'OverlayWindow','AudioPlayback'
-        ) ORDER BY elapsedNanos
+          'OverlayWindow','AudioPlayback','DeviceAdmin','WidgetProvider','SyncAdapter'
+        ) ORDER BY elapsedNanos, rowid
         """,
     )
     abstract suspend fun detectionRecords(since: Long): List<WakeRecord>
+
+    @Query("SELECT * FROM WakeExemption WHERE target IN (:targets)")
+    abstract fun observeExemptions(targets: List<String>): Flow<List<WakeExemption>>
+
+    // Insertion order survives clock rollback. Find a whole snapshot before filtering its targets.
+    @Query(
+        """
+        WITH latest_row AS (
+          SELECT MAX(rowid) AS maxRowId FROM WakeRecord
+          WHERE source NOT LIKE '%/%'
+            AND kind IN ('SystemBinding','WallpaperBinding','CompanionAssociation','DeviceAdmin','WidgetProvider','SyncAdapter')
+          GROUP BY source, kind, action
+        ), latest_snapshot AS (
+          SELECT r.source, r.kind, r.action, r.boot, r.elapsedNanos, r.wallMillis
+          FROM WakeRecord r JOIN latest_row l ON r.rowid = l.maxRowId
+        )
+        SELECT record.* FROM WakeRecord record JOIN latest_snapshot s
+          ON record.source = s.source
+          AND record.kind = s.kind
+          AND record.action IS s.action
+          AND record.boot = s.boot
+          AND record.elapsedNanos = s.elapsedNanos
+          AND record.wallMillis = s.wallMillis
+        WHERE record.targetPackage IN (:targets)
+        """,
+    )
+    abstract fun observeSpecialBindings(targets: List<String>): Flow<List<WakeRecord>>
 
     @Query("SELECT MIN(wallMillis) FROM WakeRecord")
     abstract suspend fun oldestRecord(): Long?

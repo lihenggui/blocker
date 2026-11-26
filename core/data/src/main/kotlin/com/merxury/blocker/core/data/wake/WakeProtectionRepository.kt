@@ -27,8 +27,8 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * The user whose components the wake feature changes. It enforces only on a device whose one user
- * is the owner, see [ReviewedWakePaths.evaluate], and observes otherwise.
+ * PackageManager changes are scoped to the owner. Device-wide firewall rules are subject to the
+ * cross-profile checks in [ReviewedWakePaths.evaluate].
  */
 private val WAKE_USER = UserId.SYSTEM
 
@@ -107,7 +107,13 @@ class WakeProtectionRepository @Inject constructor(
         val canManageComponents = writes == WakeWrites.Enforce && !capture.channelUnavailable
         if (canManageComponents) ownership.recover()
         val previous = repository.protections()
-        val candidates = catalog.evaluate(repository.observedComponents(now - WAKE_HISTORY_RETENTION_MILLIS), capture.identities, capture.profiles, previous, repository.firewallResets())
+        val candidates = catalog.evaluate(
+            repository.observedComponents(now - WAKE_HISTORY_RETENTION_MILLIS),
+            capture.identities,
+            capture.profiles,
+            previous,
+            repository.firewallResets(),
+        ).filter { it.method != "IFW" || capture.secondaryPackagesAvailable }
         val knownIds = previous.map { it.pathId }.toSet()
         val newPaths = candidates.filter { it.pathId !in knownIds }
         if (newPaths.isNotEmpty()) repository.saveProtections(newPaths)

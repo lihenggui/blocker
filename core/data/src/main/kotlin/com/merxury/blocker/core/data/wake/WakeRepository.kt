@@ -35,6 +35,9 @@ import com.merxury.blocker.core.privileged.wake.WakeResume
 import com.merxury.blocker.core.utils.currentUserId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -60,6 +63,7 @@ data class WakeImport(
     val profiles: List<Int>,
     val channelUnavailable: Boolean = false,
     val everyReadRefused: Boolean = false,
+    val secondaryPackagesAvailable: Boolean = true,
 )
 
 /** Stored evidence for detection. [packages] maps each uid to the packages installed under it. */
@@ -145,6 +149,22 @@ class WakeRepository @Inject constructor(
 
     fun verdictsSince(fromDay: Long): Flow<List<WakeVerdictDay>> = detection.verdictsSince(fromDay)
 
+    fun observeExemptions(targets: List<String>): Flow<List<WakeExemption>> = observeTargets(targets, detection::observeExemptions)
+
+    fun observeSpecialBindings(targets: List<String>): Flow<List<WakeRecord>> = observeTargets(targets, detection::observeSpecialBindings).map { bindings ->
+        // Global dumps such as device policy can include secondary profiles in the owner source.
+        bindings.filter { runCatching { JSONObject(it.attributes).optInt("user") }.getOrNull() == 0 }
+    }
+
+    private inline fun <reified T> observeTargets(targets: List<String>, query: (List<String>) -> Flow<List<T>>): Flow<List<T>> {
+        val queries = targets.distinct().chunked(900).map(query)
+        return when (queries.size) {
+            0 -> flowOf(emptyList())
+            1 -> queries.single()
+            else -> combine(queries) { it.asList().flatten() }
+        }
+    }
+
     /** Collects and stores evidence read as [identity]; sources that cannot be read record why and the rest is stored. */
     suspend fun collect(diagnostic: Boolean, identity: PrivilegedIdentity): WakeImport {
         // Detection evidence never decides whether collection or enforcement runs.
@@ -153,10 +173,12 @@ class WakeRepository @Inject constructor(
         }
         val local = index.installedPackages()
         val labels = index.labels(local, capture.packages, capture.wallMillis)
+        val readSources = capture.batches.filter { it.gaps.isEmpty() }.mapTo(mutableSetOf()) { it.source }
+        val secondaryPackagesAvailable = capture.profiles.all { it == 0 || "PACKAGES/$it" in readSources }
         val profileScope = when {
-            capture.profiles == listOf(0) -> "OK"
-            capture.profiles.isEmpty() -> "unknown users; automatic changes unavailable"
-            else -> "multiple profiles; observe only"
+            0 !in capture.profiles -> "owner profile unavailable"
+            !secondaryPackagesAvailable -> "secondary profile packages unavailable; automatic firewall rules unavailable"
+            else -> "OK"
         }
         history.status(WakeSourceStatus("profile scope", capture.wallMillis, profileScope))
         history.status(WakeSourceStatus("package index", capture.wallMillis, "indexing ${local.size} packages"))
@@ -186,7 +208,7 @@ class WakeRepository @Inject constructor(
         if (diagnostic && capture.profiles.isNotEmpty()) preferences.edit { putLong("last_diagnostic", capture.wallMillis) }
         val identities = index.refresh(local, capture.packages, capture.wallMillis)
         history.status(WakeSourceStatus("package index", System.currentTimeMillis(), "${identities.size} packages"))
-        return WakeImport(capture.boot, identities, capture.profiles, capture.channelUnavailable, capture.everyReadRefused)
+        return WakeImport(capture.boot, identities, capture.profiles, capture.channelUnavailable, capture.everyReadRefused, secondaryPackagesAvailable)
     }
 
     /** Runs a detection-only write. A failure is reported as a detection status and never propagates. */

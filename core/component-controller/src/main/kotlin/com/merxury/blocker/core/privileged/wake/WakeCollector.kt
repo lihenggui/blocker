@@ -10,9 +10,11 @@ import android.os.Process
 import android.os.SystemClock
 import android.provider.Settings
 import androidx.core.content.edit
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.WakeBatch
+import com.merxury.blocker.core.model.wake.WakeObservation
 import com.merxury.blocker.core.privileged.PrivilegedExecutor
 import com.merxury.blocker.core.privileged.uid
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,9 +42,19 @@ private val SNAPSHOTS = listOf(
 )
 private val DIAGNOSTIC_SNAPSHOTS = listOf(
     WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
-    WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY,
+    WakeCommand.DEVICE_POLICY, WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY,
 )
 private val PROFILE_SETTINGS = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILITY, WakeCommand.LISTENERS, WakeCommand.VPN)
+
+private fun WakeCommand.emptyBindingSnapshot(now: Long): WakeObservation? = when (this) {
+    in PROFILE_SETTINGS -> WakeObservation("SystemBinding", now, action = name)
+    WakeCommand.WALLPAPER -> WakeObservation("WallpaperBinding", now)
+    WakeCommand.COMPANIONS -> WakeObservation("CompanionAssociation", now)
+    WakeCommand.DEVICE_POLICY -> WakeObservation(WAKE_DEVICE_ADMIN, now)
+    WakeCommand.WIDGETS -> WakeObservation("WidgetProvider", now)
+    WakeCommand.SYNCS -> WakeObservation("SyncAdapter", now)
+    else -> null
+}
 
 /**
  * One collection.
@@ -107,7 +119,13 @@ class WakeCollector @Inject internal constructor(
         readStartInfo(run, boot)
         run.read(WakeCommand.USERS) { run.profiles += WakeSystemEvidence.users(it) }
         for (profile in run.profiles) {
-            run.read(WakeCommand.PACKAGES, profile) { run.packages += WakeSystemEvidence.packages(it) }
+            run.read(WakeCommand.PACKAGES, profile) { output ->
+                val parsed = WakeSystemEvidence.packages(output)
+                run.packages += parsed
+                if (parsed.isEmpty() || parsed.size != output.lineSequence().count { it.isNotBlank() } || parsed.any { userOfUid(it.uid) != profile }) {
+                    run.batches += WakeBatch(WakeCommand.PACKAGES.source(profile), emptyList(), listOf("unrecognized package list"))
+                }
+            }
         }
         val now = SystemClock.elapsedRealtimeNanos()
         for (command in SNAPSHOTS) run.snapshot(command, now)
@@ -154,7 +172,9 @@ class WakeCollector @Inject internal constructor(
         }
 
         suspend fun snapshot(command: WakeCommand, now: Long, profile: Int = 0) = read(command, profile) {
-            batches += WakeBatch(command.source(profile), WakeSystemEvidence.snapshot(command, it, now, profile))
+            val observations = WakeSystemEvidence.snapshot(command, it, now, profile)
+            // An empty successful snapshot still supersedes earlier grants of this kind and action.
+            batches += WakeBatch(command.source(profile), observations.ifEmpty { listOfNotNull(command.emptyBindingSnapshot(now)) })
         }
 
         suspend fun readRecorder(boot: String) {

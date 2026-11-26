@@ -141,6 +141,72 @@ class WakeDetectionDaoTest {
         assertThat(dao.detectionRecords(5_000)).containsExactlyElementsIn(records).inOrder()
     }
 
+    @Test fun givenExemptionSnapshots_whenObservingTargets_thenOnlyCurrentMatchingRowsAreEmitted() = runTest {
+        val app = WakeExemption("app", "system-excidle,user", 40, null, 1)
+        dao.observeExemptions(listOf("app")).test {
+            assertThat(awaitItem()).isEmpty()
+            dao.replaceExemptions(listOf(app, app.copy(target = "other")))
+            assertThat(awaitItem()).containsExactly(app)
+            dao.replaceExemptions(listOf(app.copy(target = "other", checkedAt = 2)))
+            assertThat(awaitItem()).isEmpty()
+        }
+    }
+
+    @Test fun givenBindingSnapshots_whenObservingTargets_thenOnlyLatestRowsPerKindAndActionAreEmitted() = runTest {
+        val oldA11y = binding("old-a11y", "SystemBinding", "ACCESSIBILITY", "app", 10)
+        val listener = binding("listener", "SystemBinding", "LISTENERS", "app", 10)
+        val admin = binding("admin", "DeviceAdmin", null, "app", 10)
+        val widget = binding("widget", "WidgetProvider", null, "app", 10)
+        val sync = binding("sync", "SyncAdapter", null, "app", 10)
+        val unrelatedKind = binding("role", "RoleHolder", null, "app", 12)
+        val history = db.history()
+        history.importRecords(listOf(oldA11y, listener, admin, widget, sync, unrelatedKind), 0)
+
+        dao.observeSpecialBindings(listOf("app")).test {
+            assertThat(awaitItem()).containsExactly(oldA11y, listener, admin, widget, sync)
+            // An app absent from the newest global snapshot lost its grant, even when a different app is now present.
+            val newA11y = binding("new-a11y", "SystemBinding", "ACCESSIBILITY", "other", 20)
+            val emptyAdmins = binding("empty-admins", "DeviceAdmin", null, null, 20)
+            history.importRecords(listOf(newA11y, emptyAdmins), 0)
+            assertThat(awaitItem()).containsExactly(listener, widget, sync)
+
+            val replacementWidget = binding("replacement", "WidgetProvider", null, "app", 30)
+            val secondWidget = binding("second", "WidgetProvider", null, "app", 30)
+            history.importRecords(listOf(replacementWidget, secondWidget), 0)
+            assertThat(awaitItem()).containsExactly(listener, replacementWidget, secondWidget, sync)
+        }
+        assertThat(dao.detectionRecords(0)).containsAtLeast(admin, widget, sync)
+    }
+
+    @Test fun givenOwnerAndWorkBindingSnapshots_whenObserving_thenOnlyOwnerSourcesParticipate() = runTest {
+        val owner = binding("owner", "SystemBinding", "ACCESSIBILITY", "app", 10).copy(source = "ACCESSIBILITY")
+        val work = owner.copy(id = "work", source = "ACCESSIBILITY/10", elapsedNanos = 20, wallMillis = 20)
+        val workEmpty = work.copy(id = "work-empty", elapsedNanos = 30, wallMillis = 30, targetPackage = null, component = null)
+        val otherSource = owner.copy(id = "other-source", source = "another-source", elapsedNanos = 40, wallMillis = 40)
+        val history = db.history()
+        history.importRecords(listOf(owner, work), 0)
+        assertThat(dao.observeSpecialBindings(listOf("app")).first()).containsExactly(owner)
+
+        history.importRecords(listOf(workEmpty, otherSource), 0)
+        assertThat(dao.observeSpecialBindings(listOf("app")).first()).containsExactly(owner, otherSource)
+    }
+
+    @Test fun givenWallClockRollback_whenReadingLatestBindingSnapshot_thenAllRowsFromTheNewestCaptureWin() = runTest {
+        val older = binding("old", "WidgetProvider", null, "app", 100)
+        val first = older.copy(id = "first", boot = "8", elapsedNanos = 1, wallMillis = 50, component = "app/.First")
+        val second = first.copy(id = "second", component = "app/.Second")
+        val empty = first.copy(id = "empty", elapsedNanos = 2, wallMillis = 40, targetPackage = null, component = null)
+        val history = db.history()
+        history.importRecords(listOf(older), 0)
+        history.importRecords(listOf(first, second), 0)
+        assertThat(dao.observeSpecialBindings(listOf("app")).first()).containsExactly(first, second)
+
+        history.importRecords(listOf(empty), 0)
+        assertThat(dao.observeSpecialBindings(listOf("app")).first()).isEmpty()
+    }
+
+    private fun binding(id: String, kind: String, action: String?, target: String?, wall: Long) = WakeRecord(id, "7", wall, wall, "source", kind, null, null, null, target, target?.let { "$it/.$id" }, action, null, null, null, "{}")
+
     private fun finding(day: Long, id: String = "f$day", target: String = "pkg", actor: String? = null) = WakeFindingDay(id, day, target, "UNKNOWN|${actor.orEmpty()}|$target|", "UNKNOWN", null, actor, null, null, null, "NONE", "DIRECT", null, 0, 1, 0, 0, day, 0)
 
     private fun verdict(day: Long) = WakeVerdictDay(day, "pkg", "NORMAL", 1, 1, 0, 0, 0, 0, 0, 0)

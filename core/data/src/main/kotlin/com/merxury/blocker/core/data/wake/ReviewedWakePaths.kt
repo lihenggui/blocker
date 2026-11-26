@@ -10,6 +10,7 @@ import androidx.core.content.edit
 import com.merxury.blocker.core.database.wake.WakeIdentity
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.database.wake.WakeRecord
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.json.JSONArray
@@ -29,8 +30,11 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
     }
 
     fun evaluate(requests: List<WakeRecord>, identities: List<WakeIdentity>, profiles: List<Int>, previous: List<WakeProtection>, firewallResets: Map<String, Long> = emptyMap()): List<WakeProtection> {
-        if (profiles.distinct() != listOf(0)) return emptyList()
-        val byUid = identities.groupBy { it.uid }
+        if (0 !in profiles) return emptyList()
+        val (owner, secondary) = identities.partition { userOfUid(it.uid) == 0 }
+        val byUid = owner.groupBy { it.uid }
+        val byPackage = owner.groupBy { it.packageName }
+        val secondaryByPackage = secondary.groupBy { it.packageName }
         val paths = mutableMapOf<String, WakeProtection>()
         val digests = mutableMapOf<String, Set<String>>()
         for (proof in catalog) {
@@ -39,6 +43,15 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
             val method = proof.optString("method", "IFW")
             val review = proof.getString("review")
             val fixedPackage = proof.optString("target")
+            val fixedCaller = proof.optString("caller")
+            val peerSdk = proof.optBoolean("peerSdk")
+
+            // Intent Firewall matches packages across users.
+            fun conflicts(identity: WakeIdentity): Boolean = method == "IFW" && secondaryByPackage[identity.packageName].orEmpty().isNotEmpty()
+            fun matchesCaller(caller: WakeIdentity, target: WakeIdentity): Boolean = (fixedCaller.isEmpty() || caller.packageName == fixedCaller) &&
+                (!(peerSdk || fixedCaller.isNotEmpty()) || !conflicts(caller)) &&
+                (!peerSdk || (caller.uid != target.uid && caller.uid >= 10000 && matchesSdk(caller, proof)))
+
             val targets = if (fixedPackage.isNotEmpty()) {
                 setOf(fixedPackage)
             } else {
@@ -48,8 +61,8 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                 }
                 (observed + previous.filter { it.component == component && it.proof == review }.map { it.target }).toSet()
             }
-            for (target in identities.filter { it.packageName in targets }) {
-                if (byUid[target.uid]?.size != 1 || target.uid < 10000 || target.signatures.isBlank() || review.isBlank()) continue
+            for (target in targets.flatMap { byPackage[it].orEmpty() }) {
+                if (byUid[target.uid]?.size != 1 || target.uid < 10000 || target.signatures.isBlank() || review.isBlank() || conflicts(target)) continue
                 if (fixedPackage.isNotEmpty()) {
                     if (target.versionCode != proof.getLong("version") || target.signatures != proof.getString("signers") ||
                         apkDigests(target.packageName, digests) != proof.getJSONArray("apks").strings()
@@ -60,10 +73,10 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                     continue
                 }
                 for (old in previous.filter { it.target == target.packageName && it.component == component && it.action == action && it.method == method }) {
-                    val caller = identities.singleOrNull { it.packageName == old.caller }
+                    val caller = byPackage[old.caller]?.singleOrNull()
                     if (old.targetRevision == target.revision && old.proof == review && caller != null &&
                         caller.revision == old.callerRevision && byUid[caller.uid]?.size == 1 && !old.disabledByUser &&
-                        (!proof.optBoolean("peerSdk") || (caller.uid != target.uid && matchesSdk(caller, proof)))
+                        matchesCaller(caller, target)
                     ) {
                         paths[old.pathId] = old
                     }
@@ -76,8 +89,7 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                     }
                     val caller = if (method == "PM") target else byUid[event.callerUid]?.singleOrNull() ?: continue
                     if (caller.firstSeen > event.wallMillis || (method == "IFW" && event.callerPackage != null && event.callerPackage != caller.packageName)) continue
-                    if (proof.optBoolean("peerSdk") && (caller.uid == target.uid || caller.uid < 10000 || !matchesSdk(caller, proof))) continue
-                    if (proof.has("caller") && proof.getString("caller") != caller.packageName) continue
+                    if (!matchesCaller(caller, target)) continue
                     if (!matchesEvent(event, target.packageName, proof, method, component, action, firewallResets)) continue
                     val id = listOf(caller.packageName, caller.signatures, target.packageName, target.signatures, component, action, method).joinToString("|")
                     val old = previous.find { it.pathId == id && it.targetRevision == target.revision && it.callerRevision == caller.revision }

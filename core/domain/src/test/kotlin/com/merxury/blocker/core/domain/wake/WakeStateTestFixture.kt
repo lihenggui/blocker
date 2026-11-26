@@ -7,7 +7,9 @@ import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.wake.WakeReceiverResolver
 import com.merxury.blocker.core.data.wake.WakeRepository
+import com.merxury.blocker.core.database.wake.WakeExemption
 import com.merxury.blocker.core.database.wake.WakeFindingDay
+import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.database.wake.WakeVerdictDay
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -45,6 +47,9 @@ internal class WakeStateTestFixture(scope: TestScope) {
     private val history = mock<WakeRepository>()
     val findings = MutableStateFlow<List<WakeFindingDay>>(emptyList())
     val verdicts = MutableStateFlow<List<WakeVerdictDay>>(emptyList())
+    val exemptions = MutableStateFlow<List<WakeExemption>>(emptyList())
+    val bindings = MutableStateFlow<List<WakeRecord>>(emptyList())
+    val observedEnvironmentTargets = mutableListOf<List<String>>()
     val manual = FakeWakeBlockRepository()
     val automatic = FakeAutomaticWakeBlockRepository()
     val background = FakeBackgroundUsageRepository()
@@ -68,6 +73,21 @@ internal class WakeStateTestFixture(scope: TestScope) {
         }
         whenever(history.findingsSince(any())).thenReturn(findings)
         whenever(history.verdictsSince(any())).thenReturn(verdicts)
+        whenever(history.observeExemptions(any())).thenAnswer { call ->
+            val targets = call.getArgument<List<String>>(0)
+            observedEnvironmentTargets += targets
+            exemptions.map { rows -> rows.filter { it.target in targets } }
+        }
+        whenever(history.observeSpecialBindings(any())).thenAnswer { call ->
+            val targets = call.getArgument<List<String>>(0)
+            observedEnvironmentTargets += targets
+            bindings.map { rows ->
+                rows.groupBy { it.kind to it.action }.values.flatMap { group ->
+                    val latest = group.maxOf { it.wallMillis }
+                    group.filter { it.wallMillis == latest && it.targetPackage in targets }
+                }
+            }
+        }
     }
 
     val activity = ObserveAppWakeActivityUseCase(history, dispatcher)
@@ -80,6 +100,7 @@ internal class WakeStateTestFixture(scope: TestScope) {
             receiverQueries += target to action
             receivers[target to action].orEmpty()
         },
+        history,
         dispatcher,
     )
     val state = ObserveAppWakeStateUseCase(activity, observer)

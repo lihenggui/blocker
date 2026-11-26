@@ -719,6 +719,48 @@ class WakeDetectionTest {
         assertThat(joined(system, vpn).justification).isEqualTo(Justification.USER_GRANTED_ROLE)
     }
 
+    @Test fun givenBindingSnapshots_whenTheOwnerGrantIsRevoked_thenWorkAndHistoricGrantsDoNotJustifyTheOwnerBind() {
+        val system = request("ServiceRequestEventReported", 1000, "android")
+        val owner = wakeRecord(
+            "owner",
+            "SystemBinding",
+            START - SECOND,
+            source = "ACCESSIBILITY",
+            component = "$TARGET/.Wake",
+            action = "ACCESSIBILITY",
+        ).copy(boot = "7")
+        val workUid = TARGET_UID + UIDS_PER_USER
+        val work = owner.copy(id = "work", source = "ACCESSIBILITY/1", attributes = """{"user":"1"}""")
+        val anotherComponent = owner.copy(id = "reader", component = "$TARGET/.Reader")
+        val empty = owner.copy(id = "empty", elapsedNanos = START, wallMillis = owner.wallMillis - 500, targetPackage = null, component = null)
+
+        assertThat(joined(system, owner, work, anotherComponent).justification).isEqualTo(Justification.USER_GRANTED_ROLE)
+        assertThat(joined(system, empty, owner, work, anotherComponent).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+        assertThat(joined(system, owner, empty.copy(boot = "8", elapsedNanos = 1)).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+        val toWork = system.copy(targetUid = workUid)
+        val workStart = coldStart.copy(targetUid = workUid)
+        val relation = WakeRelation(toWork.id, workStart.id, "MATCHING_CALLER")
+        assertThat(revive(workStart, toWork, owner, empty, work, relations = listOf(relation)).justification).isEqualTo(Justification.USER_GRANTED_ROLE)
+    }
+
+    @Test fun givenPackageRoleSnapshots_whenTheOwnerRoleIsRevoked_thenOnlyTheCurrentWorkGrantApplies() {
+        val system = request("ServiceRequestEventReported", 1000, "android")
+        val owner = wakeRecord("owner", "RoleHolder", START - SECOND, source = "ROLES", action = "android.app.role.DIALER")
+        val work = owner.copy(id = "work", elapsedNanos = START, attributes = """{"user":"10"}""")
+        val empty = work.copy(id = "empty", targetPackage = null, attributes = """{"user":"0"}""")
+
+        assertThat(joined(system, owner).justification).isEqualTo(Justification.USER_GRANTED_ROLE)
+        assertThat(joined(system, owner, work, empty).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+    }
+
+    @Test fun givenActiveDeviceAdmin_whenDetecting_thenTheGrantCoversOnlyItsComponent() {
+        val system = request("ServiceRequestEventReported", 1000, "android")
+        val admin = wakeRecord("admin", "DeviceAdmin", START, source = "DEVICE_POLICY", component = "$TARGET/.Wake")
+
+        assertThat(joined(system, admin).justification).isEqualTo(Justification.USER_GRANTED_ROLE)
+        assertThat(joined(system, admin.copy(component = "$TARGET/.Other")).justification).isEqualTo(Justification.NONE)
+    }
+
     @Test fun givenNoCaller_whenDetecting_thenSnapshotsAndCorrelationsAreUsedBeforeUnknown() {
         val serviceStart = wakeRecord("info", "ApplicationStartInfo", START, source = "START_INFO", component = "$TARGET/.Ime", startType = 3, process = TARGET, attributes = mapOf("reason" to "SERVICE"))
         val ime = wakeRecord("ime", "SystemBinding", START, source = "INPUT", component = "$TARGET/.Ime", action = "INPUT")
@@ -742,6 +784,20 @@ class WakeDetectionTest {
         assertThat(sticky.actor).isEqualTo(TARGET)
         assertThat(revive(coldStart, schedule.copy(component = "$TARGET/.Other")).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
         assertThat(revive(coldStart, schedule.copy(elapsedNanos = START - 20 * SECOND)).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+    }
+
+    @Test fun givenWorkProfileRestartSchedule_whenTheOwnerStartsTheSameComponent_thenItIsNotSticky() {
+        val schedule = wakeRecord(
+            "restart",
+            "am_schedule_service_restart",
+            START - SECOND,
+            source = SYSTEM_WAKE_EVENTS,
+            component = "$TARGET/.Wake",
+            attributes = mapOf("delay_ms" to "1000", "user" to "10"),
+        )
+
+        assertThat(revive(coldStart, schedule).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+        assertThat(revive(coldStart.copy(targetUid = TARGET_UID + 10 * UIDS_PER_USER), schedule).trigger).isEqualTo(ReviveTrigger.STICKY_RESTART)
     }
 
     @Test fun givenRecentDeaths_whenStarting_thenTheKillReasonIsRecorded() {

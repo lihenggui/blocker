@@ -5,6 +5,7 @@ package com.merxury.blocker.core.domain.wake
 
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.component.isRegularAppUid
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.Justification
 import com.merxury.blocker.core.model.wake.ReviveTrigger
@@ -70,7 +71,7 @@ internal object WakeWarmWakes {
         val component = qualifiedWakeComponent(target, request.component)
         if (request.component != null && component == null) return null
         val callerUid = request.callerUid
-        if (callerUid == 1000 && component != null && request.number("request_type") == 2L && grantedSpecialAccess(target, component)) {
+        if (callerUid == 1000 && component != null && request.number("request_type") == 2L && grantedSpecialAccess(target, component, userOfUid(uid))) {
             return WakeTrigger(ReviveTrigger.SYSTEM_BIND, Confidence.JOINED, "android", component)
         }
         if (callerUid != null && !isRegularAppUid(callerUid)) return null

@@ -13,6 +13,7 @@ import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import com.merxury.blocker.core.privileged.wake.WAKE_AUDIO_PLAYBACK
+import com.merxury.blocker.core.privileged.wake.WAKE_DEVICE_ADMIN
 import com.merxury.blocker.core.privileged.wake.WAKE_NOTIFICATIONS_OFF
 import com.merxury.blocker.core.privileged.wake.WAKE_OVERLAY_WINDOWS
 import kotlinx.serialization.json.Json
@@ -126,7 +127,8 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
     fun WakeRecord.balEffectiveCallerUid(): Int? = callerUid?.takeIf(::isRegularAppUid)
         ?: attr("real_calling_uid")?.toIntOrNull()?.takeIf(::isRegularAppUid)
 
-    private val launchers = kind("RoleHolder").filter { it.action == "android.app.role.HOME" }.mapNotNull { it.targetPackage }.toSet()
+    private val specialGrants = latestGrantSnapshots()
+    private val launchers = specialGrants.filter { it.kind == "RoleHolder" }.filter { it.action == "android.app.role.HOME" }.mapNotNull { it.targetPackage }.toSet()
 
     fun isLauncher(pkg: String?): Boolean = pkg in launchers
 
@@ -358,19 +360,37 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
     /** Wall clock of an elapsed instant, using the record that observed it as the reference. */
     fun wallNanos(record: WakeRecord, elapsed: Long) = record.wallMillis * 1_000_000 + (elapsed - record.elapsedNanos)
 
-    // Special access the user granted. Bound services (IME, accessibility, notification listener,
-    // wallpaper) are granted per component. Roles, companion devices and the always-on VPN package
-    // are granted per package. SYSTEM_* roles are assigned by the platform, not by the user.
-    private val bindings = kind("SystemBinding") + kind("WallpaperBinding")
+    private fun latestGrantSnapshots(): List<WakeRecord> {
+        val kinds = setOf("SystemBinding", "WallpaperBinding", WAKE_DEVICE_ADMIN, "RoleHolder", "CompanionAssociation")
+        return evidence.records.asSequence().filter { it.kind in kinds }
+            .groupBy { Triple(it.source, it.kind, it.action) }.values.flatMap { records ->
+                // The boot count orders captures across boots. Within a boot, elapsed time survives
+                // wall-clock changes. Equal timestamps use the last row in evidence order.
+                val newestFirst = records.asReversed()
+                val boot = newestFirst.maxBy { it.boot.toIntOrNull() ?: -1 }.boot
+                val latest = newestFirst.filter { it.boot == boot }.maxBy { it.elapsedNanos }
+                records.filter {
+                    it.boot == latest.boot && it.elapsedNanos == latest.elapsedNanos && it.wallMillis == latest.wallMillis
+                }
+            }
+    }
+
+    private fun WakeRecord.grantKey(): Pair<Int, String>? = targetPackage?.let { (attr("user")?.toIntOrNull() ?: 0) to it }
+
+    // Bound services and active device admins are granted per component. Roles, companion devices,
+    // and the always-on VPN package are granted per package.
+    private val bindings = specialGrants.filter { it.kind in setOf("SystemBinding", "WallpaperBinding", WAKE_DEVICE_ADMIN) }
     private val componentGrants = bindings.mapNotNull { record ->
-        val pkg = record.targetPackage ?: return@mapNotNull null
-        record.component?.takeIf { '/' in it }?.let { qualifiedWakeComponent(pkg, it) }?.let { pkg to it }
+        val key = record.grantKey() ?: return@mapNotNull null
+        val component = record.component?.takeIf { '/' in it } ?: return@mapNotNull null
+        qualifiedWakeComponent(key.second, component)?.let { key to it }
     }.groupBy({ it.first }, { it.second }).mapValues { it.value.toSet() }
     private val packageGrants = (
         bindings.filter { it.component?.contains('/') != true } +
-            kind("RoleHolder").filterNot { it.action.orEmpty().startsWith("android.app.role.SYSTEM_") } +
-            kind("CompanionAssociation")
-        ).mapNotNull { it.targetPackage }.toSet()
+            specialGrants.filter {
+                it.kind == "CompanionAssociation" || (it.kind == "RoleHolder" && !it.action.orEmpty().startsWith("android.app.role.SYSTEM_"))
+            }
+        ).mapNotNull { it.grantKey() }.toSet()
 
     // The apps that could not notify at each snapshot, as `package/uid`.
     private val notificationsOff = kind(WAKE_NOTIFICATIONS_OFF).map { it.wallMillis to it.attr("apps").orEmpty().split(',').toSet() }
@@ -396,9 +416,10 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
         return taken.isNotEmpty() && taken.none { uid in it.second }
     }
 
-    fun grantedSpecialAccess(pkg: String, component: String?): Boolean {
-        if (pkg in packageGrants) return true
-        val components = componentGrants[pkg] ?: return false
+    fun grantedSpecialAccess(pkg: String, component: String?, user: Int = 0): Boolean {
+        val key = user to pkg
+        if (key in packageGrants) return true
+        val components = componentGrants[key] ?: return false
         // Without a component the binding cannot be told apart from another service of the package.
         val qualified = component?.let { qualifiedWakeComponent(pkg, it) } ?: return true
         return qualified in components

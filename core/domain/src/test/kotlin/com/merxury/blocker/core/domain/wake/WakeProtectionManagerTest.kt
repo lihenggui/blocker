@@ -143,6 +143,33 @@ class WakeProtectionManagerTest {
         verify(repository, times(2)).reportStatus(argThat { source == "protection" && status == "OK" })
     }
 
+    @Test fun givenOwnerAndSecondaryProfiles_whenReconciling_thenReviewedFirewallRulesAreApplied() = runTest {
+        val profiles = listOf(0, 10, 999)
+        authorizedWith(profiles = profiles)
+        val candidate = path.copy(caller = "target", method = "IFW", pendingChange = false, previousState = null)
+        whenever(catalogue.evaluate(any(), any(), eq(profiles), any(), any())).thenReturn(listOf(candidate))
+
+        assertThat(manager.reconcile()).isTrue()
+
+        verify(rules).replace(argThat { single().service == "target.Wake" })
+        verify(repository).reportStatus(argThat { source == "protection" && status == "OK" })
+    }
+
+    @Test fun givenUnreadSecondaryPackages_whenReconciling_thenFirewallIsClearedAndOwnerPmStillApplies() = runTest {
+        val profiles = listOf(0, 10)
+        val firewall = path.copy(pathId = "ifw", caller = "target", method = "IFW", configured = true, pendingChange = false, previousState = null)
+        authorizedWith(path, firewall, profiles = profiles)
+        whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), profiles, secondaryPackagesAvailable = false))
+        whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(path, firewall))
+        whenever(catalogue.currentState(path)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
+        whenever(components.compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(0), eq(2), any(), any())).thenReturn(true)
+
+        assertThat(manager.reconcile()).isTrue()
+
+        verify(rules).replace(emptyList())
+        verify(components).compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(0), eq(2), any(), any())
+    }
+
     @Test fun givenRootChannelThatRefusesProcessCalls_whenReconciling_thenObservesNothingWithoutRetrying() = runTest {
         // Shizuku before 13 runs as root but refuses every call that needs its own process: the
         // journal probe, and each read, so nothing is read, not even the users.
@@ -238,9 +265,12 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(rules, components)
     }
 
-    @Test fun givenUnknownProfiles_whenReconciling_thenJournalIsPreservedForRetry() = runTest {
-        authorizedWith(path, profiles = emptyList())
-        assertThat(manager.reconcile()).isFalse()
+    @Test fun givenOwnerMissingFromProfileScope_whenReconciling_thenJournalIsPreservedForRetry() = runTest {
+        for (profiles in listOf(emptyList(), listOf(10, 999))) {
+            authorizedWith(path, profiles = profiles)
+            assertThat(manager.reconcile()).isFalse()
+        }
+        verify(repository, times(2)).reportStatus(argThat { source == "protection" && status == "PROFILE_SCOPE_UNAVAILABLE" })
         verify(repository, never()).saveProtections(any())
         verifyNoInteractions(catalogue, rules, components)
     }

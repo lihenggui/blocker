@@ -8,6 +8,8 @@ import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository
 import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.data.wake.WakeReceiverResolver
+import com.merxury.blocker.core.data.wake.WakeRepository
+import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.AppKey
@@ -19,11 +21,14 @@ import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.AppWakeActivity
 import com.merxury.blocker.core.model.wake.AppWakeState
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
+import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.core.model.wake.WakePathState
+import com.merxury.blocker.core.model.wake.WakeSpecialAccess
+import com.merxury.blocker.core.privileged.wake.WAKE_DEVICE_ADMIN
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -40,6 +45,7 @@ internal class WakeStateObserver @Inject constructor(
     private val components: ComponentStatusRepository,
     private val backgroundUsage: BackgroundUsageRepository,
     private val receivers: WakeReceiverResolver,
+    private val history: WakeRepository,
     @Dispatcher(IO) private val io: CoroutineDispatcher,
 ) {
     /** Resolves component paths for the supplied activities, then observes all available path blocks. */
@@ -63,6 +69,42 @@ internal class WakeStateObserver @Inject constructor(
                 }
             }
         }.distinctUntilChanged().flowOn(io)
+    }
+
+    fun observeEnvironment(packageName: String): Flow<WakeAppEnvironment> {
+        val targets = listOf(packageName)
+        return combine(history.observeExemptions(targets), history.observeSpecialBindings(targets)) { exemptions, bindings ->
+            val exemption = exemptions.singleOrNull()
+            val types = exemption?.idleWhitelist?.split(',').orEmpty()
+            WakeAppEnvironment(
+                userIdleAllowlisted = "user" in types,
+                systemIdleAllowlisted = "system" in types || "system-excidle" in types,
+                standbyBucket = exemption?.standbyBucket,
+                specialAccess = bindings.mapNotNullTo(mutableSetOf()) { it.specialAccess() },
+            )
+        }.distinctUntilChanged().flowOn(io)
+    }
+
+    private fun WakeRecord.specialAccess(): WakeSpecialAccess? = when (kind) {
+        "SystemBinding" -> when (action) {
+            "ACCESSIBILITY" -> WakeSpecialAccess.ACCESSIBILITY
+            "LISTENERS" -> WakeSpecialAccess.NOTIFICATION_LISTENER
+            "VPN" -> WakeSpecialAccess.ALWAYS_ON_VPN
+            "INPUT" -> WakeSpecialAccess.INPUT_METHOD
+            else -> null
+        }
+
+        "WallpaperBinding" -> WakeSpecialAccess.LIVE_WALLPAPER
+
+        "CompanionAssociation" -> WakeSpecialAccess.COMPANION_DEVICE
+
+        WAKE_DEVICE_ADMIN -> WakeSpecialAccess.DEVICE_ADMIN
+
+        "WidgetProvider" -> WakeSpecialAccess.WIDGET
+
+        "SyncAdapter" -> WakeSpecialAccess.SYNC_ADAPTER
+
+        else -> null
     }
 
     private fun resolveComponentIds(paths: List<WakePath>): Map<WakePath, List<ComponentId>> {

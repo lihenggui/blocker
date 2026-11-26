@@ -47,10 +47,11 @@ internal enum class WakeCommand(val args: List<String>) {
     OVERLAYS(listOf("dumpsys", "-t", "5", "window", "windows")),
     AUDIO(listOf("dumpsys", "-t", "5", "audio")),
     USERS(listOf("pm", "list", "users")),
-    PACKAGES(listOf("pm", "list", "packages", "-f", "-U", "--show-versioncode", "--user")),
+    PACKAGES(listOf("pm", "list", "packages", "-f", "-U")),
     INTENTS(listOf("dumpsys", "-t", "5", "activity", "intents")),
     COMPANIONS(listOf("dumpsys", "-t", "5", "companiondevice")),
     WALLPAPER(listOf("dumpsys", "-t", "5", "wallpaper")),
+    DEVICE_POLICY(listOf("dumpsys", "-t", "5", "device_policy")),
     ROLES(listOf("dumpsys", "-t", "5", "role")),
     WIDGETS(listOf("dumpsys", "-t", "5", "appwidget")),
     INPUT(listOf("settings", "get", "secure", "default_input_method")),
@@ -63,11 +64,14 @@ internal enum class WakeCommand(val args: List<String>) {
     BATTERY(listOf("dumpsys", "-t", "5", "batterystats", "--charged", "--checkin")),
     ;
 
-    fun arguments(profile: Int, appUid: Int, boot: Int, argument: Long = 0): List<String> {
+    fun arguments(profile: Int, appUid: Int, boot: Int, argument: Long = 0, sdk: Int = Build.VERSION.SDK_INT): List<String> {
         require(profile >= 0)
         val id = WakeStatsCodec.configId(appUid, boot)
         return when (this) {
-            PACKAGES -> args + profile.toString()
+            PACKAGES -> {
+                val versionCode = if (sdk >= Build.VERSION_CODES.O) listOf("--show-versioncode") else emptyList()
+                args + versionCode + listOf("--user", profile.toString())
+            }
 
             INPUT, ACCESSIBILITY, LISTENERS, VPN -> listOf("settings", "--user", profile.toString()) + args.drop(1)
 
