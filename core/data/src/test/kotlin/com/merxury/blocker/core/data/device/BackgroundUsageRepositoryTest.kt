@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.appcontrol.BackgroundUsageControl
 import com.merxury.blocker.core.model.component.AppKey
@@ -15,6 +16,7 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -23,6 +25,102 @@ class BackgroundUsageRepositoryTest {
     private val channel = FakePrivilegedChannel(ChannelState.Ready(PrivilegedIdentity.SHELL))
     private val control = FakeBackgroundUsageControl()
     private val repository = LocalBackgroundUsageRepository(channel, control)
+
+    @Test
+    fun givenTwoObservers_whenUsageIsWrittenOrRead_thenBothReceiveTheLatestReadBack() = runTest {
+        val allowed = BackgroundUsage(allowed = true, changeable = true)
+        val restricted = allowed.copy(allowed = false)
+
+        repository.observe(app).test firstObserver@{
+            assertThat(awaitItem()).isEqualTo(allowed)
+            repository.observe(app).test {
+                assertThat(awaitItem()).isEqualTo(allowed)
+                assertThat(channel.quietConnectCount).isEqualTo(2)
+                assertThat(channel.connectCount).isEqualTo(0)
+
+                control.readResult = CallResult.Success(restricted)
+                assertThat(repository.setAllowed(app, false)).isEqualTo(BackgroundUsageResult.Success(restricted))
+                assertThat(awaitItem()).isEqualTo(restricted)
+                assertThat(this@firstObserver.awaitItem()).isEqualTo(restricted)
+
+                control.readResult = CallResult.Success(allowed)
+                assertThat(repository.read(app)).isEqualTo(BackgroundUsageResult.Success(allowed))
+                assertThat(awaitItem()).isEqualTo(allowed)
+                assertThat(this@firstObserver.awaitItem()).isEqualTo(allowed)
+                assertThat(channel.connectCount).isEqualTo(1)
+                assertThat(channel.quietConnectCount).isEqualTo(3)
+            }
+        }
+    }
+
+    @Test
+    fun givenExternalSettingChange_whenResubscribing_thenEmitsTheCurrentUsage() = runTest {
+        val allowed = BackgroundUsage(allowed = true, changeable = true)
+        val restricted = allowed.copy(allowed = false)
+        assertThat(repository.observe(app).first()).isEqualTo(allowed)
+        control.readResult = CallResult.Success(restricted)
+
+        assertThat(repository.observe(app).first()).isEqualTo(restricted)
+        assertThat(control.calls).containsExactly("read $app", "read $app")
+        assertThat(channel.connectCount).isEqualTo(0)
+    }
+
+    @Test
+    fun givenUnavailableChannel_whenItBecomesReadyDuringObservation_thenEmitsTheCurrentUsage() = runTest {
+        channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
+
+        repository.observe(app).test {
+            assertThat(awaitItem()).isNull()
+            assertThat(control.calls).isEmpty()
+
+            channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+
+            assertThat(awaitItem()).isEqualTo(BackgroundUsage(allowed = true, changeable = true))
+            assertThat(control.calls).containsExactly("read $app")
+            assertThat(channel.connectCount).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun givenUncachedFailedRead_whenObserving_thenEmitsNullWithoutPrompting() = runTest {
+        control.readResult = CallResult.Failure(CallFailure.SystemError("app ops unavailable"))
+
+        assertThat(repository.observe(app).first()).isNull()
+        assertThat(channel.quietConnectCount).isEqualTo(1)
+        assertThat(channel.connectCount).isEqualTo(0)
+        assertThat(control.calls).containsExactly("read $app")
+    }
+
+    @Test
+    fun givenCachedRestriction_whenAccessOrAvailabilityIsLost_thenAQuietReadClearsTheObserver() = runTest {
+        val ready = ChannelState.Ready(PrivilegedIdentity.SHELL)
+        val denied = ChannelState.Unavailable(UnavailableReason.DENIED)
+        val restricted = BackgroundUsage(allowed = false, changeable = true)
+        control.readResult = CallResult.Success(restricted)
+
+        repository.observe(app).test {
+            assertThat(awaitItem()).isEqualTo(restricted)
+
+            channel.setState(denied)
+            assertThat(repository.read(app)).isEqualTo(BackgroundUsageResult.Failure(BackgroundUsageFailure.NO_ACCESS))
+            assertThat(awaitItem()).isNull()
+
+            channel.setState(ready)
+            repository.read(app)
+            assertThat(awaitItem()).isEqualTo(restricted)
+            control.readResult = CallResult.Failure(CallFailure.TargetNotFound(null))
+            assertThat(repository.read(app)).isEqualTo(BackgroundUsageResult.Failure(BackgroundUsageFailure.NOT_INSTALLED))
+            assertThat(awaitItem()).isNull()
+
+            control.readResult = CallResult.Success(restricted)
+            repository.read(app)
+            assertThat(awaitItem()).isEqualTo(restricted)
+            control.isSupported = false
+            assertThat(repository.read(app)).isEqualTo(BackgroundUsageResult.Failure(BackgroundUsageFailure.UNSUPPORTED))
+            assertThat(awaitItem()).isNull()
+            assertThat(channel.connectCount).isEqualTo(0)
+        }
+    }
 
     @Test
     fun givenShellAccess_whenRead_thenUseOnlyQuietConnection() = runTest {

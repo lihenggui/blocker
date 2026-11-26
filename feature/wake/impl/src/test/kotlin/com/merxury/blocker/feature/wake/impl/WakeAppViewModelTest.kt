@@ -62,11 +62,26 @@ class WakeAppViewModelTest {
     private val first = detailPath("restart")
     private val second = detailPath("self", component = "$DETAIL_PACKAGE.Sync")
     private val known = AutomaticWakeBlock("known", "peer", DETAIL_PACKAGE, "$DETAIL_PACKAGE.Known", "bind", false, true)
-    private val base = detailState(own = listOf(detailMethod(OwnWakeKind.RESTART_AFTER_CLOSE, first), detailMethod(OwnWakeKind.SELF_START, second)))
-    private val observed = combine(manual.blocks, automatic.blocks) { blocks, reviewed ->
+    private var includeBackgroundPath = false
+    private val base by lazy {
+        detailState(
+            own = buildList {
+                add(detailMethod(OwnWakeKind.RESTART_AFTER_CLOSE, first))
+                add(detailMethod(OwnWakeKind.SELF_START, second))
+                if (includeBackgroundPath) {
+                    add(detailMethod(OwnWakeKind.TIMED, detailPath("alarm", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)))
+                }
+            },
+        )
+    }
+    private val observed = combine(manual.blocks, automatic.blocks, background.observe(appKey)) { blocks, reviewed, usage ->
         val paths = base.paths.mapValues { (key, state) ->
             val block = blocks.firstOrNull { it.pathKey == key }
-            if (block != null) state.copy(block = WakePathBlock.USER, blockedAtMillis = block.blockedAtMillis) else state
+            when {
+                block != null -> state.copy(block = WakePathBlock.USER, blockedAtMillis = block.blockedAtMillis)
+                state.path.blockMethod == WakeBlockMethod.BACKGROUND_RESTRICTION && usage?.allowed == false -> state.copy(block = WakePathBlock.USER)
+                else -> state
+            }
         }
         base.copy(paths = paths, automatic = reviewed, allBlocked = paths.values.all { it.block != WakePathBlock.NONE } && reviewed.all { it.active })
     }
@@ -77,7 +92,7 @@ class WakeAppViewModelTest {
         val details = mock<ComponentDetailRepository> { on { getLocalComponentDetails(any()) } doReturn flowOf(emptyMap()) }
         WakeAppViewModel(
             DETAIL_PACKAGE, state, availability, FakeInstalledAppRepository(), FakeSelectedUserRepository(), details,
-            background, SetWakePathsBlockedUseCase(manualBatch, automatic), RestoreAppWakeChangesUseCase(activity, manual, automatic, background),
+            background, SetWakePathsBlockedUseCase(manualBatch, automatic, background), RestoreAppWakeChangesUseCase(activity, manual, automatic, background),
         )
     }
 
@@ -123,6 +138,29 @@ class WakeAppViewModelTest {
         assertThat(automatic.allowedIds).containsExactly("known")
         assertThat(current.background?.allowed).isTrue()
         assertThat(background.writes).containsExactly(appKey to false, appKey to true).inOrder()
+    }
+
+    @Test
+    fun givenTimedRowAndBackgroundChoiceSelected_whenBlockingAndUndoing_thenWritesTheSettingOnceEachWay() = runTest {
+        includeBackgroundPath = true
+        observe()
+        val timed = current.methods.single { it.kind == OwnWakeKind.TIMED }
+        assertThat(current.choices.map { it.key }).containsAtLeast(timed.key, BACKGROUND_CHOICE)
+
+        viewModel.blockAll(setOf(timed.key, BACKGROUND_CHOICE))
+        runCurrent()
+        assertThat(current.methods.single { it.key == timed.key }.blocked).isTrue()
+        assertThat(current.background?.allowed).isFalse()
+        assertThat(background.writes).containsExactly(appKey to false)
+        val notice = requireNotNull(current.notice)
+        assertThat(notice.text).isEqualTo(blockedCount(1))
+
+        viewModel.undo(notice.id)
+        runCurrent()
+        assertThat(current.methods.single { it.key == timed.key }.blocked).isFalse()
+        assertThat(current.background?.allowed).isTrue()
+        assertThat(background.writes).containsExactly(appKey to false, appKey to true).inOrder()
+        assertThat(manual.blocks.value).isEmpty()
     }
 
     @Test

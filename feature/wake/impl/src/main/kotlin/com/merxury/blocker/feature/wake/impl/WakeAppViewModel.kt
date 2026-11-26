@@ -18,6 +18,7 @@ import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.model.wake.WakeAvailability
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
+import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.feature.wake.api.R.string
@@ -121,13 +122,18 @@ internal class WakeAppViewModel @AssistedInject constructor(
         val state = data.value
         val rows = state.rows.filter { it.key in selected && it.canToggle && !it.blocked }
         val usage = background.value
-        val turnOffBackground = BACKGROUND_CHOICE in selected && usage?.allowed == true && usage.changeable
+        val paths = rows.flatMap { it.paths }
+        // A selected path for this app already owns the setting change and its undo.
+        val backgroundHandledByPaths = paths.any {
+            it.block == WakePathBlock.NONE && it.path.blockMethod == WakeBlockMethod.BACKGROUND_RESTRICTION && it.path.target == appKey.packageName
+        }
+        val turnOffBackground = BACKGROUND_CHOICE in selected && usage?.allowed == true && usage.changeable && !backgroundHandledByPaths
         if (rows.isEmpty() && !turnOffBackground) return@act
 
         val allowed = rows.associateWith { row ->
             row.paths.filter { it.block == WakePathBlock.NONE }.map { it.path.pathKey }.toSet() + listOfNotNull(row.automatic?.pathId)
         }
-        val result = setBlocked.blockWithUndo(rows.flatMap { it.paths }, rows.mapNotNull { it.automatic })
+        val result = setBlocked.blockWithUndo(paths, rows.mapNotNull { it.automatic })
         val backgroundResult = if (turnOffBackground) {
             changeBackground(false)
         } else {
