@@ -13,6 +13,11 @@ config:
 graph TB
   subgraph :feature
     direction TB
+    subgraph :feature:wake
+      direction TB
+      :feature:wake:api[api]:::android-library
+      :feature:wake:impl[impl]:::android-library
+    end
     subgraph :feature:applist
       direction TB
       :feature:applist:api[api]:::android-library
@@ -115,6 +120,7 @@ graph TB
   :app-compose -.-> :feature:search:impl
   :app-compose -.-> :feature:settings:api
   :app-compose -.-> :feature:settings:impl
+  :app-compose -.-> :feature:wake:impl
   :app-compose -.-> :sync:work
   :benchmarks -.->|testedApks| :app-compose
   :core:common -.-> :core:model
@@ -242,6 +248,14 @@ graph TB
   :feature:settings:impl -.-> :core:rule
   :feature:settings:impl -.-> :core:ui
   :feature:settings:impl --> :feature:settings:api
+  :feature:wake:api --> :core:navigation
+  :feature:wake:api -.-> :core:ui
+  :feature:wake:impl -.-> :core:component-controller
+  :feature:wake:impl -.-> :core:data
+  :feature:wake:impl -.-> :core:designsystem
+  :feature:wake:impl -.-> :core:domain
+  :feature:wake:impl -.-> :core:ui
+  :feature:wake:impl -.-> :feature:wake:api
   :sync:work -.-> :core:analytics
   :sync:work -.-> :core:data
   :sync:work -.-> :core:domain
