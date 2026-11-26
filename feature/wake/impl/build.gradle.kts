@@ -32,6 +32,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
+    implementation(libs.androidx.graphics.shapes)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.kotlinx.coroutines.test)

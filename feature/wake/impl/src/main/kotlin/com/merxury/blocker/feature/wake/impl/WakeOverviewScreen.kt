@@ -30,6 +30,8 @@ import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.wake.api.R.string
 import com.merxury.blocker.core.ui.R.string as coreString
 
+internal val WakeContentSpacing = 16.dp
+
 @Composable
 internal fun WakeOverviewRoute(
     onAppClick: (String) -> Unit,
@@ -63,7 +65,7 @@ internal fun WakeOverviewScreen(
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                        contentPadding = PaddingValues(WakeContentSpacing),
                     ) {
                         item(key = "hero") {
                             WakeOverviewHero(state, onGrantAccess, onCheckNow)
