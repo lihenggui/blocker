@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -48,7 +47,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -87,6 +85,7 @@ import com.merxury.blocker.feature.impl.settings.navigation.settingsEntry
 import com.merxury.blocker.feature.ruledetail.impl.navigation.ruleDetailEntry
 import com.merxury.blocker.feature.search.impl.navigation.searchEntry
 import com.merxury.blocker.feature.wake.impl.navigation.CompactWakeSceneStrategy
+import com.merxury.blocker.feature.wake.impl.navigation.rememberWakeTransitions
 import com.merxury.blocker.feature.wake.impl.navigation.wakeAppEntry
 import com.merxury.blocker.feature.wake.impl.navigation.wakeOverviewEntry
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
@@ -132,7 +131,7 @@ fun BlockerApp(
 }
 
 @Composable
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3AdaptiveApi::class)
 internal fun BlockerApp(
     appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,
@@ -152,9 +151,8 @@ internal fun BlockerApp(
         }
     }
 
-    val motion = MaterialTheme.motionScheme
-    val layoutDirection = LocalLayoutDirection.current
-    val entryProvider = remember(navigator, updateIconThemingState, motion, layoutDirection) {
+    val wakeTransitions = rememberWakeTransitions()
+    val entryProvider = remember(navigator, updateIconThemingState, wakeTransitions) {
         entryProvider {
             appListEntry(
                 navigator = navigator,
@@ -171,8 +169,8 @@ internal fun BlockerApp(
             ifwRuleEditorEntry(navigator)
             ruleDetailEntry(navigator)
             debloaterEntry(navigator)
-            wakeOverviewEntry(navigator, motion, layoutDirection)
-            wakeAppEntry(navigator, motion, layoutDirection)
+            wakeOverviewEntry(navigator, wakeTransitions)
+            wakeAppEntry(navigator, wakeTransitions)
             searchEntry(navigator)
             supportAndFeedbackEntry(navigator)
             licensesEntry(navigator)

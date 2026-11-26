@@ -39,7 +39,7 @@ class WakeSceneTransitionsTest {
         assertThat(scene(listOf(entry(WakeOverviewNavKey), unmarked))).isNull()
     }
 
-    private fun entry(key: NavKey) = NavEntry(key, metadata = wakeSceneTransitions(MotionScheme.standard(), LayoutDirection.Ltr)) {}
+    private fun entry(key: NavKey) = NavEntry(key, metadata = wakeSceneTransitions(MotionScheme.standard(), LayoutDirection.Ltr, distance = 1)) {}
 
     private fun scene(entries: List<NavEntry<NavKey>>) = with(CompactWakeSceneStrategy) {
         SceneStrategyScope<NavKey>().calculateScene(entries)
