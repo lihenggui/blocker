@@ -18,6 +18,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.data.wake.WakeAuthorizationRepository
+import com.merxury.blocker.core.data.wake.WakeRunRequester
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.domain.wake.WakeProtectionManager
 import dagger.assisted.Assisted
@@ -49,7 +50,12 @@ class WakeWork @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val authorization: WakeAuthorizationRepository,
     @param:ApplicationScope private val scope: CoroutineScope,
-) {
+) : WakeRunRequester {
+    override fun requestRun() {
+        // A collector may already have read the old overrides or be waiting to retry.
+        enqueue(context, ExistingWorkPolicy.REPLACE, "wake-history-requested")
+    }
+
     fun initialize() {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             "wake-history-periodic",

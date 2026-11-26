@@ -32,6 +32,7 @@ import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
+import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.core.ifw.ManagedWakeRules
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -58,7 +59,7 @@ class WakeUserBlockTest {
     private val userFirewall = mock<UserWakeFirewall>()
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, system, FakePrivilegedChannel(), PmBlockRecords(userBlocks), userFirewall, lock),
+        WakeProtectionRepository(repository, ownership, catalogue, rules, system, FakePrivilegedChannel(), PmBlockRecords(userBlocks), userFirewall, lock, FakeComponentStatusRepository()),
         lock,
         StandardTestDispatcher(testScheduler),
     )

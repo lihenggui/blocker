@@ -11,6 +11,10 @@ config:
     nodePlacementStrategy: SIMPLE
 ---
 graph TB
+  subgraph :sync
+    direction TB
+    :sync:work[work]:::android-library
+  end
   subgraph :core
     direction TB
     :core:analytics[analytics]:::android-library
@@ -21,6 +25,7 @@ graph TB
     :core:database[database]:::android-library
     :core:datastore[datastore]:::android-library
     :core:datastore-proto[datastore-proto]:::jvm-library
+    :core:domain[domain]:::android-library
     :core:ifw-api[ifw-api]:::android-library
     :core:model[model]:::android-library
     :core:network[network]:::android-library
@@ -45,10 +50,17 @@ graph TB
   :core:data -.-> :core:system
   :core:data-test --> :core:data
   :core:data-test -.-> :core:testing
+  :core:data-test -.-> :sync:work
   :core:database --> :core:model
   :core:datastore -.-> :core:common
   :core:datastore --> :core:datastore-proto
   :core:datastore --> :core:model
+  :core:domain -.-> :core:common
+  :core:domain -.-> :core:component-controller
+  :core:domain --> :core:data
+  :core:domain -.-> :core:ifw-api
+  :core:domain --> :core:model
+  :core:domain -.-> :core:rule
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
@@ -66,6 +78,9 @@ graph TB
   :core:testing -.-> :core:ifw-api
   :core:testing --> :core:model
   :core:testing -.-> :core:rule
+  :sync:work -.-> :core:analytics
+  :sync:work -.-> :core:data
+  :sync:work -.-> :core:domain
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

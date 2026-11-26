@@ -91,4 +91,5 @@ data class AppWakeSummary(
     val keepAliveDays: Int,
     val suspiciousDays: Int,
     val headline: WakeHeadline,
+    val allBlocked: Boolean = false,
 )

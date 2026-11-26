@@ -10,6 +10,7 @@ import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
 import com.merxury.blocker.core.privileged.wake.WakeComponentJournal
 import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -85,6 +86,28 @@ class WakeComponentOwnershipTest {
         ownership.recover()
 
         verify(dao, times(2)).putProtections(listOf(override))
+    }
+
+    @Test fun givenNewScreenOverride_whenRecoveringFromAnOlderJournal_thenTheNewFlagSurvives() = runTest {
+        val override = owned.copy(disabledByUser = true)
+        whenever(dao.readProtections()).thenReturn(listOf(override))
+        whenever(journal.read()).thenReturn(Json.encodeToString(listOf(owned)))
+
+        ownership.recover()
+
+        verify(journal).write(Json.encodeToString(listOf(override)))
+        verify(dao).putProtections(emptyList())
+    }
+
+    @Test fun givenClearedScreenOverride_whenRecovering_thenTheJournalDoesNotReinstateIt() = runTest {
+        val released = owned.copy(configured = false)
+        whenever(dao.readProtections()).thenReturn(listOf(released))
+        whenever(journal.read()).thenReturn(Json.encodeToString(listOf(released.copy(disabledByUser = true))))
+
+        ownership.recover()
+
+        verify(journal).write("[]")
+        verify(dao).putProtections(emptyList())
     }
 
     @Test fun givenUnwritableJournal_whenPreparingChange_thenNoOwnershipIsClaimed() = runTest {

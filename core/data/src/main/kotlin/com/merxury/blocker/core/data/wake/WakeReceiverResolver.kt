@@ -13,7 +13,7 @@ import com.merxury.blocker.core.model.component.ComponentId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-internal fun interface WakeReceiverResolver {
+fun interface WakeReceiverResolver {
     /** Resolves the target's manifest receivers for [action] in the owner profile. */
     fun resolve(target: String, action: String): List<ComponentDeclaration>
 }

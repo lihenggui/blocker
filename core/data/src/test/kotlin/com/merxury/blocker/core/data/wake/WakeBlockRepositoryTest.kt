@@ -44,6 +44,7 @@ import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.system.SystemPackageReader
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import com.merxury.blocker.core.testing.repository.wake.FakeAutomaticWakeBlockRepository
 import com.merxury.core.ifw.ManagedWakeRules
 import com.merxury.core.ifw.WakeRuleFileKind
 import com.merxury.core.ifw.WakeRuleWriter
@@ -91,6 +92,7 @@ class WakeBlockRepositoryTest {
     private val receivers = FakeWakeReceiverResolver()
     private val channel = FakePrivilegedChannel()
     private val lock = WakeRuleLock()
+    private val automatic = FakeAutomaticWakeBlockRepository()
     private val packages = mock<SystemPackageReader>()
     private val firewall = UserWakeFirewall(dao, writer, packages)
     private val rules = ManagedWakeRules(writer, context)
@@ -117,7 +119,7 @@ class WakeBlockRepositoryTest {
                 declaration(ACTIVITY, ComponentType.ACTIVITY),
             ).map { ComponentStatus(it, ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)) },
         )
-        return LocalWakeBlockRepository(dao, firewall, rules, componentRepository, receivers, privilegedChannel, lock, StandardTestDispatcher(testScheduler))
+        return LocalWakeBlockRepository(dao, firewall, rules, componentRepository, receivers, privilegedChannel, lock, StandardTestDispatcher(testScheduler), automatic)
     }
 
     @Test fun givenKnownTriggersAndHolds_whenBlocking_thenStoredSendersMatchTheWakePaths() = runTest {
@@ -438,10 +440,53 @@ class WakeBlockRepositoryTest {
         assertThat(writer.userWrites.last()).isNull()
     }
 
+    @Test fun givenComponentListBlockWithoutWakeRow_whenAllowingPath_thenItsDisabledLayersAreCleared() = runTest {
+        val repository = repository()
+        val id = ComponentId(TARGET, RECEIVER)
+        val app = AppKey(TARGET, UserId.SYSTEM)
+        components.sendComponents(
+            UserId.SYSTEM,
+            listOf(
+                ComponentStatus(declaration(RECEIVER, ComponentType.RECEIVER), ControlState(PmSetting.DISABLED, IfwBlock.BLOCKED)),
+            ),
+        )
+        val path = path("list-block", trigger = ReviveTrigger.PEER_BROADCAST, component = id.className, method = COMPONENT)
+
+        assertThat(repository.unblockPaths(listOf(path))).isEqualTo(WakeBlockOutcome(setOf(path.pathKey), null))
+
+        assertThat(components.requests.single().goal).isEqualTo(ControlGoal.ENABLE)
+        assertThat(components.components(app).first().single().isSwitchOn).isTrue()
+        assertThat(dao.all()).isEmpty()
+    }
+
+    @Test fun givenAppAndCurrentOutboundRows_whenRemovingAndRestoring_thenExactStoredRowsReturn() = runTest {
+        val repository = repository()
+        val inbound = firewallRow("old-inbound", TARGET)
+        val toPeer = firewallRow("current-outbound", PEER)
+        val unrelated = firewallRow("old-outbound", PEER)
+        val component = WakeBlockEntity("component", TARGET, COMPONENT.name, null, null, RECEIVER, null, 17)
+        dao.upsert(listOf(inbound, toPeer, unrelated, component))
+        components.sendComponents(
+            UserId.SYSTEM,
+            listOf(
+                ComponentStatus(declaration(SERVICE, ComponentType.SERVICE), ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)),
+                ComponentStatus(ComponentDeclaration(ComponentId(PEER, "$PEER.Service"), ComponentType.SERVICE, true, true), ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)),
+                ComponentStatus(declaration(RECEIVER, ComponentType.RECEIVER), ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED)),
+            ),
+        )
+
+        val (outcome, undo) = repository.removeAppBlocks(TARGET, setOf("current-outbound"))
+
+        assertThat(outcome).isEqualTo(WakeBlockOutcome(setOf(inbound.pathKey, toPeer.pathKey, component.pathKey), null))
+        assertThat(dao.all()).containsExactly(unrelated)
+        assertThat(repository.restoreBlocks(undo)).isEqualTo(outcome)
+        assertThat(dao.all()).containsExactly(inbound, toPeer, unrelated, component)
+    }
+
     @Test fun givenResetScope_whenResettingProtection_thenOnlyMatchingFirewallRowsAreRemoved() = runTest {
         val history = mock<WakeRepository>()
         whenever(history.isOwnerProfile).thenReturn(true)
-        val protection = WakeProtectionRepository(history, mock(), mock(), rules, mock(), channel, mock(), firewall, lock)
+        val protection = WakeProtectionRepository(history, mock(), mock(), rules, mock(), channel, mock(), firewall, lock, components)
         val kept = firewallRow("kept", PEER)
         val dropped = firewallRow("dropped", TARGET)
         val pm = dropped.copy(pathKey = "pm", method = COMPONENT.name, componentType = null)

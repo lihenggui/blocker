@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -52,6 +53,9 @@ import javax.inject.Inject
 class PmBlockRecords @Inject constructor(
     private val dao: PmBlockRecordDao,
 ) {
+    /** Observes Blocker's PackageManager blocks of [user]. */
+    internal fun observe(user: UserId) = dao.observeByUser(user.value).map { rows -> rows.map { it.asKey() }.toSet() }
+
     /** The recorded components of [user], by package and class name. */
     suspend fun of(user: UserId): List<ComponentKey> = dao.getByUser(user.value).map { it.asKey() }
 

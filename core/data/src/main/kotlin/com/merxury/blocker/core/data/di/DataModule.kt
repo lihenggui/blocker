@@ -52,6 +52,8 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneBroadcastMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
+import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository
+import com.merxury.blocker.core.data.wake.LocalAutomaticWakeBlockRepository
 import com.merxury.blocker.core.data.wake.LocalWakeBlockRepository
 import com.merxury.blocker.core.data.wake.PackageManagerWakeReceiverResolver
 import com.merxury.blocker.core.data.wake.WakeBlockRepository
@@ -78,6 +80,9 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindCatalogHttpFetcher(fetcher: OkHttpCatalogFetcher): CatalogHttpFetcher
+
+    @Binds
+    internal abstract fun bindAutomaticWakeBlockRepository(repository: LocalAutomaticWakeBlockRepository): AutomaticWakeBlockRepository
 
     @Binds
     internal abstract fun bindComponentActions(impl: LocalComponentActions): ComponentActions
