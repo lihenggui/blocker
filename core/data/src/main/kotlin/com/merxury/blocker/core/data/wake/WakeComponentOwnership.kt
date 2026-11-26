@@ -59,12 +59,15 @@ class WakeComponentOwnership @Inject constructor(
         // recovering the system-write metadata from the journal, which can be ahead of Room.
         val recovered = durable.values.map { saved ->
             val current = local[saved.pathId]
-            if (current != null && current.copy(disabledByUser = saved.disabledByUser) == saved) current else saved
+            if (current == null) return@map saved
+            val override = current.copy(disabledByUser = saved.disabledByUser)
+            val reblock = current.reblockPending && override.copy(pendingChange = false, previousState = saved.previousState) == saved
+            if (override == saved || reblock) current else saved
         }
         if (recovered.any { it != durable[it.pathId] }) {
             journal.write(Json.encodeToString(recovered.filter { it.needsComponentJournal() }))
         }
-        val released = local.values.filter { it.pathId !in durable && (it.configured || it.pendingChange) }
+        val released = local.values.filter { it.pathId !in durable && (it.configured || it.componentWritePending) }
             .map { it.copy(configured = false, pendingChange = false) }
         history.putProtections(released + recovered.filter { it != local[it.pathId] })
     }

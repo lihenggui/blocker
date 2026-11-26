@@ -695,7 +695,7 @@ class WakeBlockRepositoryTest {
                     WakeProtection(it.id.className, PEER, TARGET, it.id.className, ACTION, "receiver", false, true, method = "PM", previousState = 0)
                 },
             )
-            val protections = LocalAutomaticWakeBlockRepository(history, device.pmBlocks, lock, TestWakeRunRequester())
+            val protections = LocalAutomaticWakeBlockRepository(history, device.pmBlocks, lock, TestWakeRunRequester(), mock())
             device.componentControl.apply = {
                 val outcomes = matches.map { declaration ->
                     ComponentOutcome(declaration.key, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED), ControlResult.ACHIEVED, emptyMap())

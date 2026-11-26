@@ -144,7 +144,7 @@ class WakeAppViewModelTest {
     fun givenThreeRowsAndBackgroundUsage_whenBlockingThenUndoing_thenCountsFourChoicesAndRestoresThatBatch() = runTest {
         val existing = detailPath("outside").record()
         manual.blocks.value = listOf(existing)
-        automatic.blocks.value = listOf(known)
+        automatic.setBlocks(listOf(known))
         observe()
         viewModel.blockAll(current.choices.mapTo(mutableSetOf()) { it.key } - setOf(DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE))
         runCurrent()
@@ -191,7 +191,7 @@ class WakeAppViewModelTest {
         assertThat(current.potential).hasSize(1)
 
         val pm = known.copy(method = "PM")
-        automatic.blocks.value = listOf(pm)
+        automatic.setBlocks(listOf(pm))
         runCurrent()
 
         verify(scanner).invoke(DETAIL_PACKAGE, setOf(pm.component))
@@ -337,10 +337,10 @@ class WakeAppViewModelTest {
     fun givenOutboundPathAndBackgroundChoice_whenBlocking_thenOnlyTheOpenAppStopsAndCountIncludesBothWrites() = runTest {
         val peer = "another.app"
         val path = detailPath("out", target = peer)
-        automatic.blocks.value = listOf(AutomaticWakeBlock("outgoing", DETAIL_PACKAGE, peer, checkNotNull(path.component), "", false, true))
+        automatic.setBlocks(listOf(AutomaticWakeBlock("outgoing", DETAIL_PACKAGE, peer, checkNotNull(path.component), "", false, true)))
         appControl.running[UserId.SYSTEM] = mutableSetOf(DETAIL_PACKAGE, peer)
         beforeForceStop = {
-            assertThat(automatic.blocks.value.single().active).isTrue()
+            assertThat(automatic.currentBlocks.single().active).isTrue()
             assertThat(background.writes).containsExactly(appKey to false)
         }
         observe()
@@ -574,7 +574,7 @@ class WakeAppViewModelTest {
     @Test
     fun givenUserAndAutomaticBlocks_whenRestoringThenUndoing_thenUsesRestoreToken() = runTest {
         manual.blocks.value = listOf(first.record())
-        automatic.blocks.value = listOf(known.copy(active = true, allowed = false))
+        automatic.setBlocks(listOf(known.copy(active = true, allowed = false)))
         background.sendUsage(appKey, BackgroundUsage(false, true))
         observe()
 

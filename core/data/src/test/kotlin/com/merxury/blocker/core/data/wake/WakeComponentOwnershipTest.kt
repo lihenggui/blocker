@@ -110,6 +110,18 @@ class WakeComponentOwnershipTest {
         verify(dao).putProtections(emptyList())
     }
 
+    @Test fun givenReblockRequestAfterAllowing_whenRecovering_thenTheOldJournalDoesNotRestoreOwnership() = runTest {
+        val allowed = owned.copy(configured = false, disabledByUser = true)
+        val requested = allowed.copy(disabledByUser = false, previousState = null, pendingChange = true)
+        whenever(dao.readProtections()).thenReturn(listOf(requested))
+        whenever(journal.read()).thenReturn(Json.encodeToString(listOf(allowed)))
+
+        ownership.recover()
+
+        verify(journal).write("[]")
+        verify(dao).putProtections(emptyList())
+    }
+
     @Test fun givenUnwritableJournal_whenPreparingChange_thenNoOwnershipIsClaimed() = runTest {
         whenever(dao.readProtections()).thenReturn(emptyList())
         whenever(journal.write(any())).thenThrow(IllegalStateException("full"))

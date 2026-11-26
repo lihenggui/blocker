@@ -13,12 +13,16 @@ import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.util.TestWakeRunRequester
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -32,7 +36,10 @@ class AutomaticWakeBlockRepositoryTest {
     private val history = wake.history()
     private val pmBlocks = PmBlockRecords(records.pmBlockRecordDao())
     private val runs = TestWakeRunRequester()
-    private val repository = LocalAutomaticWakeBlockRepository(history, pmBlocks, WakeRuleLock(), runs)
+    private val channel = FakePrivilegedChannel()
+    private val lock = WakeRuleLock()
+    private val protection = WakeProtectionRepository(mock(), mock(), mock(), mock(), mock(), channel, pmBlocks, mock(), lock, mock())
+    private val repository = LocalAutomaticWakeBlockRepository(history, pmBlocks, lock, runs, protection)
     private val reviewed = WakeProtection("review", "peer.app", "target.app", "target.app.Wake", "", "example", false, true)
 
     @After fun close() {
@@ -65,6 +72,34 @@ class AutomaticWakeBlockRepositoryTest {
             assertThat(runs.requests).isEqualTo(3)
             assertThat(awaitItem().single()).isEqualTo(initial)
         }
+    }
+
+    @Test fun givenAnAllowedUnconfiguredProtection_whenReblocking_thenItIsVisibleBeforeReconciliation() = runTest {
+        val allowed = reviewed.copy(configured = false, disabledByUser = true)
+        history.putProtections(listOf(allowed))
+
+        repository.blocks.test {
+            assertThat(awaitItem().single().allowed).isTrue()
+            assertThat(repository.setBlocked(setOf(allowed.pathId), blocked = true).outcome.failure).isNull()
+            val pending = awaitItem().single()
+            assertThat(pending.active).isTrue()
+            assertThat(pending.allowed).isFalse()
+            assertThat(history.readProtections().single().configured).isFalse()
+        }
+    }
+
+    @Test fun givenShellOnlyAccess_whenReblocking_thenTheAllowedRowAndRunQueueDoNotChange() = runTest {
+        val allowed = reviewed.copy(configured = false, disabledByUser = true)
+        history.putProtections(listOf(allowed))
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+
+        val result = repository.setBlocked(setOf(allowed.pathId), blocked = true)
+
+        assertThat(result.outcome.failure).isEqualTo(WakeBlockFailure.NoAccess)
+        assertThat(result.outcome.done).isEmpty()
+        assertThat(result.changedIds).isEmpty()
+        assertThat(history.readProtections()).containsExactly(allowed)
+        assertThat(runs.requests).isEqualTo(0)
     }
 
     @Test fun givenInboundOutboundAndPreviouslyAllowedRows_whenAllowingForApp_thenOnlyChangedFlagsAreReturned() = runTest {

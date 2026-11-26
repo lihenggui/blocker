@@ -317,7 +317,7 @@ class ObserveWakeStateTest {
         f.verdicts.value = listOf(verdict(TEST_APP, WakeVerdict.KEEP_ALIVE))
         f.manual.blocks.value = listOf(incoming.toWakePath().blockRow(), alarm.toWakePath().blockRow(at = 1))
         f.status(receiver(TEST_APP, "Receiver"), off = true)
-        f.automatic.blocks.value = listOf(automatic)
+        f.automatic.setBlocks(listOf(automatic))
 
         f.overview().test overview@{
             assertThat(awaitItem().single().allBlocked).isFalse()
@@ -375,7 +375,7 @@ class ObserveWakeStateTest {
             automatic.copy(pathId = "caller", caller = TEST_OTHER),
         )
         f.findings.value = listOf(finding)
-        f.automatic.blocks.value = listOf(automatic) + other
+        f.automatic.setBlocks(listOf(automatic) + other)
         f.manual.blocks.value = listOf(path.blockRow(method = WakeBlockMethod.COMPONENT))
 
         f.state(TEST_APP).test {
@@ -393,7 +393,7 @@ class ObserveWakeStateTest {
             f.findings.value = listOf(finding.copy(lastSeenNanos = 101_000_000))
             assertThat(awaitItem().paths.getValue("in").seenSinceBlock).isTrue()
 
-            f.automatic.blocks.value = listOf(automatic.copy(active = false, allowed = true)) + other
+            f.automatic.setBlocks(listOf(automatic.copy(active = false, allowed = true)) + other)
             f.manual.blocks.value = emptyList()
             val allowed = awaitItem()
             assertThat(allowed.paths.getValue("in").block).isEqualTo(WakePathBlock.NONE)
@@ -404,7 +404,7 @@ class ObserveWakeStateTest {
     @Test fun givenAServicePathWithoutAnAction_whenProtectionHasAnAction_thenTheRuleMatchesThePath() = runTest {
         val f = WakeStateTestFixture(this)
         f.findings.value = listOf(finding("incoming"))
-        f.automatic.blocks.value = listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP/.Wake", "example.BIND", active = true, allowed = false))
+        f.automatic.setBlocks(listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP/.Wake", "example.BIND", active = true, allowed = false)))
 
         f.state(TEST_APP).test {
             val state = awaitItem()
@@ -421,7 +421,7 @@ class ObserveWakeStateTest {
         f.findings.value = listOf(incoming)
         f.manual.blocks.value = listOf(incoming.toWakePath().blockRow(method = WakeBlockMethod.COMPONENT))
         f.status(named, off = true)
-        f.automatic.blocks.value = listOf(AutomaticWakeBlock("pm", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false))
+        f.automatic.setBlocks(listOf(AutomaticWakeBlock("pm", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false)))
         f.automatic.ownedComponents.value = setOf(named.id)
         f.state(TEST_APP).test {
             assertThat(awaitItem().paths.getValue("in").block).isEqualTo(WakePathBlock.AUTOMATIC)
@@ -503,12 +503,12 @@ class ObserveWakeStateTest {
         f.verdicts.value = listOf(verdict(TEST_APP, WakeVerdict.SUSPICIOUS), verdict(TEST_PEER, WakeVerdict.KEEP_ALIVE), verdict(TEST_OTHER, WakeVerdict.NORMAL))
         f.status(away, off = true)
         f.status(normal, off = true)
-        f.automatic.blocks.value = listOf(extra)
+        f.automatic.setBlocks(listOf(extra))
         f.overview().test {
             assertThat(awaitItem().associate { it.packageName to it.allBlocked })
                 .containsExactly(TEST_APP, true, TEST_PEER, true, TEST_OTHER, false)
             assertThat(f.observedApps).containsExactly(AppKey(TEST_PEER, UserId.SYSTEM))
-            f.automatic.blocks.value = listOf(extra.copy(active = false, allowed = true))
+            f.automatic.setBlocks(listOf(extra.copy(active = false, allowed = true)))
             assertThat(awaitItem().associate { it.packageName to it.allBlocked })
                 .containsExactly(TEST_APP, false, TEST_PEER, false, TEST_OTHER, false)
         }
@@ -519,7 +519,7 @@ class ObserveWakeStateTest {
         val incoming = finding("incoming")
         f.findings.value = listOf(incoming)
         f.manual.blocks.value = listOf(incoming.toWakePath().blockRow())
-        f.automatic.blocks.value = listOf(AutomaticWakeBlock("unapplied", TEST_PEER, TEST_APP, "$TEST_APP.Other", "", active = false, allowed = false))
+        f.automatic.setBlocks(listOf(AutomaticWakeBlock("unapplied", TEST_PEER, TEST_APP, "$TEST_APP.Other", "", active = false, allowed = false)))
 
         f.state(TEST_APP).test {
             val state = awaitItem()
