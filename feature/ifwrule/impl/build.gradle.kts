@@ -28,6 +28,7 @@ android {
 dependencies {
     implementation(projects.feature.ifwrule.api)
     implementation(projects.core.ifwApi)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.timber)
 

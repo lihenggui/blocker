@@ -40,7 +40,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,13 +49,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedButton
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
-import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.core.ifw.model.IfwComponentType
 
 @Composable
 fun SimpleGlobalIfwRuleScreen(
     draft: SimpleGlobalIfwRuleDraft,
-    isDirty: Boolean,
     selectedPackageLabel: String?,
     componentQuery: String,
     visibleComponents: List<SimpleRuleComponentUiState>,
@@ -78,21 +75,12 @@ fun SimpleGlobalIfwRuleScreen(
     modifier: Modifier = Modifier,
 ) {
     val isEditing = draft.editingRuleIndex != null
-    var showUnsavedDialog by remember { mutableStateOf(false) }
     var showOptionalConditions by rememberSaveable {
         mutableStateOf(
             draft.action.isNotBlank() ||
                 draft.category.isNotBlank() ||
                 draft.callerPackage.isNotBlank(),
         )
-    }
-
-    val handleBack: () -> Unit = {
-        if (isDirty) {
-            showUnsavedDialog = true
-        } else {
-            onBack()
-        }
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -106,7 +94,7 @@ fun SimpleGlobalIfwRuleScreen(
             ),
             canSave = draft.canSave,
             onSave = onSave,
-            onBack = handleBack,
+            onBack = onBack,
         )
 
         Column(
@@ -258,18 +246,6 @@ fun SimpleGlobalIfwRuleScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
-    }
-
-    if (showUnsavedDialog) {
-        BlockerWarningAlertDialog(
-            onDismissRequest = { showUnsavedDialog = false },
-            title = stringResource(R.string.feature_globalifwrule_impl_unsaved_title),
-            text = stringResource(R.string.feature_globalifwrule_impl_unsaved_message),
-            onConfirmRequest = {
-                showUnsavedDialog = false
-                onBack()
-            },
-        )
     }
 }
 

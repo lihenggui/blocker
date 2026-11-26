@@ -53,7 +53,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.ifwruleeditor.IfwRuleTreeEditor
 import com.merxury.core.ifw.editor.IfwEditorNode
@@ -64,7 +63,6 @@ import com.merxury.core.ifw.model.IfwComponentType
 @Composable
 fun AdvancedGlobalIfwRuleScreen(
     draft: AdvancedGlobalIfwRuleDraft,
-    isDirty: Boolean,
     onSave: () -> Unit,
     onBack: () -> Unit,
     onPackageNameChange: (String) -> Unit,
@@ -75,15 +73,6 @@ fun AdvancedGlobalIfwRuleScreen(
     modifier: Modifier = Modifier,
 ) {
     val isEditing = draft.editingRuleIndex != null
-    var showUnsavedDialog by remember { mutableStateOf(false) }
-
-    val handleBack: () -> Unit = {
-        if (isDirty) {
-            showUnsavedDialog = true
-        } else {
-            onBack()
-        }
-    }
 
     Column(modifier = modifier.fillMaxSize()) {
         RuleEditorTopBar(
@@ -96,7 +85,7 @@ fun AdvancedGlobalIfwRuleScreen(
             ),
             canSave = draft.canSave,
             onSave = onSave,
-            onBack = handleBack,
+            onBack = onBack,
         )
         Column(
             modifier = Modifier
@@ -162,18 +151,6 @@ fun AdvancedGlobalIfwRuleScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
-    }
-
-    if (showUnsavedDialog) {
-        BlockerWarningAlertDialog(
-            onDismissRequest = { showUnsavedDialog = false },
-            title = stringResource(R.string.feature_globalifwrule_impl_unsaved_title),
-            text = stringResource(R.string.feature_globalifwrule_impl_unsaved_message),
-            onConfirmRequest = {
-                showUnsavedDialog = false
-                onBack()
-            },
-        )
     }
 }
 

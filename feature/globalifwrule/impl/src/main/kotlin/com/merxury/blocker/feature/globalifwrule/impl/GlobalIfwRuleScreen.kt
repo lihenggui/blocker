@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.globalifwrule.impl
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -80,6 +81,16 @@ fun GlobalIfwRuleRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val editorState by viewModel.editorState.collectAsStateWithLifecycle()
+    var showUnsavedDialog by remember(editorState.screen) { mutableStateOf(false) }
+
+    val handleBack: () -> Unit = {
+        if (editorState.isDirty) {
+            showUnsavedDialog = true
+        } else {
+            viewModel.dismissEditor()
+        }
+    }
+    BackHandler(enabled = editorState.screen != GlobalIfwRuleScreenState.LIST, onBack = handleBack)
 
     AnimatedContent(
         targetState = editorState.screen,
@@ -105,14 +116,13 @@ fun GlobalIfwRuleRoute(
             GlobalIfwRuleScreenState.SIMPLE_EDIT -> editorState.simpleDraft?.let { draft ->
                 SimpleGlobalIfwRuleScreen(
                     draft = draft,
-                    isDirty = editorState.isDirty,
                     selectedPackageLabel = editorState.selectedPackageLabel,
                     componentQuery = editorState.componentQuery,
                     visibleComponents = editorState.visibleComponents,
                     isComponentLoading = editorState.isComponentLoading,
                     componentLoadError = editorState.componentLoadError,
                     onSave = viewModel::saveRule,
-                    onBack = viewModel::dismissEditor,
+                    onBack = handleBack,
                     onPackageNameChange = viewModel::updateSimplePackageName,
                     onComponentTypeChange = viewModel::updateSimpleComponentType,
                     onTargetModeChange = viewModel::updateSimpleTargetMode,
@@ -130,9 +140,8 @@ fun GlobalIfwRuleRoute(
             GlobalIfwRuleScreenState.ADVANCED_EDIT -> editorState.advancedDraft?.let { draft ->
                 AdvancedGlobalIfwRuleScreen(
                     draft = draft,
-                    isDirty = editorState.isDirty,
                     onSave = viewModel::saveRule,
-                    onBack = viewModel::dismissEditor,
+                    onBack = handleBack,
                     onPackageNameChange = viewModel::updateAdvancedPackageName,
                     onComponentTypeChange = viewModel::updateAdvancedComponentType,
                     onBlockChange = viewModel::updateAdvancedBlock,
@@ -144,12 +153,24 @@ fun GlobalIfwRuleRoute(
             GlobalIfwRuleScreenState.ADVANCED_DETAIL -> editorState.detail?.let { detail ->
                 AdvancedGlobalIfwRuleDetailScreen(
                     detail = detail,
-                    onBack = viewModel::dismissEditor,
+                    onBack = handleBack,
                     onCopyAsNew = viewModel::copyAdvancedRule,
                     onDelete = viewModel::deleteViewedRule,
                 )
             } ?: LoadingScreen(modifier = Modifier.fillMaxSize())
         }
+    }
+
+    if (showUnsavedDialog) {
+        BlockerWarningAlertDialog(
+            onDismissRequest = { showUnsavedDialog = false },
+            title = stringResource(R.string.feature_globalifwrule_impl_unsaved_title),
+            text = stringResource(R.string.feature_globalifwrule_impl_unsaved_message),
+            onConfirmRequest = {
+                showUnsavedDialog = false
+                viewModel.dismissEditor()
+            },
+        )
     }
 }
 
