@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.model.control
 
+import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
@@ -90,6 +91,9 @@ data class ComponentOutcome(
 interface ComponentWriteObserver {
     /** The live settings used to plan the request, read under the package lock. */
     fun onPmRead(settings: Map<ComponentId, PmSetting>) = Unit
+
+    /** Selects components still owned by a guarded PM restore, under the package lock. */
+    suspend fun selectPmRestoreComponents(app: AppKey, components: Set<ComponentId>): Set<ComponentId> = components
 
     /** Checked after the package has been read and immediately before its first write. */
     fun canStart(): Boolean

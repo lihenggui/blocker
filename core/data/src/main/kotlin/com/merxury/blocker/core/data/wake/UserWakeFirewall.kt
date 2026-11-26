@@ -31,8 +31,11 @@ class UserWakeFirewall @Inject constructor(
     ) {
         val replaced = removed.toSet() + added.map { it.pathKey }
         val desired = current.filterNot { it.pathKey in replaced } + added
-        write(desired)
-        dao.update(added, removed)
+        val (services, obsolete) = desired.filter { it.isFirewallBlock }.partition { it.isServiceRule }
+        val rules = services.map { UserWakeRule(requireNotNull(it.sender), it.target, requireNotNull(it.component)) }
+        writer.write(WakeRuleFileKind.USER, renderUserWakeRules(rules))
+        val obsoleteKeys = obsolete.mapTo(mutableSetOf()) { it.pathKey }
+        dao.update(added.filterNot { it.pathKey in obsoleteKeys }, removed + obsoleteKeys)
     }
 
     internal suspend fun sync() {
@@ -47,14 +50,8 @@ class UserWakeFirewall @Inject constructor(
                 }
             }
         }.toSet()
-        val removed = current.filter { it.target in absent || (it.isFirewallBlock && !it.isServiceRule) }
+        val removed = current.filter { it.target in absent }
         update(current, added = emptyList(), removed = removed.map { it.pathKey })
-    }
-
-    private suspend fun write(rows: Collection<WakeBlockEntity>) {
-        val rules = rows.filter { it.isFirewallBlock && it.isServiceRule }
-            .map { UserWakeRule(requireNotNull(it.sender), it.target, requireNotNull(it.component)) }
-        writer.write(WakeRuleFileKind.USER, renderUserWakeRules(rules))
     }
 
     internal suspend fun forgetFirewallBlocks(packageName: String?) = dao.deleteFirewall(packageName)

@@ -136,15 +136,19 @@ internal class PrivilegedComponentControl @Inject constructor(
         val before = readState(app, components) { pmReadFailure = it }
         writeObserver?.onPmRead(before.mapValues { it.value.pm })
         val expectedPm = request.expectedPm
-        val differentSetting = mutableSetOf<ComponentId>()
+        val skippedRestore = mutableSetOf<ComponentId>()
+        if (expectedPm != null && writeObserver != null) {
+            skippedRestore += before.keys - writeObserver.selectPmRestoreComponents(app, before.keys)
+        }
         val pmChanges = components.mapNotNull { component ->
             val id = component.id
             val current = before.getValue(id).pm
+            if (id in skippedRestore) return@mapNotNull null
             if (expectedPm != null && current != expectedPm) {
                 if (current == PmSetting.UNKNOWN) {
                     failures.addIfAbsent(id, ControlLayer.PACKAGE_MANAGER, ControlFailure.StateNotConfirmed)
                 } else {
-                    differentSetting += id
+                    skippedRestore += id
                 }
                 return@mapNotNull null
             }
@@ -181,7 +185,7 @@ internal class PrivilegedComponentControl @Inject constructor(
         fun outcome(after: Map<ComponentId, ControlState>, sentPm: Boolean): ControlEvent.PackageDone {
             val outcomes = components.map { component ->
                 val id = component.id
-                if (id in differentSetting) return@map ComponentOutcome(ComponentKey(id, app.userId), after.getValue(id), ControlResult.ACHIEVED, emptyMap())
+                if (id in skippedRestore) return@map ComponentOutcome(ComponentKey(id, app.userId), after.getValue(id), ControlResult.ACHIEVED, emptyMap())
                 judge(
                     component,
                     app.userId,

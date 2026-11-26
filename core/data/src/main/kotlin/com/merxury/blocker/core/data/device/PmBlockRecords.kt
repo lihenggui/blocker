@@ -29,6 +29,7 @@ import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
 /**
@@ -67,11 +68,14 @@ class PmBlockRecords @Inject constructor(
 
     internal suspend fun recordNew(keys: Collection<ComponentKey>): List<PmBlockRecordEntity> {
         if (keys.isEmpty()) return emptyList()
-        val now = System.currentTimeMillis()
+        // Two claims in the same clock tick must still be distinguishable by snapshot undo.
+        val now = lastRecordedAt.updateAndGet { maxOf(System.currentTimeMillis(), it + 1) }
         val records = keys.map { PmBlockRecordEntity(it.id.packageName, it.id.className, it.userId.value, now) }
         val inserted = dao.insertOrIgnore(records)
         return records.filterIndexed { index, _ -> inserted[index] != -1L }
     }
+
+    internal suspend fun recordsFor(app: AppKey): List<PmBlockRecordEntity> = dao.getByPackage(app.packageName, app.userId.value)
 
     /** Drops only claims still matching those made by the operation being undone. */
     internal suspend fun forgetIfUnchanged(records: Collection<PmBlockRecordEntity>) {
@@ -127,9 +131,14 @@ class PmBlockRecords @Inject constructor(
         if (gone.isNotEmpty()) Timber.i("Forget ${gone.size} PM blocks of $app that are no longer disabled or declared")
         forget(gone)
     }
+
+    private companion object {
+        val lastRecordedAt = AtomicLong()
+    }
 }
 
 internal interface PmBlockClaimObserver : ComponentWriteObserver {
+    fun onPmClaimsBefore(records: List<PmBlockRecordEntity>)
     fun onPmClaimsAdded(records: List<PmBlockRecordEntity>)
 }
 

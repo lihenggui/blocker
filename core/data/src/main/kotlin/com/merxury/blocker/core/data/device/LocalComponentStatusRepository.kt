@@ -364,6 +364,10 @@ internal class LocalComponentStatusRepository(
         }
         val persistence = object : ComponentControlPersistence {
             override suspend fun beforePmBlock(app: AppKey, components: Collection<ComponentId>) {
+                if (claimObserver != null) {
+                    val names = components.mapTo(mutableSetOf()) { it.className }
+                    claimObserver.onPmClaimsBefore(pmBlocks.recordsFor(app).filter { it.className in names })
+                }
                 recordPmBlocks(components.map { ComponentKey(it, app.userId) })
             }
 

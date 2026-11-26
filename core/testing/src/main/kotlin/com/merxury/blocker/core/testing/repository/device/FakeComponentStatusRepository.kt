@@ -162,9 +162,17 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
             }
             return@flow
         }
+        val eligible = if (request.expectedPm != null && writeObserver != null) {
+            request.components.groupBy { it.id.packageName }.flatMap { (packageName, components) ->
+                writeObserver.selectPmRestoreComponents(AppKey(packageName, request.user), components.mapTo(mutableSetOf()) { it.id })
+            }.toSet()
+        } else {
+            request.components.mapTo(mutableSetOf()) { it.id }
+        }
         val outcomes = request.components.distinctBy { it.id }.map { declaration ->
             val key = ComponentKey(declaration.id, request.user)
             val before = cached.value[key]?.state ?: ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)
+            if (declaration.id !in eligible) return@map ComponentOutcome(key, before, ControlResult.ACHIEVED, emptyMap())
             val expectedPm = request.expectedPm
             if (expectedPm != null && before.pm != expectedPm) {
                 val failures = if (before.pm == PmSetting.UNKNOWN) {

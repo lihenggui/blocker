@@ -21,6 +21,7 @@ import com.merxury.blocker.core.model.component.ControlLayer
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ComponentOutcome
 import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
@@ -82,49 +83,87 @@ internal class LocalWakeBlockRepository @Inject constructor(
     override suspend fun undoBlockChanges(snapshot: WakeBlockRepository.Snapshot): WakeBlockOutcome {
         require(snapshot is BlockSnapshot)
         return change(hasChanges = { snapshot.hasChanges }) { identity ->
-            commitChange {
-                val current = dao.all().associateBy { it.pathKey }
-                val rows = snapshot.rows.filter { current[it.written.pathKey] == it.written }
-                val pm = snapshot.pm.values
-                val batch = BlockBatch(snapshot.rows.map { it.written.pathKey } + pm.map { it.pathKey })
-                val claimFailure = failureOf("restore wake PM block claims") {
-                    pmBlocks.forgetIfUnchanged(snapshot.claims)
-                    null
-                }
-                restorePmSettings(pm, identity, batch)
-                restoreRows(rows, current.values, identity, batch)
-                val outcome = batch.outcome()
-                outcome.copy(failure = outcome.failure ?: claimFailure)
-            }
+            if (identity == null) return@change WakeBlockOutcome(emptySet(), WakeBlockFailure.NoAccess)
+            commitChange { restoreSnapshot(snapshot, identity) }
         }
     }
 
-    private suspend fun restorePmSettings(changes: Collection<PmChange>, identity: PrivilegedIdentity?, batch: BlockBatch) {
-        for ((key, writes) in changes.groupBy { it.pathKey to it.before }) {
-            val (path, before) = key
-            val goal = when (before) {
+    private suspend fun restoreSnapshot(snapshot: BlockSnapshot, identity: PrivilegedIdentity): WakeBlockOutcome {
+        val current = dao.all().associateBy { it.pathKey }
+        val rows = snapshot.rows.filter { current[it.written.pathKey] == it.written }
+        val replaced = (snapshot.rows - rows.toSet()).mapTo(mutableSetOf()) { it.written.pathKey }
+        val activePaths = snapshot.pathComponents.filterKeys { it !in replaced }
+        val activeComponents = activePaths.values.flatten().toSet()
+        val batch = BlockBatch(snapshot.rows.map { it.written.pathKey } + activePaths.keys)
+        val failures = restorePmSettings(snapshot, activeComponents)
+        val released = snapshot.claims.filter { it.componentId in activeComponents && it.componentId !in failures }
+        val claimFailure = failureOf("restore wake PM block claims") {
+            pmBlocks.forgetIfUnchanged(released)
+            null
+        }
+        val releasedIds = released.mapTo(mutableSetOf()) { it.componentId }
+        val failedPaths = activePaths.mapNotNull { (path, components) ->
+            val failure = components.firstNotNullOfOrNull(failures::get)
+                ?: claimFailure?.takeIf { components.any(releasedIds::contains) }
+            failure?.let { path to it }
+        }.toMap()
+        failedPaths.forEach(batch::record)
+        val eligibleRows = rows.filterNot { it.written.pathKey in failedPaths }
+        restoreRows(eligibleRows, current.values, identity, batch)
+        val rowKeys = snapshot.rows.mapTo(mutableSetOf()) { it.written.pathKey }
+        activePaths.forEach { (path, components) ->
+            if (path !in rowKeys && components.any { it in snapshot.pm || it in releasedIds }) {
+                batch.record(path, failedPaths[path])
+            }
+        }
+        return batch.outcome()
+    }
+
+    private suspend fun restorePmSettings(snapshot: BlockSnapshot, active: Set<ComponentId>): Map<ComponentId, WakeBlockFailure> {
+        val claims = snapshot.claims.associateBy { it.componentId }
+        val guard = object : ComponentWriteObserver {
+            override suspend fun selectPmRestoreComponents(app: AppKey, components: Set<ComponentId>): Set<ComponentId> {
+                val current = pmBlocks.recordsFor(app).associateBy { it.componentId }
+                return components.filterTo(mutableSetOf()) { id ->
+                    val added = claims[id]
+                    val existing = current[id]
+                    // A batch claim must still exist. An ignored insert may only leave the old claim.
+                    if (added != null) existing == added else existing == null || existing == snapshot.priorClaims[id]
+                }
+            }
+
+            override fun canStart() = true
+            override fun onWrite(components: Collection<ComponentId>) = Unit
+        }
+        val failures = mutableMapOf<ComponentId, WakeBlockFailure>()
+        val writes = snapshot.pm.filterKeys { it in active }.values
+        for ((key, group) in writes.groupBy { it.declaration.id.packageName to it.before }) {
+            val goal = when (key.second) {
                 PmSetting.DEFAULT -> ControlGoal.UNBLOCK
-
                 PmSetting.ENABLED -> ControlGoal.ENABLE_EXPLICIT
-
-                // An already disabled component only adds a claim, which is restored separately.
                 PmSetting.DISABLED, PmSetting.UNKNOWN -> continue
             }
-            batch.record(
-                path,
-                failureOf("restore wake PM settings for $path") {
-                    if (identity == null) return@failureOf WakeBlockFailure.NoAccess
-                    val declarations = writes.map { it.declaration }
-                    control(declarations, goal, expectedPm = PmSetting.DISABLED).failureFor(declarations, path)
-                },
-            )
+            var outcomes = emptyMap<ComponentId, ComponentOutcome>()
+            val error = failureOf("restore wake PM settings for ${key.first}") {
+                outcomes = control(group.map { it.declaration }, goal, guard, expectedPm = PmSetting.DISABLED)
+                    ?.outcomes.orEmpty().associateBy { it.key.id }
+                null
+            }
+            group.forEach { write ->
+                val id = write.declaration.id
+                val outcome = outcomes[id]
+                val failure = error ?: outcome?.failures?.get(ControlLayer.PACKAGE_MANAGER)?.toWakeBlockFailure(write.pathKey)
+                    ?: WakeBlockFailure.SystemError(null).takeUnless { outcome?.result == ControlResult.ACHIEVED }
+                if (failure != null) failures[id] = failure
+            }
         }
+        return failures
     }
 
     private suspend fun restoreRows(
         rows: List<RowChange>,
         current: Collection<WakeBlockEntity>,
-        identity: PrivilegedIdentity?,
+        identity: PrivilegedIdentity,
         batch: BlockBatch,
     ) {
         for ((isFirewall, group) in rows.groupBy { it.written.isFirewallBlock }) {
@@ -133,7 +172,6 @@ internal class LocalWakeBlockRepository @Inject constructor(
             val failure = failureOf("restore wake block rows") {
                 when {
                     !isFirewall -> dao.update(saved, removed)
-                    identity == null -> return@failureOf WakeBlockFailure.NoAccess
                     !identity.canWriteSystemFiles -> return@failureOf WakeBlockFailure.NeedsRoot
                     else -> firewall.update(current, added = saved, removed = removed)
                 }
@@ -147,7 +185,7 @@ internal class LocalWakeBlockRepository @Inject constructor(
         val byKey = requests.distinctBy { it.first.pathKey }.associateBy { it.first.pathKey }
         return applyBlocks(byKey.keys, snapshot) { key, existing ->
             val (path, method) = byKey.getValue(key)
-            val blockedAt = maxOf(System.currentTimeMillis(), (existing?.blockedAt ?: 0L) + 1)
+            val blockedAt = lock.nextBlockTime(existing?.blockedAt)
             when {
                 !path.canRequest(method) || (existing != null && existing.method != method.name) -> null
                 method == WakeBlockMethod.FIREWALL_RULE -> buildFirewallBlock(path, blockedAt)
@@ -301,7 +339,7 @@ internal class LocalWakeBlockRepository @Inject constructor(
         val declarations = blockDeclarations(block.target, block.component, block.action)
         if (declarations.isNullOrEmpty()) return notBlockable(block.pathKey)
         return commitChange {
-            val writes = ComponentWrites(snapshot?.claims)
+            val writes = snapshot?.let(::SnapshotComponentWrites) ?: ComponentWrites()
             val result = try {
                 control(declarations, ControlGoal.BLOCK, writes).also { writes.ids += it?.pmWrites.orEmpty() }
             } finally {
@@ -516,10 +554,13 @@ private class BlockSnapshot : WakeBlockRepository.Snapshot {
     val rows = mutableListOf<RowChange>()
     val pm = mutableMapOf<ComponentId, PmChange>()
     val claims = mutableSetOf<PmBlockRecordEntity>()
+    val priorClaims = mutableMapOf<ComponentId, PmBlockRecordEntity>()
+    val pathComponents = mutableMapOf<String, Set<ComponentId>>()
 
     override val hasChanges get() = rows.isNotEmpty() || pm.isNotEmpty() || claims.isNotEmpty()
 
     fun recordPmWrites(pathKey: String, declarations: List<ComponentDeclaration>, writes: ComponentWrites) {
+        pathComponents[pathKey] = declarations.mapTo(mutableSetOf()) { it.id }
         for (declaration in declarations) {
             val before = writes.before[declaration.id]
             if (declaration.id in writes.ids && before != null && before != PmSetting.UNKNOWN) {
@@ -529,7 +570,9 @@ private class BlockSnapshot : WakeBlockRepository.Snapshot {
     }
 }
 
-private class ComponentWrites(private val claims: MutableSet<PmBlockRecordEntity>? = null) : PmBlockClaimObserver {
+private val PmBlockRecordEntity.componentId get() = ComponentId(packageName, className)
+
+private open class ComponentWrites : ComponentWriteObserver {
     val ids = mutableSetOf<ComponentId>()
     var before = emptyMap<ComponentId, PmSetting>()
         private set
@@ -538,14 +581,22 @@ private class ComponentWrites(private val claims: MutableSet<PmBlockRecordEntity
         before = settings
     }
 
-    override fun onPmClaimsAdded(records: List<PmBlockRecordEntity>) {
-        claims?.addAll(records)
-    }
-
     override fun canStart() = true
 
     override fun onWrite(components: Collection<ComponentId>) {
         ids += components
+    }
+}
+
+private class SnapshotComponentWrites(private val snapshot: BlockSnapshot) :
+    ComponentWrites(),
+    PmBlockClaimObserver {
+    override fun onPmClaimsBefore(records: List<PmBlockRecordEntity>) {
+        records.forEach { snapshot.priorClaims.putIfAbsent(it.componentId, it) }
+    }
+
+    override fun onPmClaimsAdded(records: List<PmBlockRecordEntity>) {
+        snapshot.claims.addAll(records)
     }
 }
 
