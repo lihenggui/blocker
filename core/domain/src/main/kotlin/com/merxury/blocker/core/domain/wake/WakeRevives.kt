@@ -46,7 +46,7 @@ internal fun componentKey(raw: String?): String? {
 internal object WakeRevives {
     const val MERGE_WINDOW = 3_000_000_000L
     const val JOIN_WINDOW = 5_000_000_000L
-    const val KILL_WINDOW = 60_000_000_000L
+    const val KILL_WINDOW = 600_000_000_000L
     const val PRODUCTIVE_WINDOW = 10_000_000_000L
 
     // Continuations are ordered in time, so a longer walk means corrupt links rather than a real chain.
@@ -233,16 +233,20 @@ internal object WakeRevives {
             val reference = start.reference
             val request = start.stats?.let { requestsByStart[it.id] }?.singleOrNull { it.kind in peerTriggers }
             val target = target(start, request) ?: return@mapNotNull null
+            val callerPackage = request?.let { it.callerPackage ?: packageOf(it.callerUid) }
             val component = start.component?.let { qualifiedWakeComponent(target, it) }
             val action = start.info?.action ?: start.stats?.action
             val reason = start.info?.attr("reason")
+            val statsTrigger = triggerTypes[start.stats?.number("trigger_type")]
             val activity = reason in activityReasons || start.event?.attr("hosting_type") in activityHostingTypes ||
                 start.stats?.number("hosting_type_id") in ACTIVITY_HOSTING_TYPE_IDS
             val window = (start.elapsed - JOIN_WINDOW)..(start.elapsed + JOIN_WINDOW)
 
             fun correlated(): Trigger? {
                 val key = start.boot to start.uid
-                jobs[key]?.lastOrNull { it.elapsedNanos in window }?.let { return Trigger(ReviveTrigger.JOB, Confidence.JOINED, "android", it.attr("job_name")) }
+                jobs[key]?.lastOrNull { it.elapsedNanos in window }?.let {
+                    return Trigger(ReviveTrigger.JOB, Confidence.JOINED, "android", component ?: it.attr("job_name"))
+                }
                 syncs[key]?.lastOrNull { it.elapsedNanos in window }?.let { return Trigger(ReviveTrigger.SYNC, Confidence.JOINED, "android", component) }
                 wakeups[key]?.lastOrNull { it.elapsedNanos in window }?.let { return Trigger(ReviveTrigger.ALARM, Confidence.JOINED, "android", it.attr("tag")) }
                 batches[start.boot]?.lastOrNull { batch ->
@@ -265,7 +269,6 @@ internal object WakeRevives {
 
             fun joined(request: WakeRecord): Trigger {
                 val caller = request.callerUid
-                val callerPackage = request.callerPackage ?: packageOf(caller)
                 return when {
                     (caller != null && caller == start.uid) || (caller == null && request.callerPackage == target) -> Trigger(
                         ReviveTrigger.SELF_PROCESS,
@@ -275,8 +278,12 @@ internal object WakeRevives {
                         requesterInBackground(requesterState[request.kind]?.let { request.number(it)?.toInt() }),
                     )
 
-                    WakePushTransports.matches(callerPackage, request.action) ->
-                        Trigger(ReviveTrigger.PUSH_TRANSPORT, Confidence.JOINED, callerPackage, request.action ?: component)
+                    WakePushTransports.matches(callerPackage, request.action) -> {
+                        val namedComponent = (component ?: qualifiedWakeComponent(target, request.component))?.let { "$target/$it" }
+                        val pushAction = request.action ?: action
+                        val detail = if (request.kind == "BroadcastDeliveryEventReported") pushAction ?: namedComponent else namedComponent ?: pushAction
+                        Trigger(ReviveTrigger.PUSH_TRANSPORT, Confidence.JOINED, callerPackage, detail)
+                    }
 
                     caller != null && !isApp(caller) -> systemCaller(request)
 
@@ -289,7 +296,7 @@ internal object WakeRevives {
                     )
 
                     else -> correlated() ?: Trigger(ReviveTrigger.UNKNOWN, Confidence.JOINED, null, component ?: action)
-                }
+                }.copy(requestId = request.id)
             }
 
             val restart = restarts[start.boot].orEmpty().lastOrNull { schedule ->
@@ -310,6 +317,9 @@ internal object WakeRevives {
                     requestId = request?.id,
                 )
 
+                (reason == "PUSH" || statsTrigger == ReviveTrigger.PUSH_TRANSPORT) && request != null &&
+                    WakePushTransports.matches(callerPackage, request.action) -> joined(request)
+
                 reason in directReasons -> Trigger(
                     directReasons.getValue(reason!!),
                     Confidence.DIRECT,
@@ -317,18 +327,18 @@ internal object WakeRevives {
                     if (reason == "BOOT COMPLETE") action ?: "android.intent.action.BOOT_COMPLETED" else component ?: action,
                 )
 
-                start.stats?.number("trigger_type") in triggerTypes -> Trigger(
-                    triggerTypes.getValue(start.stats!!.number("trigger_type")!!),
+                statsTrigger != null -> Trigger(
+                    statsTrigger,
                     Confidence.DIRECT,
                     null,
-                    action ?: component,
+                    if (statsTrigger == ReviveTrigger.JOB) component ?: action else action ?: component,
                 )
 
                 // Only the holder of com.google.android.c2dm.permission.SEND can deliver this action to an FCM receiver.
                 WakePushTransports.matches(GMS, action) && request == null ->
                     Trigger(ReviveTrigger.PUSH_TRANSPORT, Confidence.DIRECT, GMS, action)
 
-                request != null -> joined(request).copy(requestId = request.id)
+                request != null -> joined(request)
 
                 reason == "SERVICE" && grantedSpecialAccess(target, component) ->
                     Trigger(ReviveTrigger.SYSTEM_BIND, Confidence.SNAPSHOT, "android", component)

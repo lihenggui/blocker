@@ -101,9 +101,8 @@ const val HOLD_KIND_PREFIX = "HOLD_"
 /**
  * Builds `kind|actor|target|detail`. The kind is the trigger name for a revive and
  * [HOLD_KIND_PREFIX] plus the cause name for a hold. A component detail is fully qualified so that short and long
- * spellings of one class aggregate. Actions are kept as reported. Alarm tags and job names reach
- * this function already normalized by [normalizeWakeTag] and digested at capture, so they are
- * opaque here.
+ * spellings of one class aggregate. Actions are kept as reported. Alarm tags and job names that
+ * do not identify a component are normalized by [normalizeWakeTag] and digested at capture.
  */
 fun wakePathKey(kind: String, actor: String?, target: String, detail: String?): String {
     val normalized = when {

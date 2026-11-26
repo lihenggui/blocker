@@ -33,6 +33,60 @@ class WakeStatsCodecTest {
                 ),
         ).build().toByteArray()
 
+    private fun decodedString(atomId: Int, field: Int, name: String, value: String): String {
+        val atom = wire { writeByteArray(atomId, wire { writeString(field, value) }) }
+        val bytes = report(WakeStats.Event.newBuilder().setElapsedTimestampNanos(32).setAtom(ByteString.copyFrom(atom)).build(), atomId)
+        return WakeStatsCodec.decode(bytes, 1000, 990, 2000, id).observations.single().attributes.getValue(name)
+    }
+
+    @Test fun givenJobComponentNames_whenDecoding_thenTheyStayAsReported() {
+        val components = listOf("com.example/.MyJobService", "com.example/com.example.MyJobService", "com.example/.Outer\$Worker_42")
+        for (component in components) {
+            assertThat(decodedString(8, 2, "job_name", component)).isEqualTo(component)
+        }
+    }
+
+    @Test fun givenNamespacedJobComponent_whenDecoding_thenOnlyTheComponentIsRetained() {
+        assertThat(decodedString(8, 2, "job_name", "@sync@com.example.app/.SyncJobService"))
+            .isEqualTo("com.example.app/.SyncJobService")
+    }
+
+    @Test fun givenTracedJobComponent_whenDecoding_thenOnlyTheComponentIsRetained() {
+        for (prefix in listOf("#trace#", "#trace#@sync@")) {
+            assertThat(decodedString(8, 2, "job_name", "${prefix}com.example.app/.SyncJobService"))
+                .isEqualTo("com.example.app/.SyncJobService")
+        }
+    }
+
+    @Test fun givenOpaqueJobNames_whenDecoding_thenTheyAreNormalizedAndDigested() {
+        val opaqueNames = listOf(
+            "content://com.example/.MyJobService",
+            "@sync@content://com.example/.MyJobService",
+            "@sync@com.example/.MyJobService?account=alice",
+            "@sync@com.example.MyJobService",
+            "@unsafe/name@com.example/.MyJobService",
+            "com.example/.MyJobService?account=alice",
+            "com.example/.My JobService",
+            "com.example/.MyJobService/alice",
+            "com.example/",
+            "com.example/..MyJobService",
+            "com.example.MyJobService",
+            "*job*/42/com.example/.MyJobService",
+        )
+        for (name in opaqueNames) {
+            assertThat(decodedString(8, 2, "job_name", name)).matches("[0-9a-f]{24}")
+        }
+        assertThat(decodedString(8, 2, "job_name", "*job*/42/com.example/.MyJobService"))
+            .isEqualTo(decodedString(8, 2, "job_name", "*job*/17/com.example/.MyJobService"))
+    }
+
+    @Test fun givenComponentShapedAlarmAndWakelockTags_whenDecoding_thenTagsStillUseDigests() {
+        val tag = "com.example/.MyJobService"
+        val alarm = decodedString(35, 2, "tag", tag)
+        assertThat(alarm).matches("[0-9a-f]{24}")
+        assertThat(decodedString(11, 2, "tag", tag)).isEqualTo(alarm)
+    }
+
     @Test fun givenSparseProviderEvent_whenDecoding_thenUidsSurviveAndComponentIsUnknown() {
         val atom = wire {
             writeByteArray(
@@ -80,13 +134,13 @@ class WakeStatsCodecTest {
         assertThat(old.gaps).isNotEmpty()
     }
 
-    @Test fun givenRecorderOwner_whenBuildingConfig_thenAllMetricsRequireItsLease() {
+    @Test fun givenRecorderOwner_whenBuildingConfig_thenAllMetricsRequireItsTwelveHourLease() {
         val config = WakeStats.Config.parseFrom(WakeStatsCodec.config(id, 2000))
         assertThat(config.id).isNotEqualTo(WakeStatsCodec.configId(10112, 7))
         assertThat(config.allowedLogSourceList).containsExactly("AID_SYSTEM", "AID_STATSD")
         assertThat(config.metricActivationList.map { it.metricId }).containsExactlyElementsIn(config.eventMetricList.map { it.id })
         assertThat(config.metricActivationList.flatMap { it.eventActivationList }.map { it.ttlSeconds }.distinct())
-            .containsExactly(WakeStatsCodec.LEASE_SECONDS)
+            .containsExactly(12 * 60 * 60L)
         assertThat(config.atomMatcherList.single { it.id == 47L }.simpleAtomMatcher.fieldValueMatcherList.map { it.eqInt })
             .containsExactly(2000L, WakeStatsCodec.leaseLabel(id).toLong(), 1L).inOrder()
         assertThat(config.atomMatcherList.map { it.simpleAtomMatcher.atomId }).containsAtLeast(475, 476, 477, 8, 367, 368)

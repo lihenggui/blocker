@@ -33,21 +33,42 @@ class WakeAttributionTest {
 
     @Test fun givenColdStartRequests_whenLinkingToProcessStarts_thenOnlyUniqueSameBootMatchesQualify() {
         assertThat(WakeAttribution.relationships(listOf(start, request)).single().requestId).isEqualTo("request")
-        assertThat(WakeAttribution.relationships(listOf(start, request, request.copy(id = "other")))).isEmpty()
+        assertThat(WakeAttribution.relationships(listOf(start, request, request.copy(id = "other", callerUid = 10044)))).isEmpty()
         assertThat(WakeAttribution.relationships(listOf(start, request.copy(boot = "another")))).isEmpty()
         assertThat(WakeAttribution.relationships(listOf(start, request.copy(startType = 2)))).isEmpty()
         assertThat(WakeAttribution.relationships(listOf(start, request.copy(component = ".Payment")))).isEmpty()
     }
 
-    @Test fun givenRequestsOnWindowBoundaries_whenLinkingStarts_thenEqualTimestampsPreserveAmbiguity() {
+    @Test fun givenRequestsOnWindowBoundaries_whenLinkingStarts_thenOnlyConflictingCallersPreserveAmbiguity() {
         val window = 5_000_000_000L
         val middle = start.copy(elapsedNanos = 2 * window)
         for (edge in listOf(window, 3 * window)) {
             val match = request.copy(elapsedNanos = edge)
             val outside = request.copy(id = "outside", elapsedNanos = if (edge == window) edge - 1 else edge + 1)
             assertThat(WakeAttribution.relationships(listOf(middle, outside, match))).hasSize(1)
-            assertThat(WakeAttribution.relationships(listOf(middle, match.copy(id = "duplicate"), outside, match))).isEmpty()
+            val duplicate = match.copy(id = "duplicate")
+            assertThat(WakeAttribution.relationships(listOf(middle, match, outside, duplicate)).single().requestId).isEqualTo(duplicate.id)
+            assertThat(WakeAttribution.relationships(listOf(middle, duplicate.copy(callerPackage = "other.app"), outside, match))).isEmpty()
         }
+    }
+
+    @Test fun givenEquivalentServiceRequests_whenLinkingStarts_thenClosestWinsWithDeterministicTies() {
+        val early = request.copy(id = "early", elapsedNanos = 29, component = "target.app/target.app.Service")
+        val late = request.copy(id = "aaa", elapsedNanos = 31, component = "target.app.Service")
+        fun chosen(vararg requests: WakeRecord) = WakeAttribution.relationships(listOf(start, *requests)).single().requestId
+
+        assertThat(chosen(request, late)).isEqualTo(late.id)
+        assertThat(chosen(late, early, request)).isEqualTo(early.id)
+        assertThat(chosen(late, early.copy(id = "zzz"), early)).isEqualTo(early.id)
+    }
+
+    @Test fun givenSharedUidAndSameClassInDifferentPackages_whenLinkingStarts_thenTargetComponentIsAmbiguous() {
+        val shared = start.copy(component = "target.app.Service")
+        val other = request.copy(id = "other", targetPackage = "other.app", component = shared.component)
+
+        assertThat(WakeAttribution.relationships(listOf(shared, request))).hasSize(1)
+        assertThat(WakeAttribution.relationships(listOf(shared, other))).hasSize(1)
+        assertThat(WakeAttribution.relationships(listOf(shared, request, other))).isEmpty()
     }
 
     @Test fun givenSequentialColdStarts_whenJoiningThem_thenIntermediateCallerMustBeTheSameLiveProcess() {
@@ -101,13 +122,15 @@ class WakeAttributionTest {
         assertThat(WakeAttribution.relationships(listOf(start.copy(component = "{target.app/target.app.Main}", attributes = """{"hosting_type_id":"11"}"""), launch))).isEmpty()
     }
 
-    @Test fun givenColdBroadcast_whenLinkingToProcessStart_thenTheActionMustMatchExactlyOneDelivery() {
+    @Test fun givenColdBroadcast_whenLinkingToProcessStart_thenTheActionAndCallerIdentifyTheDelivery() {
         val broadcast = request.copy(id = "broadcast", kind = "BroadcastDeliveryEventReported", component = null, action = "peer.WAKE")
         val receiverStart = start.copy(component = "target.app/.Receiver", action = "peer.WAKE", attributes = """{"hosting_type_id":"4"}""")
         val link = WakeAttribution.relationships(listOf(receiverStart, broadcast)).single()
         assertThat(link.requestId).isEqualTo("broadcast")
         assertThat(link.evidence).isEqualTo("MATCHING_ACTION")
         assertThat(WakeAttribution.relationships(listOf(receiverStart, broadcast.copy(action = "other.WAKE")))).isEmpty()
+        val close = broadcast.copy(id = "close", elapsedNanos = 29)
+        assertThat(WakeAttribution.relationships(listOf(receiverStart, broadcast, close)).single().requestId).isEqualTo(close.id)
         assertThat(WakeAttribution.relationships(listOf(receiverStart, broadcast, broadcast.copy(id = "second", callerUid = 10044)))).isEmpty()
         assertThat(WakeAttribution.relationships(listOf(receiverStart.copy(attributes = """{"hosting_type_id":"11"}"""), broadcast))).isEmpty()
         val redacted = listOf(receiverStart.copy(action = "<redacted>"), broadcast.copy(action = "<redacted>"))

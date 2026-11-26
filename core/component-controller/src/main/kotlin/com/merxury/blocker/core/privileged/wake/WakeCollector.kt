@@ -246,6 +246,8 @@ class WakeCollector @Inject internal constructor(
         val legacyOwner = metadata.getInt("uid", -1) == owner
         val generationKey = "generation/$owner"
         val installedKey = "key/$owner"
+        val lastRenewedBootKey = "lastRenewedBoot/$owner"
+        val lastRenewedElapsedKey = "lastRenewedElapsedNanos/$owner"
         val priorBoot = metadata.getInt(generationKey, if (legacyOwner) metadata.getInt("generation", generation) else generation)
         if (priorBoot != generation) reads.bytes(WakeCommand.REMOVE, boot = priorBoot)
         val id = WakeStatsCodec.configId(Process.myUid(), generation)
@@ -256,20 +258,31 @@ class WakeCollector @Inject internal constructor(
         }
         val configKey = "$boot/$owner/${WakeStatsCodec.config(id, owner).contentHashCode()}"
 
+        suspend fun renew() {
+            reads.bytes(WakeCommand.RENEW)
+            val elapsed = SystemClock.elapsedRealtimeNanos()
+            metadata.edit { putString(lastRenewedBootKey, boot).putLong(lastRenewedElapsedKey, elapsed) }
+        }
+
         // The recorder generation must survive process death before installing the config.
         @SuppressLint("UseKtx")
         suspend fun install() {
             check(metadata.edit().putInt(generationKey, generation).commit())
             reads.bytes(WakeCommand.INSTALL)
+            renew()
             check(metadata.edit().putString(installedKey, configKey).commit())
         }
         if (metadata.getString(installedKey, if (legacyOwner) metadata.getString("key", null) else null) != configKey) install()
         suspend fun report(): WakeBatch {
-            reads.bytes(WakeCommand.RENEW)
             val bytes = reads.bytes(WakeCommand.REPORT)
             val elapsed = SystemClock.elapsedRealtimeNanos()
             val origin = System.currentTimeMillis() * 1_000_000 - elapsed
-            return WakeStatsCodec.decode(bytes, origin, elapsed, owner, id)
+            val batch = WakeStatsCodec.decode(bytes, origin, elapsed, owner, id)
+            val lastRenewed = metadata.getLong(lastRenewedElapsedKey, -1L)
+            val expired = metadata.getString(lastRenewedBootKey, null) == boot && lastRenewed >= 0 &&
+                elapsed - lastRenewed > WakeStatsCodec.LEASE_SECONDS * 1_000_000_000L
+            renew()
+            return if (expired) batch.copy(gaps = batch.gaps + "statsd: lease expired") else batch
         }
         return try {
             report()

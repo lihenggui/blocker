@@ -108,6 +108,7 @@ internal object WakeDetection {
      * background-peer revive of its own package; the package whose request began the chain is
      * credited with it instead, on the day of the origin revive. An UNKNOWN revive is recorded and
      * counted in `revives`, but only the after-kill counters can make it count toward a verdict.
+     * Push deliveries are recorded even when silent and do not contribute to a verdict.
      * `afterKillRevives` counts every revive after a qualifying kill; `afterKillNoneRevives`, which
      * decides verdicts, leaves out chained ones and system broadcast or push deliveries. Holds bound by
      * the system are recorded but never count toward `screenOffHoldNoneNanos`.
@@ -127,7 +128,7 @@ internal object WakeDetection {
                 val revives = own.filter { it.finding.trigger != null }.map { it.finding }
                 val none = revives.filter { it.justification == Justification.NONE }
                 // A verdict rests on an identified cause. An unexplained revive counts only after a qualifying kill.
-                val unchainedNone = none.filter { it.chainRoot == null && it.trigger != ReviveTrigger.UNKNOWN }
+                val unchainedNone = none.filter { it.chainRoot == null && it.trigger != ReviveTrigger.UNKNOWN && it.trigger != ReviveTrigger.PUSH_TRANSPORT }
                 val counters = WakeVerdictDay(
                     day,
                     pkg,

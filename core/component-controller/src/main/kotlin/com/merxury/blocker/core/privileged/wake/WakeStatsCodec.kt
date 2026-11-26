@@ -38,8 +38,12 @@ internal object WakeStatsCodec {
 
     private const val BREADCRUMB = 47
 
-    // Two missed 30-minute collections can recover without losing all intervening events.
-    const val LEASE_SECONDS = 2 * 60 * 60L
+    // Overnight deep Doze can defer the 30-minute WorkManager runs for more than two hours.
+    // Keep metrics active overnight while bounding recording after disable or uninstall.
+    const val LEASE_SECONDS = 12 * 60 * 60L
+
+    private val JOB_METADATA_PREFIX = Regex("""^(?:#[^#/\s]+#)?(?:@[^@/\s]+@)?""")
+    private val JOB_COMPONENT_REGEX = Regex("""[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*/\.?[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*""")
 
     fun leaseLabel(id: Long) = id.hashCode() and Int.MAX_VALUE
 
@@ -182,6 +186,10 @@ internal object WakeStatsCodec {
     }
 
     private fun metadataString(value: String, name: String): String {
+        if (name == "job_name") {
+            val candidate = value.replaceFirst(JOB_METADATA_PREFIX, "")
+            if (candidate.length <= 420 && '/' in candidate && "://" !in candidate && candidate.matches(JOB_COMPONENT_REGEX)) return candidate
+        }
         // App-defined alarm tags and task names can contain account identifiers or URIs.
         if (name == "tag" || name == "job_name") {
             // Normalize first so one logical alarm or job keeps one digest across runs and versions.

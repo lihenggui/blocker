@@ -14,15 +14,24 @@ import kotlinx.serialization.json.JsonPrimitive
 
 internal fun isApp(uid: Int?) = uid != null && appIdOfUid(uid) >= 10_000
 
-/** Push services whose deliveries wake their clients. GMS also performs other requests, so only its c2dm delivery counts. */
+/** Push services whose deliveries wake their clients. Shared services count only for known push actions. */
 internal object WakePushTransports {
-    // Google Play services delivers FCM with the c2dm receive action. The vendor entries are the
-    // Xiaomi push framework, OPPO/HeyTap system messages and the vivo push engine.
     private val transports = mapOf(
         "com.google.android.gms" to setOf("com.google.android.c2dm.intent.RECEIVE"),
         "com.xiaomi.xmsf" to null,
         "com.heytap.mcs" to null,
         "com.vivo.pushservice" to null,
+        "com.huawei.android.pushagent" to null,
+        "com.huawei.hwid" to setOf(
+            "com.huawei.push.action.MESSAGING_EVENT",
+            "com.huawei.intent.action.PUSH",
+            "com.huawei.android.push.intent.RECEIVE",
+        ),
+        "com.hihonor.pushagent" to null,
+        "com.meizu.cloud" to null,
+        "com.coloros.mcs" to null,
+        "com.oplus.mcs" to null,
+        "com.sec.spp.push" to null,
     )
 
     fun matches(caller: String?, action: String?): Boolean {
