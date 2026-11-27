@@ -7,14 +7,19 @@ import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -23,17 +28,22 @@ import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -120,6 +130,72 @@ internal fun LazyListScope.wakeOverviewAppLists(
     if (state.dormantApps.isNotEmpty()) {
         overviewDisclosure("otherApps", plurals.feature_wake_api_other_apps, state.otherApps, BlockerIcons.Apps, dormantExpanded, onToggleDormant)
         if (dormantExpanded) overviewAppItems("dormant", state.dormantApps, onAppClick)
+    }
+}
+
+internal fun LazyListScope.wakeCollectingApps(apps: List<WakeAppIdentity>, expanded: Boolean, onExpand: () -> Unit, onAppClick: (String) -> Unit) {
+    if (apps.isEmpty()) return
+    item(key = "installedApps") {
+        WakeDisclosure(
+            title = stringResource(string.feature_wake_api_browse_installed_apps),
+            icon = BlockerIcons.Apps,
+            expanded = expanded,
+            onExpand = onExpand,
+            modifier = Modifier.padding(top = WakeContentSpacing),
+            supporting = stringResource(string.feature_wake_api_browse_installed_apps_description),
+        )
+    }
+    if (expanded) overviewAppItems("installed", apps, onAppClick)
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun WakeOverviewSearchResults(results: List<WakeSearchRow>, onAppClick: (String) -> Unit, modifier: Modifier = Modifier) {
+    if (results.isEmpty()) {
+        Box(modifier.fillMaxSize().padding(WakeContentSpacing), contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(string.feature_wake_api_search_empty),
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+        return
+    }
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(WakeContentSpacing),
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+    ) {
+        itemsIndexed(results, key = { _, row -> row.app.packageName }) { index, (app, group) ->
+            SegmentedListItem(
+                onClick = { onAppClick(app.packageName) },
+                shapes = animatedSegmentedShapes(index, results.size),
+                colors = wakeSegmentedColors(),
+                leadingContent = { AppIcon(app.icon, Modifier.size(WakeListAvatarSize)) },
+                supportingContent = { Text(app.packageName, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                trailingContent = { WakeSearchBadge(group) },
+            ) { Text(app.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        }
+    }
+}
+
+@Composable
+private fun WakeSearchBadge(group: WakeSearchGroup) {
+    val colors = MaterialTheme.colorScheme
+    val (text, container, content) = when (group) {
+        WakeSearchGroup.KeepAlive -> Triple(string.feature_wake_api_search_keep_alive, colors.errorContainer, colors.onErrorContainer)
+        WakeSearchGroup.Attention -> Triple(string.feature_wake_api_search_attention, colors.tertiaryContainer, colors.onTertiaryContainer)
+        WakeSearchGroup.Blocked -> Triple(string.feature_wake_api_blocked, colors.primaryContainer, colors.onPrimaryContainer)
+        WakeSearchGroup.Dormant -> Triple(string.feature_wake_api_search_dormant, colors.surfaceContainerHighest, colors.onSurfaceVariant)
+    }
+    Surface(shape = CircleShape, color = container, contentColor = content) {
+        Text(
+            text = stringResource(text),
+            modifier = Modifier.padding(horizontal = WakeGridUnit * 2, vertical = WakeGridUnit),
+            style = MaterialTheme.typography.labelSmall,
+        )
     }
 }
 

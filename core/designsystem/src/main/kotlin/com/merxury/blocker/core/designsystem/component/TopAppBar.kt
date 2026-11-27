@@ -43,7 +43,6 @@ import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerTopAppBar(
     title: String,
@@ -52,14 +51,27 @@ fun BlockerTopAppBar(
     onNavigationClick: () -> Unit = {},
     actions: @Composable () -> Unit = {},
 ) {
+    BlockerTopAppBar(
+        title = { Text(text = title, maxLines = 2) },
+        modifier = modifier,
+        hasNavigationIcon = hasNavigationIcon,
+        onNavigationClick = onNavigationClick,
+        actions = actions,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BlockerTopAppBar(
+    title: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    hasNavigationIcon: Boolean = false,
+    onNavigationClick: () -> Unit = {},
+    actions: @Composable () -> Unit = {},
+) {
     TopAppBar(
         modifier = modifier,
-        title = {
-            Text(
-                text = title,
-                maxLines = 2,
-            )
-        },
+        title = title,
         navigationIcon = {
             if (hasNavigationIcon) {
                 IconButton(onClick = onNavigationClick) {

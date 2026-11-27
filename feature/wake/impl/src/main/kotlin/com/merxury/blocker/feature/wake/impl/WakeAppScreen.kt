@@ -3,6 +3,9 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -32,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -42,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.feature.wake.api.R.string
+import timber.log.Timber
 
 @Composable
 internal fun WakeAppRoute(
@@ -52,6 +57,7 @@ internal fun WakeAppRoute(
     onComponents: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val activity = LocalActivity.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle, viewModel, active) {
@@ -83,6 +89,12 @@ internal fun WakeAppRoute(
         onRestore = viewModel::restoreAll,
         onUndo = viewModel::undo,
         onDismissNotice = viewModel::dismissNotice,
+        onOpenSettings = {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", state.app.packageName, null))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            runCatching { context.startActivity(intent) }
+                .onFailure { Timber.w(it, "Could not open Android app settings for %s", state.app.packageName) }
+        },
     )
 }
 
@@ -100,6 +112,7 @@ internal fun WakeAppScreen(
     onRestore: () -> Unit = {},
     onUndo: (Long) -> Unit = {},
     onDismissNotice: (Long) -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     initiallyExpanded: String? = null,
     initiallyShowingSheet: Boolean = false,
 ) = WakeTheme {
@@ -185,7 +198,7 @@ internal fun WakeAppScreen(
             if (environment.userIdleAllowlisted || environment.systemIdleAllowlisted || environment.specialAccess.isNotEmpty()) {
                 item(key = "environment") {
                     val spacing = if (state.background != null || state.deepRestriction != null) WakeContentSpacing else 0.dp
-                    WakeEnvironmentCard(environment, Modifier.padding(top = spacing))
+                    WakeEnvironmentCard(environment, Modifier.padding(top = spacing), onOpenSettings)
                 }
             }
         }
