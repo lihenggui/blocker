@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.core.net.toUri
 import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -62,7 +63,7 @@ private fun broadcastData(action: String, target: String): Uri? = when (action) 
     Intent.ACTION_MEDIA_SHARED,
     Intent.ACTION_MEDIA_UNMOUNTABLE,
     Intent.ACTION_MEDIA_UNMOUNTED,
-    -> Uri.parse("file:///storage/emulated/0")
+    -> "file:///storage/emulated/0".toUri()
 
     else -> null
 }
