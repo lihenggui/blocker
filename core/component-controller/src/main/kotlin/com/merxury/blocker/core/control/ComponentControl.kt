@@ -152,6 +152,11 @@ interface ComponentControlPersistence {
     /**
      * Stores read-back and reconciles the journal. Runs to completion once writes begin.
      * [alreadyDisabled] holds requested PM blocks that already existed before this request.
+     * [before] is the state read under the package lock and used to plan the change.
      */
-    suspend fun afterPackage(event: ControlEvent.PackageDone, alreadyDisabled: Set<ComponentId>)
+    suspend fun afterPackage(
+        event: ControlEvent.PackageDone,
+        alreadyDisabled: Set<ComponentId>,
+        before: Map<ComponentId, ControlState>,
+    )
 }

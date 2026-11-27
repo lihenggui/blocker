@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.domain.control
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.history.OperationRecorder
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlLayer
@@ -25,6 +26,7 @@ import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.blockLayers
+import com.merxury.blocker.core.model.history.OperationSource
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
@@ -50,17 +52,23 @@ class GetControlLayersUseCase @Inject constructor(
 class ControlComponentUseCase @Inject constructor(
     private val componentStatuses: ComponentStatusRepository,
     private val layersFor: GetControlLayersUseCase,
+    private val operationRecorder: OperationRecorder,
 ) {
     /** The outcome for [component], or null when it is no longer cached and nothing was sent. */
-    suspend operator fun invoke(component: ComponentKey, goal: ControlGoal): ComponentOutcome? {
+    suspend operator fun invoke(
+        component: ComponentKey,
+        goal: ControlGoal,
+        source: OperationSource,
+        ref: String?,
+    ): ComponentOutcome? = operationRecorder.withOperation(source, ref) { operation ->
         val status = componentStatuses.component(component).first() ?: run {
             Timber.w("${component.id} is no longer cached for user ${component.userId.value}, nothing to change")
-            return null
+            return@withOperation null
         }
         var outcome: ComponentOutcome? = null
-        componentStatuses.control(ControlRequest(component.userId, listOf(status.declaration), goal, layersFor(goal))).collect { event ->
+        componentStatuses.control(ControlRequest(component.userId, listOf(status.declaration), goal, layersFor(goal)), operation).collect { event ->
             if (event is ControlEvent.PackageDone) outcome = event.outcomes.firstOrNull { it.key == component } ?: outcome
         }
-        return outcome
+        outcome
     }
 }

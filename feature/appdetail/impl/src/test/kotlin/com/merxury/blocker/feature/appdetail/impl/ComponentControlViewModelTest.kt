@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.appdetail.impl
 import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.domain.control.BatchKey
 import com.merxury.blocker.core.domain.control.BatchRun
 import com.merxury.blocker.core.domain.control.ControlComponentUseCase
@@ -41,6 +42,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.testing.repository.defaultUserData
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.ui.control.ControlMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -556,7 +558,7 @@ class ComponentControlViewModelTest {
             fixture.selectedUsers,
             gated,
             fixture.batches,
-            ControlComponentUseCase(gated, GetControlLayersUseCase(fixture.userData)),
+            ControlComponentUseCase(gated, GetControlLayersUseCase(fixture.userData), fakeOperationRecorder()),
             GetControlLayersUseCase(fixture.userData),
             fixture.analytics,
             PACKAGE,
@@ -597,10 +599,10 @@ class ComponentControlViewModelTest {
     private class ThrowingOnRequest(private val delegate: ComponentStatusRepository, private val failingRequest: Int) : ComponentStatusRepository by delegate {
         var requests = 0
 
-        override fun control(request: ControlRequest): Flow<ControlEvent> = flow {
+        override fun control(request: ControlRequest, operation: OperationScope): Flow<ControlEvent> = flow {
             requests++
             if (requests == failingRequest) throw IllegalStateException("Request $requests broke")
-            emitAll(delegate.control(request))
+            emitAll(delegate.control(request, operation))
         }
     }
 
@@ -622,9 +624,9 @@ class ComponentControlViewModelTest {
             repeat(100) { permits.trySend(Unit) }
         }
 
-        override fun control(request: ControlRequest): Flow<ControlEvent> = flow {
+        override fun control(request: ControlRequest, operation: OperationScope): Flow<ControlEvent> = flow {
             permits.receive()
-            emitAll(delegate.control(request))
+            emitAll(delegate.control(request, operation))
         }
     }
 

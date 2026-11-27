@@ -13,6 +13,7 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.SelectedUserRepository
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
@@ -49,6 +50,7 @@ import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import dagger.hilt.internal.GeneratedComponent
 import dagger.hilt.internal.GeneratedComponentManager
@@ -138,14 +140,15 @@ class ComponentProviderContractTest {
         application.entryPoint = object : TestEntryPoint {
             override fun componentStatuses(): ComponentStatusRepository = object : ComponentStatusRepository by repository {
                 override suspend fun refreshIfReadable(app: AppKey, firewall: FirewallRead): ReadResult<Unit> = this@ComponentProviderContractTest.refresh(app, firewall)
-                override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = flow {
+                override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?, operation: OperationScope): Flow<ControlEvent> = flow {
                     beforeControl(request, writeObserver)
-                    emitAll(repository.control(request, keepKnownState, writeObserver))
+                    emitAll(repository.control(request, keepKnownState, writeObserver, operation))
                 }
             }
 
             override fun selectedUsers(): SelectedUserRepository = selectedUsers
             override fun controlLayers() = GetControlLayersUseCase(userData)
+            override fun operationRecorder() = fakeOperationRecorder()
             override fun privilegedChannel(): PrivilegedChannel = channel
             override fun analyticsHelper(): AnalyticsHelper = analytics
             override fun applicationScope(): CoroutineScope = scope

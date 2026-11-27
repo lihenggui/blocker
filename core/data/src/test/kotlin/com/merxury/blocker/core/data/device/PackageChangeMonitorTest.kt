@@ -246,7 +246,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
         }
         controlActivity.duringControl(setOf(PKG)) {
             declarations.chunked(2).forEach { chunk ->
-                fixture.cache.control(ControlRequest(OWNER, chunk, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER))).toList()
+                fixture.cache.control(ControlRequest(OWNER, chunk, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER)), operation = operation()).toList()
                 // Leave time between requests, when only the outer control marks the package active.
                 delay(800)
                 assertThat(system.reads("app ")).isEqualTo(1)
@@ -697,7 +697,7 @@ class PackageChangeMonitorTest : DeviceRepositoryTestBase(Runnable::run) {
                 emit(ControlEvent.PackageDone(PKG, listOf(outcome), setOf(main.id)))
             }
         }
-        fixture.cache.control(ControlRequest(OWNER, listOf(main), ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER))).toList()
+        fixture.cache.control(ControlRequest(OWNER, listOf(main), ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER)), operation = operation()).toList()
         system.log.clear()
 
         advanceTimeBy(1_000)

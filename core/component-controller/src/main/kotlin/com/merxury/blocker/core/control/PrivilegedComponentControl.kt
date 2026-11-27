@@ -207,10 +207,10 @@ internal class PrivilegedComponentControl @Inject constructor(
             return ControlEvent.PackageDone(app.packageName, outcomes, pmWrites)
         }
         if (writeObserver?.canStart() == false) {
-            return outcome(before, sentPm = false).also { persistence?.afterPackage(it, emptySet()) }
+            return outcome(before, sentPm = false).also { persistence?.afterPackage(it, emptySet(), before) }
         }
         if (!hasChanges) {
-            return outcome(before, sentPm = false).also { persistence?.afterPackage(it, alreadyDisabled) }
+            return outcome(before, sentPm = false).also { persistence?.afterPackage(it, alreadyDisabled, before) }
         }
         currentCoroutineContext().ensureActive()
         Timber.i("${request.goal} ${components.size} components of $app: ${pmChanges.size} PM and ${ifwChanges.size} IFW changes")
@@ -221,7 +221,7 @@ internal class PrivilegedComponentControl @Inject constructor(
             }
             changePm(app, pmChanges, identityAtWrite, failures, onWrite)
             changeIfw(app.packageName, ifwChanges, identityAtWrite, failures, onWrite)
-            outcome(readState(app, components), sentPm = true).also { persistence?.afterPackage(it, alreadyDisabled) }
+            outcome(readState(app, components), sentPm = true).also { persistence?.afterPackage(it, alreadyDisabled, before) }
         }
     }
 

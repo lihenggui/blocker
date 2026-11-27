@@ -18,9 +18,11 @@ package com.merxury.blocker.core.rule.backup
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
+import com.merxury.blocker.core.data.history.OperationRecorder
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.model.system.ReadResult
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import kotlinx.coroutines.flow.first
@@ -45,17 +47,18 @@ class PackageManagerReset @Inject constructor(
     private val components: ComponentStatusRepository,
     private val channel: PrivilegedChannel,
     private val seeder: PmBlockRecordSeeder,
+    private val operationRecorder: OperationRecorder,
 ) {
     /**
      * Unblocks the PackageManager layer of each component Blocker disabled for [user]. Connects
      * the privileged channel first, which may show the su or Shizuku prompt.
      */
-    suspend fun reset(user: UserId, onProgress: RuleRunProgress = { _, _, _ -> }): RuleRunResult {
-        if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
-        if (!seeder.seedOnce()) return RuleRunResult.Failed(FailureReason.LEGACY_PM_RECORDS_UNREADABLE)
+    suspend fun reset(user: UserId, onProgress: RuleRunProgress = { _, _, _ -> }): RuleRunResult = operationRecorder.withOperation(OperationSource.RESET_PM) { operation ->
+        if (!channel.connectAllowing()) return@withOperation RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
+        if (!seeder.seedOnce()) return@withOperation RuleRunResult.Failed(FailureReason.LEGACY_PM_RECORDS_UNREADABLE)
         val found = when (val read = components.disabledByBlocker(user)) {
             is ReadResult.Success -> read.value
-            is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
+            is ReadResult.Failure -> return@withOperation RuleRunResult.Failed(read.reason.reason)
         }
         val summary = SummaryBuilder()
         summary.fail(FailureReason.STATE_UNREADABLE, found.unreadableApps.size)
@@ -69,8 +72,8 @@ class PackageManagerReset @Inject constructor(
             summary.skip(SkipReason.NOT_DECLARED, keys.size - declarations.size)
             if (declarations.isEmpty()) return@forEachIndexed
             val states = statuses.mapValues { it.value.state }.toMutableMap()
-            if (components.resetPmBlocks(user, declarations).countControlOutcomes(ControlGoal.UNBLOCK, states, summary) > 0) summary.apps++
+            if (components.resetPmBlocks(user, declarations, operation).countControlOutcomes(ControlGoal.UNBLOCK, states, summary) > 0) summary.apps++
         }
-        return RuleRunResult.Completed(summary.build())
+        RuleRunResult.Completed(summary.build())
     }
 }

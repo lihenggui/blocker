@@ -118,7 +118,7 @@ class ComponentQuietCacheTest : DeviceRepositoryTestBase() {
             }
         }
         val request = ControlRequest(OWNER, listOf(tracker), ControlGoal.BLOCK, setOf(PACKAGE_MANAGER))
-        val control = async { repository.control(request, keepKnownState = true).first() }
+        val control = async { repository.control(request, keepKnownState = true, operation = operation()).first() }
         try {
             persisting.await()
             channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
@@ -182,7 +182,7 @@ class ComponentQuietCacheTest : DeviceRepositoryTestBase() {
         }
         val request = ControlRequest(OWNER, listOf(tracker), ControlGoal.UNBLOCK, setOf(INTENT_FIREWALL))
 
-        repository.control(request, keepKnownState = true).toList()
+        repository.control(request, keepKnownState = true, operation = operation()).toList()
 
         assertThat(cachedRows()).isEqualTo(before)
     }

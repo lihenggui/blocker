@@ -39,6 +39,7 @@ import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.privileged.PrivilegedChannel
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.control.ControlMessage
@@ -217,7 +218,7 @@ class DebloaterViewModel @Inject constructor(
                     isLauncherEntry = ComponentClassification.LAUNCHER in item.kinds,
                     isDeeplinkEntry = ComponentClassification.DEEPLINK in item.kinds,
                 )
-                controlComponent(key, goal).toMessage(key.id, goal)?.let { tell(it, key) }
+                controlComponent(key, goal, OperationSource.DEBLOATER, key.id.packageName).toMessage(key.id, goal)?.let { tell(it, key) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ComponentStatus
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.QueuedControlMessage
 import com.merxury.blocker.core.ui.control.batchSummary
@@ -123,7 +124,7 @@ class ComponentControlViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 analyticsHelper.logSwitchComponentClicked(newState = goal != ControlGoal.BLOCK)
-                controlComponent(ComponentKey(component, app.userId), goal).toMessage(component, goal)?.let { tell(it, component) }
+                controlComponent(ComponentKey(component, app.userId), goal, OperationSource.APP_DETAIL, app.packageName).toMessage(component, goal)?.let { tell(it, component) }
             } finally {
                 singles.update { it - component }
             }
