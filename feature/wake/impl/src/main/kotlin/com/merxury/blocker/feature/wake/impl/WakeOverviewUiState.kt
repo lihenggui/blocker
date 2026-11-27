@@ -17,7 +17,11 @@ internal sealed interface WakeOverviewUiState {
     data object NoAccess : WakeOverviewUiState
     data object NotOwnerProfile : WakeOverviewUiState
     data object ReadsRefused : WakeOverviewUiState
-    data class Collecting(val checking: Boolean) : WakeOverviewUiState
+    data class Collecting(
+        val checking: Boolean,
+        val installedApps: List<WakeAppIdentity> = emptyList(),
+    ) : WakeOverviewUiState
+
     data class Ready(
         val keepAlive: List<WakeAppRow>,
         val attention: List<WakeAppRow>,
@@ -27,7 +31,9 @@ internal sealed interface WakeOverviewUiState {
         val checking: Boolean,
         val blockedApps: List<WakeAppRow> = emptyList(),
         val dormantApps: List<WakeAppIdentity> = emptyList(),
-    ) : WakeOverviewUiState
+    ) : WakeOverviewUiState {
+        val hasSearchableApps get() = keepAlive.isNotEmpty() || attention.isNotEmpty() || blockedApps.isNotEmpty() || dormantApps.isNotEmpty()
+    }
 }
 
 internal data class WakeAppRow(
@@ -36,6 +42,25 @@ internal data class WakeAppRow(
     val icon: ApkIcon?,
     val headline: WakeHeadline?,
 )
+
+internal enum class WakeSearchGroup { KeepAlive, Attention, Blocked, Dormant }
+
+internal data class WakeSearchRow(val app: WakeAppIdentity, val group: WakeSearchGroup)
+
+internal fun WakeOverviewUiState.Ready.searchResults(query: String): List<WakeSearchRow> = buildList {
+    val term = query.trim()
+    fun addMatches(apps: List<WakeAppRow>, group: WakeSearchGroup) {
+        apps.filter { matchesWakeSearch(it.label, it.packageName, term) }
+            .mapTo(this) { WakeSearchRow(WakeAppIdentity(it.packageName, it.label, it.icon), group) }
+    }
+    addMatches(keepAlive, WakeSearchGroup.KeepAlive)
+    addMatches(attention, WakeSearchGroup.Attention)
+    addMatches(blockedApps, WakeSearchGroup.Blocked)
+    dormantApps.filter { matchesWakeSearch(it.label, it.packageName, term) }
+        .mapTo(this) { WakeSearchRow(it, WakeSearchGroup.Dormant) }
+}
+
+private fun matchesWakeSearch(label: String, packageName: String, term: String) = label.contains(term, ignoreCase = true) || packageName.contains(term, ignoreCase = true)
 
 internal fun wakeOverviewUiState(
     availability: WakeAvailability?,
@@ -46,10 +71,18 @@ internal fun wakeOverviewUiState(
     wakeBlocks: List<WakeBlock> = emptyList(),
 ): WakeOverviewUiState = when (availability) {
     null -> WakeOverviewUiState.Loading
+
     WakeAvailability.NoAccess -> WakeOverviewUiState.NoAccess
+
     WakeAvailability.NotOwnerProfile -> WakeOverviewUiState.NotOwnerProfile
+
     WakeAvailability.ReadsRefused -> WakeOverviewUiState.ReadsRefused
-    WakeAvailability.Collecting -> WakeOverviewUiState.Collecting(checking)
+
+    WakeAvailability.Collecting -> WakeOverviewUiState.Collecting(
+        checking,
+        installedApps.sortedBy { it.label.lowercase() }.map(InstalledApp::wakeIdentity),
+    )
+
     is WakeAvailability.Ready -> readyOverview(summaries, automaticBlocks, installedApps, wakeBlocks, checking)
 }
 
@@ -104,7 +137,7 @@ private fun readyOverview(
         val name = app.key.packageName
         WakeAppRow(name, app.label, app.wakeIcon(), summariesByPackage[name]?.headline)
     }
-    val dormantApps = dormant.map { WakeAppIdentity(it.key.packageName, it.label, it.wakeIcon()) }
+    val dormantApps = dormant.map(InstalledApp::wakeIdentity)
 
     return WakeOverviewUiState.Ready(
         keepAlive = keepAlive,
@@ -119,3 +152,5 @@ private fun readyOverview(
 }
 
 internal fun InstalledApp.wakeIcon() = ApkIcon(key.packageName, apkPath, versionCode, uid)
+
+private fun InstalledApp.wakeIdentity() = WakeAppIdentity(key.packageName, label, wakeIcon())

@@ -126,6 +126,29 @@ class WakeOverviewViewModelTest {
     }
 
     @Test
+    fun givenAnotherUserIsSelected_whenCollecting_thenExposesTheLiveSortedOwnerApps() = runTest {
+        val secondary = UserId(12)
+        val first = wakeTestApp("example.first").copy(label = "Apple")
+        val last = wakeTestApp("example.last").copy(label = "zebra")
+        selectedUsers.sendUsers(listOf(DeviceUser(secondary, "Secondary", UserKind.SECONDARY, null, true)))
+        selectedUsers.select(secondary)
+        installedApps.sendApps(listOf(wakeTestApp("secondary", secondary)))
+        channel.setState(channel.connectResult)
+
+        viewModel.uiState.test {
+            assertThat(awaitItem()).isEqualTo(WakeOverviewUiState.Loading)
+            assertThat(awaitItem()).isEqualTo(WakeOverviewUiState.Collecting(false))
+
+            installedApps.sendApps(listOf(last, wakeTestApp("secondary", secondary), first))
+            val collecting = awaitItem() as WakeOverviewUiState.Collecting
+            assertThat(collecting.installedApps.map { it.packageName }).containsExactly(first.key.packageName, last.key.packageName).inOrder()
+
+            runs.isRunning.value = true
+            assertThat(awaitItem()).isEqualTo(collecting.copy(checking = true))
+        }
+    }
+
+    @Test
     fun givenAccessWasLost_whenCheckIsRequested_thenItDoesNotStartRunOrPrompt() = runTest {
         viewModel.checkNow()
         runCurrent()

@@ -95,6 +95,7 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
     accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = Matchers.anything(),
     darkMode: Boolean = false,
     captureAllWindows: Boolean = false,
+    beforeCapture: () -> Unit = {},
     body: @Composable () -> Unit,
 ) {
     val (width, height, dpi) = extractSpecs(deviceSpec)
@@ -113,6 +114,7 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
             }
         }
     }
+    beforeCapture()
     // Run Accessibility checks first so logging is included
     val roots = if (captureAllWindows) {
         val nodes = onAllNodes(isRoot())

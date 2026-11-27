@@ -14,6 +14,7 @@ import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.OwnWakeKind
 import com.merxury.blocker.core.model.wake.PotentialWakeCategory
+import com.merxury.blocker.core.model.wake.PotentialWakeEntry
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
@@ -293,21 +294,119 @@ class WakeAppUiStateTest {
         val restriction = DeepBackgroundRestriction(false, false, false, changeable = true)
         val ui = buildWakeAppState(detailState(), null, emptyList(), emptyMap(), listOf(entry)).copy(deepRestriction = restriction)
         val key = ui.potential.single().key
-        val forceStop = WakeSheetChoice(FORCE_STOP_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_force_stop))
+        val forceStop = WakeSheetChoice(
+            FORCE_STOP_CHOICE,
+            WakeText.Resource(string.feature_wake_api_sheet_force_stop),
+            WakeChoiceGroup.SYSTEM,
+            checkedByDefault = false,
+            supporting = WakeText.Resource(string.feature_wake_api_sheet_force_stop_hint),
+        )
 
         assertThat(ui.canBlockAll).isTrue()
         assertThat(ui.choices).containsExactly(
             WakeSheetChoice(
                 key,
                 WakeText.Resource(string.feature_wake_api_choice_with_component, WakeText.Resource(string.feature_wake_api_potential_boot), WakeText.Literal("BootReceiver")),
+                WakeChoiceGroup.DORMANT,
             ),
-            WakeSheetChoice(DEEP_RESTRICTION_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_deep_restriction)),
+            WakeSheetChoice(DEEP_RESTRICTION_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_deep_restriction), WakeChoiceGroup.SYSTEM),
             forceStop,
         ).inOrder()
         for (unavailable in listOf(restriction.copy(changeable = false), DeepBackgroundRestriction(true, true, true, changeable = true))) {
             assertThat(ui.copy(deepRestriction = unavailable).choices.map { it.key }).containsExactly(key, FORCE_STOP_CHOICE).inOrder()
         }
         assertThat(ui.copy(potential = emptyList(), deepRestriction = null).choices).isEmpty()
+    }
+
+    @Test
+    fun givenObservedDormantAndSystemControls_whenBuildingChoices_thenGroupsAndDefaultsReflectTheirEffects() {
+        val observed = detailState(own = listOf(detailMethod(OwnWakeKind.SELF_START, detailPath("observed"))))
+        val entries = PotentialWakeCategory.entries.map { potentialEntry(it, name = it.name) }
+        val ui = buildWakeAppState(observed, null, emptyList(), emptyMap(), entries).copy(
+            background = BackgroundUsage(allowed = true, changeable = true),
+            deepRestriction = DeepBackgroundRestriction(false, false, false, changeable = true),
+        )
+        val grouped = ui.choices.groupBy { it.group }
+        val observedChoice = grouped.getValue(WakeChoiceGroup.OBSERVED).single()
+        val dormantChoices = grouped.getValue(WakeChoiceGroup.DORMANT)
+        val push = ui.potential.single { it.potentialCategory == PotentialWakeCategory.PUSH_RECEIVER }
+        val pushChoice = dormantChoices.single { it.key == push.key }
+        val systemChoices = grouped.getValue(WakeChoiceGroup.SYSTEM)
+
+        assertThat(grouped.keys).containsExactly(WakeChoiceGroup.OBSERVED, WakeChoiceGroup.DORMANT, WakeChoiceGroup.SYSTEM).inOrder()
+        assertThat(observedChoice.key).isEqualTo(ui.methods.single().key)
+        assertThat(observedChoice.checkedByDefault).isTrue()
+        assertThat(dormantChoices.map { it.key }).containsExactlyElementsIn(ui.potential.map { it.key }).inOrder()
+        assertThat(pushChoice.checkedByDefault).isFalse()
+        assertThat(pushChoice.warning).isTrue()
+        assertThat(pushChoice.supporting).isEqualTo(WakeText.Resource(string.feature_wake_api_sheet_push_warning))
+        assertThat(dormantChoices.filterNot { it == pushChoice }.all { it.checkedByDefault && !it.warning && it.supporting == null }).isTrue()
+        assertThat(systemChoices.map { it.key }).containsExactly(BACKGROUND_CHOICE, DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE).inOrder()
+        assertThat(systemChoices.map { it.checkedByDefault }).containsExactly(true, true, false).inOrder()
+        assertThat(systemChoices.last().supporting).isEqualTo(WakeText.Resource(string.feature_wake_api_sheet_force_stop_hint))
+        assertThat(systemChoices.last().warning).isFalse()
+    }
+
+    @Test
+    fun givenObservedMethodsBlocked_whenDormantEntriesRemainOpen_thenHeroReportsOnlyObservedProtection() {
+        val open = potentialEntry()
+        val ui = buildWakeAppState(detailState(allBlocked = true), null, emptyList(), emptyMap(), listOf(open))
+        val blocked = ui.copy(potential = emptyList())
+        val blockedEntry = open.copy(state = open.state.copy(block = WakePathBlock.USER))
+        val allBlockedWithDormant = buildWakeAppState(detailState(allBlocked = true), null, emptyList(), emptyMap(), listOf(blockedEntry))
+
+        assertThat(ui.effectiveStatus).isEqualTo(WakeAppStatus.ObservedBlocked)
+        assertThat(ui.heroSubtitle).isEqualTo(WakeText.Count(plurals.feature_wake_api_dormant_remaining, 1))
+        assertThat(blocked.effectiveStatus).isEqualTo(WakeAppStatus.AllBlocked)
+        assertThat(blocked.heroSubtitle).isNull()
+        assertThat(allBlockedWithDormant.effectiveStatus).isEqualTo(WakeAppStatus.AllBlocked)
+        assertThat(allBlockedWithDormant.heroSubtitle).isNull()
+    }
+
+    @Test
+    fun givenDormantAppWithBootBlockedAndPushAllowed_whenSystemRestrictionApplies_thenHeroShowsRestrictionWithRemainingPush() {
+        val boot = potentialEntry(block = WakePathBlock.USER)
+        val push = potentialEntry(PotentialWakeCategory.PUSH_RECEIVER, name = "PushReceiver")
+        val ui = buildWakeAppState(detailState(verdict = WakeVerdict.NORMAL), null, emptyList(), emptyMap(), listOf(boot, push))
+        val background = ui.copy(background = BackgroundUsage(false, true))
+        val deep = ui.copy(deepRestriction = DeepBackgroundRestriction(true, true, true, changeable = true))
+
+        assertThat(ui.effectiveStatus).isEqualTo(WakeAppStatus.None)
+        assertThat(ui.heroSubtitle).isNull()
+        for (restricted in listOf(background, deep)) {
+            assertThat(restricted.effectiveStatus).isEqualTo(WakeAppStatus.DormantRestricted)
+            assertThat(restricted.effectiveStatus.halo.rotation).isEqualTo(60f)
+            assertThat(restricted.heroSubtitle).isEqualTo(WakeText.Count(plurals.feature_wake_api_dormant_remaining, 1))
+        }
+    }
+
+    @Test
+    fun givenDormantApp_whenCheckingSystemRestriction_thenOpenBootAndPushOnlyEntriesPreventGreenStatus() {
+        val boot = potentialEntry()
+        val push = potentialEntry(PotentialWakeCategory.PUSH_RECEIVER, name = "PushReceiver")
+        val blockedPush = push.copy(state = push.state.copy(block = WakePathBlock.USER))
+        val dormant = detailState(verdict = WakeVerdict.NORMAL)
+        fun restricted(entries: List<PotentialWakeEntry>) = buildWakeAppState(dormant, null, emptyList(), emptyMap(), entries)
+            .copy(background = BackgroundUsage(false, true))
+
+        assertThat(restricted(listOf(boot)).effectiveStatus).isEqualTo(WakeAppStatus.None)
+        assertThat(restricted(listOf(push)).effectiveStatus).isEqualTo(WakeAppStatus.None)
+        assertThat(restricted(listOf(blockedPush)).effectiveStatus).isEqualTo(WakeAppStatus.DormantRestricted)
+    }
+
+    @Test
+    fun givenNoDormantEntries_whenReadingSystemControls_thenOnlyActiveRestrictionsQualifyForGreenStatus() {
+        val ui = WakeAppUiState(WakeAppIdentity(DETAIL_PACKAGE))
+        val partial = ui.copy(deepRestriction = DeepBackgroundRestriction(false, true, false, changeable = true))
+        val deep = ui.copy(deepRestriction = DeepBackgroundRestriction(true, true, true, changeable = true))
+        val background = ui.copy(background = BackgroundUsage(false, true))
+
+        assertThat(ui.effectiveStatus).isEqualTo(WakeAppStatus.None)
+        assertThat(partial.effectiveStatus).isEqualTo(WakeAppStatus.None)
+        assertThat(deep.effectiveStatus).isEqualTo(WakeAppStatus.DormantRestricted)
+        assertThat(background.effectiveStatus).isEqualTo(WakeAppStatus.DormantRestricted)
+        assertThat(deep.heroSubtitle).isNull()
+        assertThat(background.heroSubtitle).isNull()
     }
 
     @Test
@@ -452,5 +551,29 @@ class WakeAppUiStateTest {
         assertThat(WakeAppStatus.None.halo).isEqualTo(WakeHalo.Attention)
         assertThat(WakeAppStatus.AllBlocked.halo).isEqualTo(WakeHalo.Blocked)
         assertThat(WakeAppStatus.AllBlocked.halo.rotation).isEqualTo(60f)
+    }
+
+    @Test
+    fun givenObservedSilentPushMethod_whenBuildingChoices_thenUncheckedByDefaultWithPushWarning() {
+        val pushPath = detailPath("silent-push", method = WakeBlockMethod.COMPONENT, component = null, action = "com.google.android.c2dm.intent.RECEIVE")
+            .copy(trigger = ReviveTrigger.PUSH_TRANSPORT)
+        val state = detailState(own = listOf(detailMethod(OwnWakeKind.SYSTEM_EVENT, pushPath)))
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
+        val choice = ui.choices.first()
+
+        assertThat(choice.group).isEqualTo(WakeChoiceGroup.OBSERVED)
+        assertThat(choice.checkedByDefault).isFalse()
+        assertThat(choice.warning).isTrue()
+        assertThat(choice.supporting).isEqualTo(WakeText.Resource(string.feature_wake_api_sheet_push_warning))
+    }
+
+    @Test
+    fun givenUnfinishedPotentialScan_whenReadingEffectiveStatus_thenAvoidsPrematureGreenCompletion() {
+        val observedBlocked = buildWakeAppState(detailState(allBlocked = true), null, emptyList(), emptyMap(), emptyList(), potentialLoaded = false)
+        val dormant = buildWakeAppState(detailState(verdict = WakeVerdict.NORMAL), null, emptyList(), emptyMap(), emptyList(), potentialLoaded = false)
+            .copy(background = BackgroundUsage(allowed = false, changeable = true))
+
+        assertThat(observedBlocked.effectiveStatus).isEqualTo(WakeAppStatus.ObservedBlocked)
+        assertThat(dormant.effectiveStatus).isEqualTo(WakeAppStatus.None)
     }
 }

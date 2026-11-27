@@ -56,11 +56,14 @@ import com.merxury.blocker.feature.wake.api.R.string
 @Composable
 internal fun WakeAppHero(state: WakeAppUiState, onPeerClick: (String) -> Unit) {
     val colors = MaterialTheme.colorScheme
-    val (status, targetColor) = when (state.status) {
+    val effectiveStatus = state.effectiveStatus
+    val (status, targetColor) = when (effectiveStatus) {
         WakeAppStatus.KeepAlive -> string.feature_wake_api_status_keep_alive to colors.error
         WakeAppStatus.Attention -> string.feature_wake_api_status_attention to colors.tertiary
         WakeAppStatus.None -> string.feature_wake_api_none_found to colors.onSurfaceVariant
         WakeAppStatus.AllBlocked -> string.feature_wake_api_status_all_blocked to colors.primary
+        WakeAppStatus.ObservedBlocked -> string.feature_wake_api_status_observed_blocked to colors.primary
+        WakeAppStatus.DormantRestricted -> string.feature_wake_api_status_dormant_restricted to colors.primary
     }
     val statusColor by animateColorAsState(targetColor, MaterialTheme.motionScheme.defaultEffectsSpec(), label = "Wake status")
     val inbound = state.inbound
@@ -82,12 +85,20 @@ internal fun WakeAppHero(state: WakeAppUiState, onPeerClick: (String) -> Unit) {
         ) {
             ChainPeers(inbound, Alignment.End, onPeerClick, Modifier.weight(1f))
             ChainConnector(inbound)
-            WakeAppHalo(state)
+            WakeAppHalo(state, effectiveStatus.halo)
             ChainConnector(outbound)
             ChainPeers(outbound, Alignment.Start, onPeerClick, Modifier.weight(1f))
         }
         Text(state.app.label, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
         Text(stringResource(status), style = MaterialTheme.typography.titleSmall, color = statusColor, textAlign = TextAlign.Center)
+        state.heroSubtitle?.let { subtitle ->
+            Text(
+                subtitle.resolve(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
         Text(
             WakeText.Count(plurals.feature_wake_api_background_starts, state.backgroundStarts).resolve(),
             style = MaterialTheme.typography.bodyMedium,
@@ -99,16 +110,16 @@ internal fun WakeAppHero(state: WakeAppUiState, onPeerClick: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun WakeAppHalo(state: WakeAppUiState) {
+private fun WakeAppHalo(state: WakeAppUiState, halo: WakeHalo) {
     val colors = MaterialTheme.colorScheme
     val motion = MaterialTheme.motionScheme
-    val (outline, haloColor) = when (state.status.halo) {
+    val (outline, haloColor) = when (halo) {
         WakeHalo.Blocked -> MaterialShapes.Cookie6Sided to colors.primaryContainer
         WakeHalo.KeepAlive -> MaterialShapes.Cookie12Sided to colors.errorContainer
         WakeHalo.Attention -> MaterialShapes.Cookie9Sided to colors.tertiaryContainer
     }
     val rotation by animateFloatAsState(
-        state.status.halo.rotation,
+        halo.rotation,
         motion.slowSpatialSpec(),
         label = "Halo rotation",
     )

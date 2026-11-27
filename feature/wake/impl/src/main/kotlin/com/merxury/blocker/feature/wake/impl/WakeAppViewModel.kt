@@ -22,6 +22,7 @@ import com.merxury.blocker.core.domain.wake.RestoreAppWakeChangesUseCase
 import com.merxury.blocker.core.domain.wake.SetWakePathsBlockedUseCase
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.privileged.CallResult
+import com.merxury.blocker.core.model.wake.PotentialWakeEntry
 import com.merxury.blocker.core.model.wake.WakeAvailability
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
@@ -82,12 +83,13 @@ internal class WakeAppViewModel @AssistedInject constructor(
         .map { it.observedComponentNames() }
         .distinctUntilChanged()
         .flatMapLatest { excluded -> observePotentialEntries(packageName, excluded) }
-        .onStart { emit(emptyList()) }
+        .map<List<PotentialWakeEntry>, List<PotentialWakeEntry>?> { it }
+        .onStart { emit(null) }
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val detailed = combine(observed, potential) { state, entries ->
-        state.visibleComponentNames() + entries.mapNotNull { it.state.path.component }
+        state.visibleComponentNames() + entries.orEmpty().mapNotNull { it.state.path.component }
     }
         .distinctUntilChanged()
         .flatMapLatest(componentDetails::getLocalComponentDetails)
@@ -99,8 +101,9 @@ internal class WakeAppViewModel @AssistedInject constructor(
         installedApps.apps(appKey.userId),
         detailed,
         potential,
-        ::buildWakeAppState,
-    )
+    ) { state, lastChecked, apps, details, entries ->
+        buildWakeAppState(state, lastChecked, apps, details, entries.orEmpty(), potentialLoaded = entries != null)
+    }
 
     private val installRevisionChanges = installedApps.app(appKey)
         .map { it?.let { app -> Triple(app.apkPath, app.versionCode, app.lastUpdateTime) } }
