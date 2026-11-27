@@ -153,7 +153,7 @@ class WakeRepository @Inject constructor(
 
     fun observeSpecialBindings(targets: List<String>): Flow<List<WakeRecord>> = observeTargets(targets, detection::observeSpecialBindings).map { bindings ->
         // Global dumps such as device policy can include secondary profiles in the owner source.
-        bindings.filter { runCatching { JSONObject(it.attributes).optInt("user") }.getOrNull() == 0 }
+        bindings.filter { runCatching { JSONObject(it.attributes).optString("user").toIntOrNull() }.getOrNull() == 0 }
     }
 
     private inline fun <reified T> observeTargets(targets: List<String>, query: (List<String>) -> Flow<List<T>>): Flow<List<T>> {

@@ -5,6 +5,7 @@ package com.merxury.blocker.core.privileged.wake
 
 import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.isRegularAppUid
+import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.wake.WakeObservation
 import java.math.BigDecimal
 
@@ -210,8 +211,8 @@ internal object WakeSystemEvidence {
             WakeCommand.INTENTS -> pendingIntents(lines, now)
             WakeCommand.ALARMS -> pendingAlarms(lines, now)
             WakeCommand.COMPANIONS -> companionAssociations(lines, now)
-            WakeCommand.WALLPAPER -> wallpaperBindings(lines, now)
-            WakeCommand.SYNCS -> syncAdapters(lines, now)
+            WakeCommand.WALLPAPER -> wallpaperBindings(output, now)
+            WakeCommand.SYNCS -> syncAdapters(output, now)
             WakeCommand.BATTERY -> processCpu(lines, now)
             else -> emptyList()
         }.distinct()
@@ -338,11 +339,16 @@ internal object WakeSystemEvidence {
         }
     }
 
+    private val widgetUser = Regex("""^provider=ProviderId\{user:(\d+),""")
+
+    private fun grantUser(user: Int?): Map<String, String> = user?.let { mapOf("user" to it.toString()) }.orEmpty()
+
     private fun widgetProviders(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
         for (text in lines) {
             if (text.startsWith("provider=")) {
                 component.find(text)?.value?.let {
-                    this += WakeObservation("WidgetProvider", now, component = it, targetPackage = it.substringBefore('/'))
+                    val profile = widgetUser.find(text)?.groupValues?.get(1)?.toIntOrNull()
+                    add(WakeObservation("WidgetProvider", now, component = it, targetPackage = it.substringBefore('/'), attributes = grantUser(profile)))
                 }
             }
         }
@@ -518,32 +524,66 @@ internal object WakeSystemEvidence {
         if (isEmpty() && sawAlarmHeader) add(WakeObservation("PendingAlarm", now))
     }
 
+    private val companionShortPackage = Regex("""(?:^|, )pkg=u(\d+)/([\w.]+)(?=[, }]|$)""")
+    private val companionHeader = Regex("""^Association(?:Info)?\s*\{""")
+    private val companionPackage = Regex("""(?:\{|,)\s*(?:mPackageName|packageName|package)\s*=\s*'?([\w.]+)""")
+    private val companionUser = Regex("""(?:\{|,)\s*(?:mUserId|userId)\s*=\s*(\d+)\b""")
+
     private fun companionAssociations(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
         for (text in lines) {
-            if ("Association" in text) {
-                Regex("""(?:packageName|package)=([\w.]+)""").find(text)?.let {
-                    this += WakeObservation("CompanionAssociation", now, targetPackage = it.groupValues[1])
-                }
+            val short = companionShortPackage.find(text.takeIf { it.startsWith("id=") }.orEmpty())
+            val long = text.takeIf(companionHeader::containsMatchIn)
+            val pkg = short?.groupValues?.get(2) ?: long?.let { companionPackage.find(it)?.groupValues?.get(1) } ?: continue
+            val profile = short?.groupValues?.get(1) ?: long?.let { companionUser.find(it)?.groupValues?.get(1) }
+            add(WakeObservation("CompanionAssociation", now, targetPackage = pkg, attributes = grantUser(profile?.toIntOrNull())))
+        }
+    }
+
+    private val wallpaperUser = Regex("""^User (\d+):""")
+
+    private fun wallpaperBindings(output: String, now: Long): List<WakeObservation> = buildList {
+        var profile: Int? = null
+        var userIndent = -1
+        for (line in output.lineSequence()) {
+            val indent = line.indexOfFirst { !it.isWhitespace() }
+            if (indent < 0) continue
+            val text = line.trim()
+            // Display state shares the wallpaper user header's indentation.
+            if (indent <= userIndent && text != "Display state:") profile = null
+            val header = wallpaperUser.find(text)
+            if (header != null) {
+                profile = header.groupValues[1].toIntOrNull()
+                userIndent = indent
+            }
+            if (text.startsWith("mWallpaperComponent=")) {
+                val name = component.find(text.substringAfter('='))?.value ?: continue
+                add(WakeObservation("WallpaperBinding", now, component = name, targetPackage = name.substringBefore('/'), attributes = grantUser(profile)))
             }
         }
     }
 
-    private fun wallpaperBindings(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
-        for (text in lines) {
-            if ("mWallpaperComponent=" in text) {
-                component.find(text.substringAfter("mWallpaperComponent="))?.let {
-                    this += WakeObservation("WallpaperBinding", now, component = it.value, targetPackage = it.value.substringBefore('/'))
-                }
-            }
-        }
-    }
+    private val syncUser = Regex("""^Sync adapters for UserInfo\{(\d+):""")
+    private val syncUid = Regex("""\buid[=: ]+(\d+)$""")
+    private val syncPackage = Regex("""\bpackageName[=: ]+([\w.]+)""")
 
-    private fun syncAdapters(lines: Sequence<String>, now: Long): List<WakeObservation> = buildList {
-        for (text in lines) {
-            if ("SyncAdapterType" in text) {
-                Regex("""packageName[=: ]+([\w.]+)""").find(text)?.groupValues?.get(1)?.let {
-                    this += WakeObservation("SyncAdapter", now, targetPackage = it)
-                }
+    private fun syncAdapters(output: String, now: Long): List<WakeObservation> = buildList {
+        var profile: Int? = null
+        var userIndent = -1
+        for (line in output.lineSequence()) {
+            val indent = line.indexOfFirst { !it.isWhitespace() }
+            if (indent < 0) continue
+            val text = line.trim()
+            if (indent <= userIndent) profile = null
+            val header = syncUser.find(text)
+            if (header != null) {
+                profile = header.groupValues[1].toIntOrNull()
+                userIndent = indent
+            }
+            if (text.startsWith("ServiceInfo: SyncAdapterType")) {
+                val pkg = syncPackage.find(text)?.groupValues?.get(1) ?: component.find(text.substringAfter('}'))?.value?.substringBefore('/')
+                    ?: continue
+                val uid = syncUid.find(text)?.groupValues?.get(1)?.toIntOrNull()
+                add(WakeObservation("SyncAdapter", now, targetPackage = pkg, attributes = grantUser(uid?.let(::userOfUid) ?: profile)))
             }
         }
     }

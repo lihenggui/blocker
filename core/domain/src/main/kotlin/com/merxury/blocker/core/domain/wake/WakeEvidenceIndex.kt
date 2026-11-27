@@ -263,9 +263,9 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
     /** A snapshot witnesses pending alarms at one instant. Older snapshots may contain cancelled alarms. */
     private fun pendingAlarmIntents(boot: String, target: String, elapsedNanos: Long, uid: Int?): List<WakeRecord> {
         val times = alarmSnapshots[boot] ?: return emptyList()
-        val snapshot = times.lastOrNull { it <= elapsedNanos }
-            ?: times.firstOrNull()?.takeIf { it <= elapsedNanos + WakeRevives.JOIN_WINDOW } ?: return emptyList()
-        if (elapsedNanos - snapshot > MAX_ALARM_SNAPSHOT_AGE_NS) return emptyList()
+        val snapshot = times.lastOrNull { it in (elapsedNanos - MAX_ALARM_SNAPSHOT_AGE_NS)..elapsedNanos }
+            ?: times.firstOrNull { it > elapsedNanos && it <= elapsedNanos + WakeRevives.JOIN_WINDOW }
+            ?: return emptyList()
         return alarmIntents[Triple(boot, target, snapshot)].orEmpty().filter { intent ->
             val callerUid = intent.callerUid
             uid == null || callerUid == null || userOfUid(callerUid) == userOfUid(uid)
@@ -375,7 +375,10 @@ internal class WakeEvidenceIndex(val evidence: WakeDetectionEvidence) {
             }
     }
 
-    private fun WakeRecord.grantKey(): Pair<Int, String>? = targetPackage?.let { (attr("user")?.toIntOrNull() ?: 0) to it }
+    private fun WakeRecord.grantKey(): Pair<Int, String>? {
+        val profile = attr("user")?.toIntOrNull() ?: return null
+        return targetPackage?.let { profile to it }
+    }
 
     // Bound services and active device admins are granted per component. Roles, companion devices,
     // and the always-on VPN package are granted per package.

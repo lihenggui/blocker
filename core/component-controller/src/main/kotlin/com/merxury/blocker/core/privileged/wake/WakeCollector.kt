@@ -20,6 +20,7 @@ import com.merxury.blocker.core.privileged.uid
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
+import java.io.IOException
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -39,10 +40,18 @@ private val SNAPSHOTS = listOf(
     WakeCommand.NOTIFICATIONS,
     WakeCommand.OVERLAYS,
     WakeCommand.AUDIO,
+    WakeCommand.ALARMS,
+    WakeCommand.INTENTS,
 )
 private val DIAGNOSTIC_SNAPSHOTS = listOf(
-    WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
-    WakeCommand.DEVICE_POLICY, WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY,
+    WakeCommand.COMPANIONS,
+    WakeCommand.WALLPAPER,
+    WakeCommand.ROLES,
+    WakeCommand.WIDGETS,
+    WakeCommand.DEVICE_POLICY,
+    WakeCommand.JOBS,
+    WakeCommand.SYNCS,
+    WakeCommand.BATTERY,
 )
 private val PROFILE_SETTINGS = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILITY, WakeCommand.LISTENERS, WakeCommand.VPN)
 
@@ -173,8 +182,13 @@ class WakeCollector @Inject internal constructor(
 
         suspend fun snapshot(command: WakeCommand, now: Long, profile: Int = 0) = read(command, profile) {
             val observations = WakeSystemEvidence.snapshot(command, it, now, profile)
+            val gaps = if (observations.isEmpty() && (command == WakeCommand.OVERLAYS || command == WakeCommand.AUDIO)) {
+                listOf("unrecognized ${command.name.lowercase()} dump")
+            } else {
+                emptyList()
+            }
             // An empty successful snapshot still supersedes earlier grants of this kind and action.
-            batches += WakeBatch(command.source(profile), observations.ifEmpty { listOfNotNull(command.emptyBindingSnapshot(now)) })
+            batches += WakeBatch(command.source(profile), observations.ifEmpty { listOfNotNull(command.emptyBindingSnapshot(now)) }, gaps)
         }
 
         suspend fun readRecorder(boot: String) {
@@ -301,15 +315,28 @@ class WakeCollector @Inject internal constructor(
         }
         if (metadata.getString(installedKey, if (legacyOwner) metadata.getString("key", null) else null) != configKey) install()
         suspend fun report(): WakeBatch {
-            val bytes = reads.bytes(WakeCommand.REPORT)
+            val read = try {
+                Result.success(reads.bytes(WakeCommand.REPORT))
+            } catch (e: IOException) {
+                Result.failure(e)
+            }
             val elapsed = SystemClock.elapsedRealtimeNanos()
             val origin = System.currentTimeMillis() * 1_000_000 - elapsed
-            val batch = WakeStatsCodec.decode(bytes, origin, elapsed, owner, id)
+            val batch = read.fold(
+                onSuccess = { WakeStatsCodec.decode(it, origin, elapsed, owner, id) },
+                onFailure = { WakeBatch("statsd", emptyList(), listOf(it.message ?: it.javaClass.simpleName)) },
+            )
             val lastRenewed = metadata.getLong(lastRenewedElapsedKey, -1L)
             val expired = metadata.getString(lastRenewedBootKey, null) == boot && lastRenewed >= 0 &&
                 elapsed - lastRenewed > WakeStatsCodec.LEASE_SECONDS * 1_000_000_000L
-            renew()
-            return if (expired) batch.copy(gaps = batch.gaps + "statsd: lease expired") else batch
+            val renewalGap = try {
+                renew()
+                null
+            } catch (e: IOException) {
+                "statsd: renewal failed: ${e.message ?: e.javaClass.simpleName}"
+            }
+            val gaps = batch.gaps + listOfNotNull("statsd: lease expired".takeIf { expired }, renewalGap)
+            return batch.copy(gaps = gaps)
         }
         return try {
             report()

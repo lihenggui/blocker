@@ -35,11 +35,11 @@ private val PROFILE_SOURCES = listOf(WakeCommand.INPUT, WakeCommand.ACCESSIBILIT
 private val EVERY_RUN = listOf(
     WakeCommand.INSTALL, WakeCommand.RENEW, WakeCommand.REPORT, WakeCommand.RENEW, WakeCommand.EVENTS, WakeCommand.EVENTS_HEAD,
     WakeCommand.PROCSTATS, WakeCommand.USERS, WakeCommand.SERVICES, WakeCommand.PROVIDERS, WakeCommand.PROCESSES,
-    WakeCommand.NOTIFICATIONS, WakeCommand.OVERLAYS, WakeCommand.AUDIO,
+    WakeCommand.NOTIFICATIONS, WakeCommand.OVERLAYS, WakeCommand.AUDIO, WakeCommand.ALARMS, WakeCommand.INTENTS,
 )
 private val DAILY = listOf(
-    WakeCommand.INTENTS, WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
-    WakeCommand.DEVICE_POLICY, WakeCommand.JOBS, WakeCommand.ALARMS, WakeCommand.SYNCS, WakeCommand.BATTERY, WakeCommand.IDLE_WHITELIST,
+    WakeCommand.COMPANIONS, WakeCommand.WALLPAPER, WakeCommand.ROLES, WakeCommand.WIDGETS,
+    WakeCommand.DEVICE_POLICY, WakeCommand.JOBS, WakeCommand.SYNCS, WakeCommand.BATTERY, WakeCommand.IDLE_WHITELIST,
     WakeCommand.STANDBY_BUCKETS, WakeCommand.BACKGROUND_RESTRICTED,
 )
 
@@ -58,6 +58,8 @@ class WakeCollectorTest {
         WakeCommand.USERS to { "Users:\n\tUserInfo{0:Owner:c13} running\n\tUserInfo{10:Work:1030} running\n".toByteArray() },
         WakeCommand.PROCSTATS to { checkNotNull(javaClass.getResource("/wake/procstats-current.txt")).readBytes() },
         WakeCommand.REPORT to { report(reportOwner) },
+        WakeCommand.OVERLAYS to { "Window #0 Window{abc u0 example.app}:".toByteArray() },
+        WakeCommand.AUDIO to { "players:".toByteArray() },
     )
 
     private val reads: List<ReadWakeSource> get() = executor.runs.map { it.first as ReadWakeSource }
@@ -156,6 +158,25 @@ class WakeCollectorTest {
     }
 
     @Test
+    fun givenReportReadFailure_whenTheLeaseHasExpired_thenRenewalAndTheGapAreRecorded() = runTest {
+        collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(WakeStatsCodec.LEASE_SECONDS + 1))
+        executor.runs.clear()
+        executor.answer = { call ->
+            if ((call as ReadWakeSource).command == WakeCommand.REPORT) {
+                CallResult.Failure(CallFailure.SystemError("REPORT read failed"))
+            } else {
+                answer(call)
+            }
+        }
+
+        val statsd = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT).batch("statsd")
+
+        assertThat(reads.map { it.command }).containsAtLeast(WakeCommand.REPORT, WakeCommand.RENEW).inOrder()
+        assertThat(statsd.gaps).containsExactly("REPORT read failed", "statsd: lease expired")
+    }
+
+    @Test
     fun givenStealthSnapshots_whenCapturing_thenOnlyCompactEvidenceIsCollected() = runTest {
         outputs[WakeCommand.OVERLAYS] = {
             """
@@ -174,6 +195,38 @@ class WakeCollectorTest {
 
         assertThat(capture.batch("OVERLAYS").observations.single().attributes).containsExactly("packages", "example.app/10123")
         assertThat(capture.batch("AUDIO").observations.single().attributes).containsExactly("uids", "10123")
+    }
+
+    @Test
+    fun givenUnrecognizedOverlayAndAudioDumps_whenCapturing_thenBothSourcesRecordGaps() = runTest {
+        outputs[WakeCommand.OVERLAYS] = { "OEM window inventory".toByteArray() }
+        outputs[WakeCommand.AUDIO] = { "players:\n  OEM track inventory".toByteArray() }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+        for (source in listOf("OVERLAYS", "AUDIO")) {
+            assertThat(capture.batch(source).gaps).isNotEmpty()
+            assertThat(capture.batch(source).observations).isEmpty()
+        }
+    }
+
+    @Test
+    fun givenRoutineRun_whenCapturing_thenAlarmAndIntentSnapshotsShareTheSameTimestamp() = runTest {
+        outputs[WakeCommand.ALARMS] = {
+            "Current Alarm Manager state:\n  Pending alarm batches: 0".toByteArray()
+        }
+        outputs[WakeCommand.INTENTS] = {
+            (
+                "#0: PendingIntentRecord{123 example.client broadcastIntent}\n" +
+                    " uid=10123 packageName=example.client\n requestIntent=cmp=example.app/.Receiver"
+                ).toByteArray()
+        }
+
+        val capture = collector.capture(diagnostic = false, PrivilegedIdentity.ROOT)
+
+        val alarm = capture.batch("ALARMS").observations.single()
+        val intent = capture.batch("INTENTS").observations.single()
+        assertThat(alarm.elapsedNanos).isEqualTo(intent.elapsedNanos)
     }
 
     @Test

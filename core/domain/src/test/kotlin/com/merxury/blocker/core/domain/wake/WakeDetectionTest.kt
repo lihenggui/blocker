@@ -351,7 +351,7 @@ class WakeDetectionTest {
     }
 
     @Test fun givenSystemAndLauncherBal_whenDetecting_thenTheActivityStaysUserInitiated() {
-        val home = wakeRecord("home", "RoleHolder", START, targetPackage = PEER, action = "android.app.role.HOME")
+        val home = wakeRecord("home", "RoleHolder", START, targetPackage = PEER, action = "android.app.role.HOME", attributes = mapOf("user" to "0"))
         val launcher = wakeRecord("shown", "AppStartOccurred", START, component = "$TARGET.Wake", startType = 3, attributes = mapOf("source_type" to "1"))
         val relation = WakeRelation(launcher.id, activityStart.id, "MATCHING_COMPONENT")
 
@@ -619,7 +619,7 @@ class WakeDetectionTest {
         assertThat(broadcast.trigger).isEqualTo(ReviveTrigger.SYSTEM_BROADCAST)
         assertThat(broadcast.actor).isEqualTo("android")
         assertThat(broadcast.detail).isEqualTo("android.intent.action.PACKAGE_REPLACED")
-        val listener = wakeRecord("listener", "SystemBinding", START - 60 * SECOND, source = "LISTENERS", component = "$TARGET/$TARGET.Wake", action = "LISTENERS")
+        val listener = wakeRecord("listener", "SystemBinding", START - 60 * SECOND, source = "LISTENERS", component = "$TARGET/$TARGET.Wake", action = "LISTENERS", attributes = mapOf("user" to "0"))
         val bind = joined(system, listener)
         assertThat(bind.trigger).isEqualTo(ReviveTrigger.SYSTEM_BIND)
         assertThat(bind.justification).isEqualTo(Justification.USER_GRANTED_ROLE)
@@ -710,12 +710,12 @@ class WakeDetectionTest {
 
     @Test fun givenGrants_whenJudgingSystemBinds_thenRolesCoverPackagesAndBindingsCoverComponents() {
         val system = request("ServiceRequestEventReported", 1000, "android")
-        fun role(name: String) = wakeRecord("role", "RoleHolder", START, source = "ROLES", action = name)
+        fun role(name: String) = wakeRecord("role", "RoleHolder", START, source = "ROLES", action = name, attributes = mapOf("user" to "0"))
         assertThat(joined(system, role("android.app.role.DIALER")).justification).isEqualTo(Justification.USER_GRANTED_ROLE)
         assertThat(joined(system, role("android.app.role.SYSTEM_GALLERY")).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
-        val otherService = wakeRecord("a11y", "SystemBinding", START, source = "ACCESSIBILITY", component = "$TARGET/.Reader", action = "ACCESSIBILITY")
+        val otherService = wakeRecord("a11y", "SystemBinding", START, source = "ACCESSIBILITY", component = "$TARGET/.Reader", action = "ACCESSIBILITY", attributes = mapOf("user" to "0"))
         assertThat(joined(system, otherService).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
-        val vpn = wakeRecord("vpn", "SystemBinding", START, source = "VPN", component = TARGET, action = "VPN")
+        val vpn = wakeRecord("vpn", "SystemBinding", START, source = "VPN", component = TARGET, action = "VPN", attributes = mapOf("user" to "0"))
         assertThat(joined(system, vpn).justification).isEqualTo(Justification.USER_GRANTED_ROLE)
     }
 
@@ -728,6 +728,7 @@ class WakeDetectionTest {
             source = "ACCESSIBILITY",
             component = "$TARGET/.Wake",
             action = "ACCESSIBILITY",
+            attributes = mapOf("user" to "0"),
         ).copy(boot = "7")
         val workUid = TARGET_UID + UIDS_PER_USER
         val work = owner.copy(id = "work", source = "ACCESSIBILITY/1", attributes = """{"user":"1"}""")
@@ -745,7 +746,7 @@ class WakeDetectionTest {
 
     @Test fun givenPackageRoleSnapshots_whenTheOwnerRoleIsRevoked_thenOnlyTheCurrentWorkGrantApplies() {
         val system = request("ServiceRequestEventReported", 1000, "android")
-        val owner = wakeRecord("owner", "RoleHolder", START - SECOND, source = "ROLES", action = "android.app.role.DIALER")
+        val owner = wakeRecord("owner", "RoleHolder", START - SECOND, source = "ROLES", action = "android.app.role.DIALER", attributes = mapOf("user" to "0"))
         val work = owner.copy(id = "work", elapsedNanos = START, attributes = """{"user":"10"}""")
         val empty = work.copy(id = "empty", targetPackage = null, attributes = """{"user":"0"}""")
 
@@ -753,9 +754,19 @@ class WakeDetectionTest {
         assertThat(joined(system, owner, work, empty).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
     }
 
+    @Test fun givenWorkAndUnscopedGlobalGrants_whenDetectingOwnerWakes_thenTheyDoNotJustifyTheWake() {
+        val system = request("ServiceRequestEventReported", 1000, "android")
+        val workWidget = wakeRecord("widget", "WidgetProvider", START, source = "WIDGETS", attributes = mapOf("user" to "10"))
+        val companion = wakeRecord("companion", "CompanionAssociation", START, source = "COMPANIONS")
+        val wallpaper = wakeRecord("wallpaper", "WallpaperBinding", START, source = "WALLPAPER", component = "$TARGET/.Wake")
+
+        assertThat(joined(system, workWidget).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+        assertThat(joined(system, workWidget, companion, wallpaper).trigger).isEqualTo(ReviveTrigger.UNKNOWN)
+    }
+
     @Test fun givenActiveDeviceAdmin_whenDetecting_thenTheGrantCoversOnlyItsComponent() {
         val system = request("ServiceRequestEventReported", 1000, "android")
-        val admin = wakeRecord("admin", "DeviceAdmin", START, source = "DEVICE_POLICY", component = "$TARGET/.Wake")
+        val admin = wakeRecord("admin", "DeviceAdmin", START, source = "DEVICE_POLICY", component = "$TARGET/.Wake", attributes = mapOf("user" to "0"))
 
         assertThat(joined(system, admin).justification).isEqualTo(Justification.USER_GRANTED_ROLE)
         assertThat(joined(system, admin.copy(component = "$TARGET/.Other")).justification).isEqualTo(Justification.NONE)
@@ -763,7 +774,7 @@ class WakeDetectionTest {
 
     @Test fun givenNoCaller_whenDetecting_thenSnapshotsAndCorrelationsAreUsedBeforeUnknown() {
         val serviceStart = wakeRecord("info", "ApplicationStartInfo", START, source = "START_INFO", component = "$TARGET/.Ime", startType = 3, process = TARGET, attributes = mapOf("reason" to "SERVICE"))
-        val ime = wakeRecord("ime", "SystemBinding", START, source = "INPUT", component = "$TARGET/.Ime", action = "INPUT")
+        val ime = wakeRecord("ime", "SystemBinding", START, source = "INPUT", component = "$TARGET/.Ime", action = "INPUT", attributes = mapOf("user" to "0"))
         val bind = revive(*started(serviceStart), ime)
         assertThat(bind.trigger).isEqualTo(ReviveTrigger.SYSTEM_BIND)
         assertThat(bind.confidence).isEqualTo(Confidence.SNAPSHOT)
@@ -993,8 +1004,8 @@ class WakeDetectionTest {
         for (type in listOf(1 shl 0, 1 shl 1, 1 shl 3, 1 shl 4, 1 shl 10, (1 shl 30) or (1 shl 8))) {
             assertThat(service(type)).isEqualTo(Justification.PRODUCTIVE)
         }
-        val granted = wakeRecord("vpn", "SystemBinding", 0, component = TARGET, action = "VPN")
-        val bound = wakeRecord("ime", "SystemBinding", 0, component = "$TARGET/.Service", action = "INPUT")
+        val granted = wakeRecord("vpn", "SystemBinding", 0, component = TARGET, action = "VPN", attributes = mapOf("user" to "0"))
+        val bound = wakeRecord("ime", "SystemBinding", 0, component = "$TARGET/.Service", action = "INPUT", attributes = mapOf("user" to "0"))
         assertThat(service(1 shl 30, threshold, granted)).isEqualTo(Justification.PRODUCTIVE)
         assertThat(service(1 shl 30, threshold, bound)).isEqualTo(Justification.PRODUCTIVE)
         assertThat(service(1 shl 30, threshold, bound.copy(component = "$TARGET/.Other"))).isEqualTo(Justification.NONE)
@@ -1041,7 +1052,7 @@ class WakeDetectionTest {
         val system = WakeHoldAssociation("p", TARGET, TARGET_UID, ".Binding", "system", 1000, 10_000, 100)
         val own = WakeHoldAssociation("p", TARGET, TARGET_UID, ".Storage", "$TARGET:rcs", TARGET_UID, 4_000, 1_000)
         val snapshot = wakeRecord("held", "HeldConnection", 0, source = "SERVICES", callerUid = 1000, component = "$TARGET/.Binding", attributes = mapOf("host_process" to "$TARGET:rcs"))
-        val role = wakeRecord("role", "RoleHolder", 0, source = "ROLES", action = "android.app.role.SMS")
+        val role = wakeRecord("role", "RoleHolder", 0, source = "ROLES", action = "android.app.role.SMS", attributes = mapOf("user" to "0"))
         fun holds(records: List<WakeRecord>, vararg associations: WakeHoldAssociation) = WakeDetection.detect(evidence(records, periods = listOf(period), processes = processes, associations = associations.toList()))
             .filter { it.finding.hold != null }.associateBy { it.finding.hold }
 
@@ -1070,7 +1081,7 @@ class WakeDetectionTest {
     @Test fun givenSpecialAccessAndProviders_whenAttributingHolds_thenRoleAndProviderCausesApply() {
         val period = WakeHoldPeriod("p", WALL, WALL + 10_000, 0)
         val process = WakeHoldProcess("p", TARGET, TARGET_UID, TARGET, 0, 10_000)
-        val ime = wakeRecord("ime", "SystemBinding", 0, source = "INPUT", component = "$TARGET/.Ime", action = "INPUT")
+        val ime = wakeRecord("ime", "SystemBinding", 0, source = "INPUT", component = "$TARGET/.Ime", action = "INPUT", attributes = mapOf("user" to "0"))
         val provider = wakeRecord("held", "HeldConnection", 0, source = "PROVIDERS", component = "$TARGET/.Data")
         val holds = WakeDetection.detect(
             evidence(

@@ -183,7 +183,7 @@ class WakeWarmWakesTest {
         assertThat(findings(screenOff, unfreeze(), request, notification.copy(elapsedNanos = elapsed + 11 * second)).single().justification)
             .isEqualTo(Justification.NONE)
         val binding = request.copy(callerUid = 1000, callerPackage = "android", attributes = """{"request_type":"2"}""")
-        val grant = wakeRecord("grant", "SystemBinding", elapsed, component = "$target/.Worker")
+        val grant = wakeRecord("grant", "SystemBinding", elapsed, component = "$target/.Worker", attributes = mapOf("user" to "0"))
         assertThat(findings(screenOff, unfreeze(reason = 4), binding)).isEmpty()
         assertThat(findings(screenOff, unfreeze(reason = 4), binding, grant).single().justification).isEqualTo(Justification.USER_GRANTED_ROLE)
     }
