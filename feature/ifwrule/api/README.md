@@ -20,25 +20,10 @@ graph TB
   end
   subgraph :core
     direction TB
-    :core:analytics[analytics]:::android-library
-    :core:common[common]:::android-library
-    :core:designsystem[designsystem]:::android-library
-    :core:ifw-api[ifw-api]:::android-library
-    :core:model[model]:::android-library
     :core:navigation[navigation]:::android-library
-    :core:ui[ui]:::android-library
   end
 
-  :core:common -.-> :core:model
-  :core:ifw-api -.-> :core:common
-  :core:ifw-api -.-> :core:model
-  :core:ui --> :core:analytics
-  :core:ui -.-> :core:common
-  :core:ui --> :core:designsystem
-  :core:ui --> :core:ifw-api
-  :core:ui --> :core:model
   :feature:ifwrule:api --> :core:navigation
-  :feature:ifwrule:api -.-> :core:ui
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

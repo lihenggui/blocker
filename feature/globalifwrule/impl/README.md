@@ -46,10 +46,11 @@ graph TB
   :core:data -.-> :core:analytics
   :core:data --> :core:common
   :core:data -.-> :core:component-controller
-  :core:data --> :core:database
-  :core:data --> :core:datastore
+  :core:data -.-> :core:database
+  :core:data -.-> :core:datastore
   :core:data -.-> :core:ifw-api
-  :core:data --> :core:network
+  :core:data --> :core:model
+  :core:data -.-> :core:network
   :core:data -.-> :core:system
   :core:database --> :core:model
   :core:datastore -.-> :core:common
@@ -58,7 +59,6 @@ graph TB
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
-  :core:network --> :core:model
   :core:system -.-> :core:common
   :core:system --> :core:model
   :core:ui --> :core:analytics
@@ -67,7 +67,6 @@ graph TB
   :core:ui --> :core:ifw-api
   :core:ui --> :core:model
   :feature:globalifwrule:api --> :core:navigation
-  :feature:globalifwrule:api -.-> :core:ui
   :feature:globalifwrule:impl -.-> :core:data
   :feature:globalifwrule:impl -.-> :core:designsystem
   :feature:globalifwrule:impl -.-> :core:ifw-api

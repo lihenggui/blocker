@@ -56,10 +56,11 @@ graph TB
   :core:data -.-> :core:analytics
   :core:data --> :core:common
   :core:data -.-> :core:component-controller
-  :core:data --> :core:database
-  :core:data --> :core:datastore
+  :core:data -.-> :core:database
+  :core:data -.-> :core:datastore
   :core:data -.-> :core:ifw-api
-  :core:data --> :core:network
+  :core:data --> :core:model
+  :core:data -.-> :core:network
   :core:data -.-> :core:system
   :core:database --> :core:model
   :core:datastore -.-> :core:common
@@ -67,14 +68,12 @@ graph TB
   :core:datastore --> :core:model
   :core:domain -.-> :core:common
   :core:domain -.-> :core:component-controller
-  :core:domain --> :core:data
+  :core:domain -.-> :core:data
   :core:domain -.-> :core:ifw-api
   :core:domain --> :core:model
-  :core:domain -.-> :core:rule
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
-  :core:network --> :core:model
   :core:rule -.-> :core:common
   :core:rule -.-> :core:component-controller
   :core:rule -.-> :core:data
@@ -87,7 +86,6 @@ graph TB
   :core:ui --> :core:ifw-api
   :core:ui --> :core:model
   :feature:appdetail:api --> :core:navigation
-  :feature:appdetail:api -.-> :core:ui
   :feature:appdetail:impl -.-> :core:component-controller
   :feature:appdetail:impl -.-> :core:data
   :feature:appdetail:impl -.-> :core:designsystem
@@ -98,9 +96,7 @@ graph TB
   :feature:appdetail:impl -.-> :feature:ruledetail:api
   :feature:appdetail:impl -.-> :feature:wake:api
   :feature:ruledetail:api --> :core:navigation
-  :feature:ruledetail:api -.-> :core:ui
   :feature:wake:api --> :core:navigation
-  :feature:wake:api -.-> :core:ui
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;
 classDef android-feature fill:#FFD6A5,stroke:#000,stroke-width:2px,color:#000;

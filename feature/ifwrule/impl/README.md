@@ -39,7 +39,6 @@ graph TB
   :core:ui --> :core:ifw-api
   :core:ui --> :core:model
   :feature:ifwrule:api --> :core:navigation
-  :feature:ifwrule:api -.-> :core:ui
   :feature:ifwrule:impl -.-> :core:designsystem
   :feature:ifwrule:impl -.-> :core:ifw-api
   :feature:ifwrule:impl -.-> :core:ui
