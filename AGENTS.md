@@ -27,7 +27,7 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
   [`core/system`](core/system) reads users, installed apps, and declared components.
 - [`core/database`](core/database), [`core/datastore`](core/datastore), and
   [`core/datastore-proto`](core/datastore-proto) own Room and Proto DataStore.
-  [`core/network`](core/network) provides Retrofit clients.
+  [`core/network`](core/network) provides OkHttp clients, `Call.Factory`, and JSON serialization.
 - [`core/analytics`](core/analytics) handles analytics and
   [`core/provider`](core/provider) handles content providers.
   General rule matching lives in [`core/domain`](core/domain).
@@ -106,7 +106,6 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 ### Guidance for new code
 
 - Keep DAOs, data sources, and privileged calls behind data or domain APIs.
-  `SettingsViewModel` accesses `BlockerPreferencesDataSource` directly.
   The IFW editors work directly with `IfwStore`.
 - Add a use case only for logic shared by several ViewModels. Keep single-screen
   orchestration in its ViewModel and data access in the repository.
