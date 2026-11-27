@@ -8,6 +8,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.UserWakeFirewall
+import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.data.wake.WakeImport
@@ -20,14 +21,25 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
+import com.merxury.blocker.core.model.wake.WakeBlockMethod
+import com.merxury.blocker.core.model.wake.WakePath
+import com.merxury.blocker.core.model.wake.WakePathBlock
+import com.merxury.blocker.core.model.wake.WakePathState
 import com.merxury.blocker.core.privileged.wake.ManagedComponentState
 import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
 import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
+import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import com.merxury.blocker.core.testing.repository.wake.FakeAutomaticWakeBlockRepository
+import com.merxury.blocker.core.testing.repository.wake.FakeWakeBlockRepository
 import com.merxury.core.ifw.ManagedWakeRules
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -35,6 +47,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -87,6 +100,38 @@ class WakeProtectionManagerTest {
         whenever(repository.observedComponents(any())).thenReturn(emptyList())
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(emptyList())
         whenever(repository.detectionEvidence(any(), any())).thenReturn(WakeDetectionEvidence(emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyMap()))
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenSuspendedCollection_whenBlockingAPath_thenTheUserWriteCompletesBeforeCollection() = runTest {
+        authorizedWith()
+        val started = CompletableDeferred<Unit>()
+        val resume = CompletableDeferred<Unit>()
+        whenever(repository.collect(any(), any())).doSuspendableAnswer {
+            started.complete(Unit)
+            resume.await()
+            WakeImport("boot", emptyList(), listOf(UserId.SYSTEM.value))
+        }
+        val manual = FakeWakeBlockRepository()
+        val serialized = object : WakeBlockRepository by manual {
+            override suspend fun block(requests: List<Pair<WakePath, WakeBlockMethod>>) = lock.withLock { manual.block(requests) }
+        }
+        val setBlocked = SetWakePathsBlockedUseCase(serialized, FakeAutomaticWakeBlockRepository(), FakeBackgroundUsageRepository())
+        val path = finding("outgoing").toWakePath()
+        val manager = manager
+        val scan = async { manager.reconcile() }
+        started.await()
+
+        val click = async { setBlocked(listOf(WakePathState(path, WakePathBlock.NONE, null, false)), blocked = true) }
+        runCurrent()
+        assertThat(click.isCompleted).isTrue()
+        assertThat(click.await().done).containsExactly(path.pathKey)
+        assertThat(manual.blocks.value.map { it.pathKey }).containsExactly(path.pathKey)
+        assertThat(scan.isCompleted).isFalse()
+
+        resume.complete(Unit)
+        assertThat(scan.await()).isTrue()
     }
 
     @Test fun givenChannelUnavailable_whenReconciling_thenScanningAndProtectionWaitForAuthorization() = runTest {
