@@ -50,6 +50,7 @@ import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import com.merxury.blocker.core.utils.currentUserId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
@@ -187,7 +188,7 @@ class RuleWorkDataTest {
                     override fun createWorker(appContext: Context, workerClassName: String, workerParameters: WorkerParameters) = ResetPmWorker(
                         appContext,
                         workerParameters,
-                        PackageManagerReset(FakeComponentStatusRepository(), FakePrivilegedChannel(), FakePmBlockRecordSeeder()),
+                        PackageManagerReset(FakeComponentStatusRepository(), FakePrivilegedChannel(), FakePmBlockRecordSeeder(), fakeOperationRecorder()),
                     )
                 },
             )
@@ -267,7 +268,7 @@ class RuleWorkDataTest {
                     override fun createWorker(appContext: Context, workerClassName: String, workerParameters: WorkerParameters) = ResetPmWorker(
                         appContext,
                         workerParameters,
-                        PackageManagerReset(components, FakePrivilegedChannel(), seeder),
+                        PackageManagerReset(components, FakePrivilegedChannel(), seeder, fakeOperationRecorder()),
                     )
                 },
             )

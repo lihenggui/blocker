@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">操作历史</string>
+    <string name="feature_history_impl_undo">撤销</string>
+    <string name="feature_history_impl_cancel">取消</string>
+    <string name="feature_history_impl_undone">已撤销</string>
+    <string name="feature_history_impl_source_app_detail">应用详情</string>
+    <string name="feature_history_impl_source_search">搜索</string>
+    <string name="feature_history_impl_source_general_rule">通用规则</string>
+    <string name="feature_history_impl_source_rule_detail">规则详情</string>
+    <string name="feature_history_impl_source_debloater">应用精简</string>
+    <string name="feature_history_impl_source_provider">其他应用</string>
+    <string name="feature_history_impl_source_import_blocker">导入 Blocker 规则</string>
+    <string name="feature_history_impl_source_import_mat">导入 MyAndroidTools 规则</string>
+    <string name="feature_history_impl_source_reset_pm">恢复 PM 修改</string>
+    <string name="feature_history_impl_load_failed">无法加载操作历史。</string>
+    <string name="feature_history_impl_entries_failed">无法加载组件更改记录。</string>
+    <string name="feature_history_impl_empty_title">还没有操作记录</string>
+    <string name="feature_history_impl_empty_body">在 Blocker 里开关组件后，可以在这里查看和撤销。</string>
+    <string name="feature_history_impl_provider_headline">来自 %s</string>
+    <string name="feature_history_impl_source_import">导入</string>
+    <string name="feature_history_impl_undoing">正在撤销</string>
+    <string name="feature_history_impl_undo_later">撤销这次及之后的操作</string>
+    <string name="feature_history_impl_undone_suffix">%s · 已撤销</string>
+    <string name="feature_history_impl_undone_status">已撤销 · %s</string>
+    <string name="feature_history_impl_on">已开启</string>
+    <string name="feature_history_impl_off">已关闭</string>
+    <string name="feature_history_impl_undo_failed">无法撤销这些更改。</string>
+    <string name="feature_history_impl_summary_joiner">%1$s · %2$s</string>
+    <string name="feature_history_impl_day_time">%1$s %2$s</string>
+    <string name="feature_history_impl_source_time">%1$s · %2$s</string>
+    <string name="feature_history_impl_restoration_joiner">%1$s，%2$s</string>
+    <plurals name="feature_history_impl_turned_off">
+        <item quantity="other">关闭 %d 个组件</item>
+    </plurals>
+    <plurals name="feature_history_impl_turned_on">
+        <item quantity="other">开启 %d 个组件</item>
+    </plurals>
+    <plurals name="feature_history_impl_off_count">
+        <item quantity="other">关闭 %d 个</item>
+    </plurals>
+    <plurals name="feature_history_impl_on_count">
+        <item quantity="other">开启 %d 个</item>
+    </plurals>
+    <plurals name="feature_history_impl_changed">
+        <item quantity="other">更改 %d 个组件</item>
+    </plurals>
+    <plurals name="feature_history_impl_undo_row">
+        <item quantity="other">%1$s · 恢复 %2$d 个组件</item>
+    </plurals>
+    <plurals name="feature_history_impl_operation_count">
+        <item quantity="other">%d 次操作</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_title">
+        <item quantity="other">撤销 %d 次操作？</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_body">
+        <item quantity="other">这次操作和之后的 %d 次操作都会撤销。</item>
+    </plurals>
+    <plurals name="feature_history_impl_restored">
+        <item quantity="other">已恢复 %d 个组件</item>
+    </plurals>
+    <plurals name="feature_history_impl_not_restored">
+        <item quantity="other">%d 个无法恢复</item>
+    </plurals>
+    <plurals name="feature_history_impl_none_restored">
+        <item quantity="other">%d 个组件无法恢复</item>
+    </plurals>
+</resources>

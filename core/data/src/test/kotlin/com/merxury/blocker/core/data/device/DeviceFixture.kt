@@ -23,7 +23,10 @@ import com.merxury.blocker.core.appcontrol.AppControl
 import com.merxury.blocker.core.control.ComponentControl
 import com.merxury.blocker.core.control.ComponentControlPersistence
 import com.merxury.blocker.core.control.PackageLocks
+import com.merxury.blocker.core.data.history.OperationRecorder
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
+import com.merxury.blocker.core.database.history.OperationHistoryDatabase
 import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
 import com.merxury.blocker.core.database.wake.WakeHistoryDatabase
 import com.merxury.blocker.core.datastore.AppProperties
@@ -45,6 +48,7 @@ import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.system.AppEnabledSetting
@@ -70,6 +74,7 @@ import org.junit.After
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 internal const val PKG = "com.example"
@@ -152,11 +157,19 @@ abstract class DeviceRepositoryTestBase(queryExecutor: Executor? = null) {
         claimedWakeBlocks: suspend (UserId, Set<ComponentId>) -> List<ComponentId> = { _, _ -> emptyList() },
     ) = LocalComponentStatusRepository(dao, apps, PackageStateReader(dao, system, store, channel, apps), control, pmBlocks, channel, store, scope, AppKey(SELF_PKG, OWNER), system, controlActivity, packageLocks, claimedWakeBlocks)
 
+    private val historyDatabase = lazy {
+        Room.inMemoryDatabaseBuilder(applicationContext, OperationHistoryDatabase::class.java).build()
+    }
+    internal val historyDb by historyDatabase
+
+    internal suspend fun operation(): OperationScope = OperationRecorder({ historyDb.operationHistoryDao() }, Clock.System).withOperation(OperationSource.APP_DETAIL) { it }
+
     @After
     fun closeDatabase() {
         db.close()
         recordsDb.close()
         wakeDb.close()
+        if (historyDatabase.isInitialized()) historyDb.close()
     }
 }
 
@@ -286,7 +299,11 @@ internal class FakeComponentControl(private val locks: PackageLocks, private val
                                     before[request.user to id] == PmSetting.DISABLED
                             }
                         }
-                        persistence.afterPackage(event, alreadyDisabled)
+                        val beforeStates = event.outcomes.associate { outcome ->
+                            val id = outcome.key.id
+                            id to ControlState(before[request.user to id] ?: PmSetting.DEFAULT, outcome.state.ifw)
+                        }
+                        persistence.afterPackage(event, alreadyDisabled, beforeStates)
                     }
                 }
             }

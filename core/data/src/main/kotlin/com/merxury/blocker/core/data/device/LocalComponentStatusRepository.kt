@@ -19,6 +19,8 @@ package com.merxury.blocker.core.data.device
 import com.merxury.blocker.core.control.ComponentControl
 import com.merxury.blocker.core.control.ComponentControlPersistence
 import com.merxury.blocker.core.control.PackageLocks
+import com.merxury.blocker.core.data.history.OperationScope
+import com.merxury.blocker.core.data.history.recordChanges
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.database.cache.AppEntity
@@ -323,20 +325,33 @@ internal class LocalComponentStatusRepository(
 
     override fun isProtectedFromBlocking(app: AppKey): Boolean = app == self
 
-    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = control(request, keepKnownState, writeObserver, forgetRefusedPmBlocks = false)
+    internal suspend fun claimedWakePmBlocks(user: UserId, candidates: Set<ComponentId>): List<ComponentId> = claimedWakeBlocks(user, candidates)
 
-    override fun restore(request: ControlRequest): Flow<ControlEvent> = control(
+    override fun control(
+        request: ControlRequest,
+        keepKnownState: Boolean,
+        writeObserver: ComponentWriteObserver?,
+        operation: OperationScope,
+    ): Flow<ControlEvent> = control(request, keepKnownState, writeObserver, operation, forgetRefusedPmBlocks = false)
+
+    override fun restore(request: ControlRequest, operation: OperationScope): Flow<ControlEvent> = control(
         request,
         keepKnownState = false,
-        writeObserver = null,
+        writeObserver = if (request.layers == setOf(ControlLayer.INTENT_FIREWALL)) {
+            (operation as? OperationScope.Recording)?.undoIfwWriteObserver(request.user)
+        } else {
+            null
+        },
+        operation = operation,
         forgetRefusedPmBlocks = false,
         layersForComponent = { it.supportedLayers(request.layers) },
     )
 
-    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent> = control(
+    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>, operation: OperationScope): Flow<ControlEvent> = control(
         ControlRequest(user, components, ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER)),
         keepKnownState = false,
         writeObserver = null,
+        operation = operation,
         forgetRefusedPmBlocks = true,
     )
 
@@ -344,6 +359,7 @@ internal class LocalComponentStatusRepository(
         request: ControlRequest,
         keepKnownState: Boolean,
         writeObserver: ComponentWriteObserver?,
+        operation: OperationScope,
         forgetRefusedPmBlocks: Boolean,
         layersForComponent: (ComponentDeclaration) -> Set<ControlLayer> = { it.layersFor(request.layers, request.goal) },
     ): Flow<ControlEvent> = flow {
@@ -355,6 +371,7 @@ internal class LocalComponentStatusRepository(
             emit(ControlEvent.Finished(achieved = 0, partial = 0, failed = 0, skipped = refusedCount))
             return@flow
         }
+        val types = others.distinctBy { it.id }.associate { it.id to it.type }
         val packages = others.mapTo(mutableSetOf()) { it.id.packageName }
         val claimObserver = writeObserver as? PmBlockClaimObserver
         val newClaims = mutableListOf<PmBlockRecordEntity>()
@@ -371,13 +388,18 @@ internal class LocalComponentStatusRepository(
                 recordPmBlocks(components.map { ComponentKey(it, app.userId) })
             }
 
-            override suspend fun afterPackage(event: ControlEvent.PackageDone, alreadyDisabled: Set<ComponentId>) {
+            override suspend fun afterPackage(
+                event: ControlEvent.PackageDone,
+                alreadyDisabled: Set<ComponentId>,
+                before: Map<ComponentId, ControlState>,
+            ) {
                 controlActivity.recordWrites(AppKey(event.packageName, request.user), event.pmWrites)
                 try {
-                    val wakeBlocks = claimedWakeBlocks(request.user, alreadyDisabled)
+                    val wakeBlocks = claimedWakePmBlocks(request.user, alreadyDisabled)
                     recordPmBlocks(wakeBlocks.map { ComponentKey(it, request.user) })
-                    // Snapshot undo removes its own claims by record identity.
-                    if (request.expectedPm == null) pmBlocks.afterControl(event, forgetRefusedPmBlocks)
+                    // Wake's unrecorded snapshot undo removes its own claims by record identity.
+                    val wakeSnapshotUndo = request.expectedPm != null && operation === OperationScope.Unrecorded
+                    if (!wakeSnapshotUndo) pmBlocks.afterControl(event, forgetRefusedPmBlocks)
                     if (newClaims.isNotEmpty()) {
                         val cleared = event.outcomes.filter { it.state.pm == PmSetting.DEFAULT || it.state.pm == PmSetting.ENABLED }
                             .mapTo(mutableSetOf()) { it.key.id.className }
@@ -386,6 +408,7 @@ internal class LocalComponentStatusRepository(
                     }
                 } finally {
                     store(event, request.user, keepKnownState)
+                    operation.recordChanges(event, request.user, before, types)
                 }
             }
         }

@@ -21,6 +21,8 @@ import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
+import com.merxury.blocker.core.data.history.OperationRecorder
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
@@ -37,6 +39,7 @@ import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.model.ifw.IfwResult
 import com.merxury.blocker.core.model.system.getOrNull
 import com.merxury.blocker.core.privileged.PrivilegedChannel
@@ -122,6 +125,8 @@ class BackupRestoreDeviceTest {
 
     @Inject lateinit var mat: MatRuleImporter
 
+    @Inject lateinit var operationRecorder: OperationRecorder
+
     @Inject lateinit var components: ComponentStatusRepository
 
     @Inject lateinit var channel: PrivilegedChannel
@@ -162,7 +167,7 @@ class BackupRestoreDeviceTest {
         su("pm install-existing --user 0 $APP_C")
         for (key in listOfNotNull(AppKey(APP_B, UserId.SYSTEM), profile?.let { AppKey(APP_B, it) }, AppKey(APP_C, UserId.SYSTEM))) {
             val declarations = declared(key).map { it.declaration }
-            if (declarations.isNotEmpty()) components.control(ControlRequest(key.userId, declarations, ControlGoal.UNBLOCK, ControlLayer.entries.toSet())).toList()
+            if (declarations.isNotEmpty()) components.control(ControlRequest(key.userId, declarations, ControlGoal.UNBLOCK, ControlLayer.entries.toSet()), operation = testOperation()).toList()
         }
         store.clear(APP_B)
         store.clear(APP_C)
@@ -182,7 +187,7 @@ class BackupRestoreDeviceTest {
         val activity = declaration(owner, "com.facebook.ads.AudienceNetworkActivity")
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), service, provider)
         val legacyBlock = ControlRequest(owner, listOf(receiver), ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL))
-        components.restore(legacyBlock).toList()
+        components.restore(legacyBlock, operation = testOperation()).toList()
         assertTrue(ruleFileHas(receiver))
         declared(AppKey(APP_B, user))
         control(user, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), activity)
@@ -274,7 +279,7 @@ class BackupRestoreDeviceTest {
         control(owner, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), inC)
 
         // APP_C goes away for the owner after the settings were read, so the system refuses it.
-        val result = PackageManagerReset(BeforeReset(components) { declarations -> if (declarations.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel, seeder).reset(owner)
+        val result = PackageManagerReset(BeforeReset(components) { declarations -> if (declarations.any { it.id.packageName == APP_C }) su("pm uninstall -k --user 0 $APP_C") }, channel, seeder, operationRecorder).reset(owner)
 
         Log.i(TAG, "PM reset $result")
         assertEquals(PmSetting.DEFAULT, pm(owner, inB))
@@ -358,6 +363,8 @@ class BackupRestoreDeviceTest {
         return disabled
     }
 
+    private suspend fun testOperation(): OperationScope = operationRecorder.withOperation(OperationSource.APP_DETAIL) { it }
+
     private suspend fun declared(app: AppKey): List<ComponentStatus> {
         components.refresh(app)
         return components.components(app).first()
@@ -366,7 +373,7 @@ class BackupRestoreDeviceTest {
     private suspend fun declaration(user: UserId, className: String, packageName: String = APP_B): ComponentDeclaration = assertNotNull(declared(AppKey(packageName, user)).firstOrNull { it.declaration.id.className == className }, "$className is not declared").declaration
 
     private suspend fun control(user: UserId, goal: ControlGoal, layers: Set<ControlLayer>, vararg declarations: ComponentDeclaration) {
-        val events = components.control(ControlRequest(user, declarations.toList(), goal, layers)).toList()
+        val events = components.control(ControlRequest(user, declarations.toList(), goal, layers), operation = testOperation()).toList()
         Log.i(TAG, "$goal $layers for user ${user.value}: ${events.last()}")
         assertEquals(ControlEvent.Finished(declarations.size, 0, 0), events.last())
     }
@@ -387,9 +394,9 @@ private class BeforeReset(
     private val delegate: ComponentStatusRepository,
     private val beforeReset: (List<ComponentDeclaration>) -> Unit,
 ) : ComponentStatusRepository by delegate {
-    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent> {
+    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>, operation: OperationScope): Flow<ControlEvent> {
         beforeReset(components)
-        return delegate.resetPmBlocks(user, components)
+        return delegate.resetPmBlocks(user, components, operation)
     }
 }
 

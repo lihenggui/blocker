@@ -16,6 +16,7 @@ import com.merxury.blocker.core.data.device.DeviceRepositoryTestBase
 import com.merxury.blocker.core.data.device.PmBlockClaimObserver
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.device.installedApp
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.ACTION
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.ACTIVITY
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.COMPONENT
@@ -173,13 +174,13 @@ internal abstract class WakeBlockTestFixture {
     }
 
     protected fun journaledComponents(records: PmBlockRecords) = object : ComponentStatusRepository by components {
-        override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?) = flow {
+        override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?, operation: OperationScope) = flow {
             val app = AppKey(TARGET, request.user)
             val toClaim = if (request.goal == ControlGoal.BLOCK) request.components.filter { pm(it) != PmSetting.DISABLED } else emptyList()
             val observer = writeObserver as? PmBlockClaimObserver
             observer?.onPmClaimsBefore(records.recordsFor(app).filter { row -> toClaim.any { it.id.className == row.className } })
             val added = records.recordNew(toClaim.map { it.key })
-            components.control(request, keepKnownState, writeObserver).collect { event ->
+            components.control(request, keepKnownState, writeObserver, operation).collect { event ->
                 if (event is ControlEvent.PackageDone && request.expectedPm == null) {
                     records.afterControl(event, forgetRefusedPmBlocks = false)
                     observer?.onPmClaimsAdded(added)

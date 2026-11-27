@@ -18,6 +18,8 @@ package com.merxury.blocker.core.rule.backup
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.history.OperationRecorder
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentId
@@ -28,6 +30,7 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.blockLayers
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.model.rule.BlockerRule
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
@@ -63,6 +66,7 @@ class BlockerRuleImporter @Inject constructor(
     private val components: ComponentStatusRepository,
     private val channel: PrivilegedChannel,
     private val json: Json,
+    private val operationRecorder: OperationRecorder,
 ) {
     /**
      * Restores the files of [source] in [storage] into [target]: every file whose app is
@@ -78,18 +82,18 @@ class BlockerRuleImporter @Inject constructor(
         packageName: String? = null,
         includeSystemApps: Boolean = false,
         onProgress: RuleRunProgress = { _, _, _ -> },
-    ): RuleRunResult {
-        if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
+    ): RuleRunResult = operationRecorder.withOperation(OperationSource.IMPORT_BLOCKER_RULE) { operation ->
+        if (!channel.connectAllowing()) return@withOperation RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
         val apps = when (val read = installedApps.installedApps(target)) {
             is ReadResult.Success -> read.value
-            is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
+            is ReadResult.Failure -> return@withOperation RuleRunResult.Failed(read.reason.reason)
         }
-        if (packageName != null) return importSingle(storage, source, packageName, apps[packageName], onProgress)
+        if (packageName != null) return@withOperation importSingle(storage, source, packageName, apps[packageName], onProgress, operation)
         val files = try {
             storage.ruleFiles(source)
         } catch (e: BackupStorageException) {
             Timber.e(e, "Cannot list the backup set ${source.folder}")
-            return RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
+            return@withOperation RuleRunResult.Failed(FailureReason.STORAGE_UNAVAILABLE)
         }
         val summary = SummaryBuilder()
         files.forEachIndexed { index, path ->
@@ -105,10 +109,10 @@ class BlockerRuleImporter @Inject constructor(
             }
             when {
                 app?.isSystem == true && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP, entries)
-                else -> importRule(rule, app, summary)
+                else -> importRule(rule, app, summary, operation)
             }
         }
-        return RuleRunResult.Completed(summary.build())
+        RuleRunResult.Completed(summary.build())
     }
 
     private suspend fun importSingle(
@@ -117,13 +121,14 @@ class BlockerRuleImporter @Inject constructor(
         packageName: String,
         app: InstalledApp?,
         onProgress: RuleRunProgress,
+        operation: OperationScope,
     ): RuleRunResult {
         val summary = SummaryBuilder()
         val expected = source.fileOf(packageName)
         val named = readRule(storage, expected, summary)
         if (named?.packageName == packageName) {
             onProgress(expected.substringAfterLast('/'), 0, 1)
-            importRule(named, app, summary)
+            importRule(named, app, summary, operation)
             return RuleRunResult.Completed(summary.build())
         }
 
@@ -137,7 +142,7 @@ class BlockerRuleImporter @Inject constructor(
             val rule = readRule(storage, path) ?: continue
             if (rule.packageName != packageName) continue
             onProgress(path.substringAfterLast('/'), index, files.size)
-            importRule(rule, app, summary)
+            importRule(rule, app, summary, operation)
             return RuleRunResult.Completed(summary.build())
         }
         if (named != null) summary.skip(SkipReason.OTHER_APP, named.components.size)
@@ -177,7 +182,7 @@ class BlockerRuleImporter @Inject constructor(
         return rule
     }
 
-    private suspend fun importRule(rule: BlockerRule, app: InstalledApp?, summary: SummaryBuilder) {
+    private suspend fun importRule(rule: BlockerRule, app: InstalledApp?, summary: SummaryBuilder, operation: OperationScope) {
         if (app == null) {
             summary.skip(SkipReason.APP_NOT_INSTALLED, rule.components.size)
             return
@@ -192,7 +197,7 @@ class BlockerRuleImporter @Inject constructor(
         }
         val requests = restoreRequests(rule, app.key, statuses, summary)
         val states = statuses.associate { it.declaration.id to it.state }.toMutableMap()
-        val applied = requests.sumOf { components.restore(it).countControlOutcomes(it.goal, states, summary) }
+        val applied = requests.sumOf { components.restore(it, operation).countControlOutcomes(it.goal, states, summary) }
         if (applied > 0) summary.apps++
     }
 }

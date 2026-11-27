@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">Historial de operaciones</string>
+    <string name="feature_history_impl_undo">Deshacer</string>
+    <string name="feature_history_impl_cancel">Cancelar</string>
+    <string name="feature_history_impl_undone">Deshecho</string>
+    <string name="feature_history_impl_source_app_detail">Detalles de la aplicación</string>
+    <string name="feature_history_impl_source_search">Buscar</string>
+    <string name="feature_history_impl_source_general_rule">Reglas generales</string>
+    <string name="feature_history_impl_source_rule_detail">Detalles de la regla</string>
+    <string name="feature_history_impl_source_debloater">Simplificación de aplicaciones</string>
+    <string name="feature_history_impl_source_provider">Otra aplicación</string>
+    <string name="feature_history_impl_source_import_blocker">Importar reglas de Blocker</string>
+    <string name="feature_history_impl_source_import_mat">Importar reglas de MyAndroidTools</string>
+    <string name="feature_history_impl_source_reset_pm">Restaurar modificaciones de PM</string>
+    <string name="feature_history_impl_load_failed">No se pudo cargar el historial de operaciones.</string>
+    <string name="feature_history_impl_entries_failed">No se pudieron cargar los cambios de componentes.</string>
+    <string name="feature_history_impl_empty_title">Aún no hay operaciones</string>
+    <string name="feature_history_impl_empty_body">Después de activar o desactivar componentes, puede revisar y deshacer los cambios aquí.</string>
+    <string name="feature_history_impl_provider_headline">Desde %s</string>
+    <string name="feature_history_impl_source_import">Importación</string>
+    <string name="feature_history_impl_undoing">Deshaciendo</string>
+    <string name="feature_history_impl_undo_later">Deshacer esta operación y las posteriores</string>
+    <string name="feature_history_impl_undone_suffix">%s · Deshecho</string>
+    <string name="feature_history_impl_undone_status">Deshecho · %s</string>
+    <string name="feature_history_impl_on">Activado</string>
+    <string name="feature_history_impl_off">Desactivado</string>
+    <string name="feature_history_impl_undo_failed">No se pudieron deshacer los cambios.</string>
+    <string name="feature_history_impl_summary_joiner">%1$s · %2$s</string>
+    <string name="feature_history_impl_day_time">%1$s %2$s</string>
+    <string name="feature_history_impl_source_time">%1$s · %2$s</string>
+    <string name="feature_history_impl_restoration_joiner">%1$s. %2$s.</string>
+    <plurals name="feature_history_impl_turned_off">
+        <item quantity="one">Se desactivó %d componente</item>
+        <item quantity="many">Se desactivaron %d componentes</item>
+        <item quantity="other">Se desactivaron %d componentes</item>
+    </plurals>
+    <plurals name="feature_history_impl_turned_on">
+        <item quantity="one">Se activó %d componente</item>
+        <item quantity="many">Se activaron %d componentes</item>
+        <item quantity="other">Se activaron %d componentes</item>
+    </plurals>
+    <plurals name="feature_history_impl_off_count">
+        <item quantity="one">%d desactivado</item>
+        <item quantity="many">%d desactivados</item>
+        <item quantity="other">%d desactivados</item>
+    </plurals>
+    <plurals name="feature_history_impl_on_count">
+        <item quantity="one">%d activado</item>
+        <item quantity="many">%d activados</item>
+        <item quantity="other">%d activados</item>
+    </plurals>
+    <plurals name="feature_history_impl_changed">
+        <item quantity="one">Se cambió %d componente</item>
+        <item quantity="many">Se cambiaron %d componentes</item>
+        <item quantity="other">Se cambiaron %d componentes</item>
+    </plurals>
+    <plurals name="feature_history_impl_undo_row">
+        <item quantity="one">%1$s · Se restauró %2$d componente</item>
+        <item quantity="many">%1$s · Se restauraron %2$d componentes</item>
+        <item quantity="other">%1$s · Se restauraron %2$d componentes</item>
+    </plurals>
+    <plurals name="feature_history_impl_operation_count">
+        <item quantity="one">%d operación</item>
+        <item quantity="many">%d operaciones</item>
+        <item quantity="other">%d operaciones</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_title">
+        <item quantity="one">¿Deshacer %d operación?</item>
+        <item quantity="many">¿Deshacer %d operaciones?</item>
+        <item quantity="other">¿Deshacer %d operaciones?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_body">
+        <item quantity="one">Se desharán esta operación y %d operación posterior.</item>
+        <item quantity="many">Se desharán esta operación y las %d operaciones posteriores.</item>
+        <item quantity="other">Se desharán esta operación y las %d operaciones posteriores.</item>
+    </plurals>
+    <plurals name="feature_history_impl_restored">
+        <item quantity="one">Se restauró %d componente</item>
+        <item quantity="many">Se restauraron %d componentes</item>
+        <item quantity="other">Se restauraron %d componentes</item>
+    </plurals>
+    <plurals name="feature_history_impl_not_restored">
+        <item quantity="one">No se pudo restaurar %d</item>
+        <item quantity="many">No se pudieron restaurar %d</item>
+        <item quantity="other">No se pudieron restaurar %d</item>
+    </plurals>
+    <plurals name="feature_history_impl_none_restored">
+        <item quantity="one">No se pudo restaurar %d componente</item>
+        <item quantity="many">No se pudieron restaurar %d componentes</item>
+        <item quantity="other">No se pudieron restaurar %d componentes</item>
+    </plurals>
+</resources>

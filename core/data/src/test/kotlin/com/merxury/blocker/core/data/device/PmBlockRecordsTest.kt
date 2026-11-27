@@ -109,7 +109,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         }
     }
 
-    private suspend fun ComponentStatusRepository.run(user: UserId, goal: ControlGoal, layers: Set<ControlLayer>, vararg components: ComponentDeclaration) = control(ControlRequest(user, components.toList(), goal, layers)).toList()
+    private suspend fun ComponentStatusRepository.run(user: UserId, goal: ControlGoal, layers: Set<ControlLayer>, vararg components: ComponentDeclaration) = control(ControlRequest(user, components.toList(), goal, layers), operation()).toList()
 
     private suspend fun recorded(user: UserId = OWNER) = pmBlocks.of(user)
 
@@ -146,7 +146,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         repository.refresh(AppKey(PKG, OWNER))
 
         val request = ControlRequest(OWNER, listOf(MAIN, SYNC, DATA, SELF_OFF), ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL))
-        repository.control(request).test {
+        repository.control(request, operation = operation()).test {
             assertThat(awaitItem()).isInstanceOf(ControlEvent.PackageDone::class.java)
             assertThat(recorded()).containsExactly(DATA.key(), SELF_OFF.key())
             assertThat(awaitItem()).isEqualTo(ControlEvent.Finished(achieved = 4, partial = 0, failed = 0))
@@ -156,7 +156,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
 
         assertThat(found.value.components).containsExactly(DATA.key(), SELF_OFF.key())
 
-        repository.resetPmBlocks(OWNER, listOf(SELF_OFF)).toList()
+        repository.resetPmBlocks(OWNER, listOf(SELF_OFF), operation = operation()).toList()
 
         assertThat(recorded()).containsExactly(DATA.key())
         assertThat(system.settings[OWNER to SELF_OFF.id]).isEqualTo(PmSetting.DEFAULT)
@@ -169,7 +169,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
 
         repository.run(OWNER, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), MAIN, SYNC)
         val found = repository.disabledByBlocker(OWNER) as ReadResult.Success
-        repository.resetPmBlocks(OWNER, listOf(MAIN)).toList()
+        repository.resetPmBlocks(OWNER, listOf(MAIN), operation = operation()).toList()
 
         assertThat(found.value.components).containsExactly(MAIN.key())
         assertThat(recorded()).isEmpty()
@@ -213,7 +213,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         system.hidden -= app
         val unfrozen = repository.disabledByBlocker(WORK) as ReadResult.Success
         assertThat(unfrozen.value.components).containsExactly(MAIN.key(WORK))
-        repository.resetPmBlocks(WORK, listOf(MAIN)).toList()
+        repository.resetPmBlocks(WORK, listOf(MAIN), operation = operation()).toList()
 
         assertThat(system.settings[WORK to MAIN.id]).isEqualTo(PmSetting.DEFAULT)
         assertThat(recorded(WORK)).isEmpty()
@@ -498,7 +498,7 @@ class PmBlockRecordsTest : DeviceRepositoryTestBase() {
         repository.run(WORK, ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER), SYNC)
         controlThroughSystem(refused = setOf(SYNC.id, DATA.id), unreadable = setOf(DATA.id), identity = identity)
 
-        repository.resetPmBlocks(OWNER, listOf(MAIN, SYNC, DATA)).toList()
+        repository.resetPmBlocks(OWNER, listOf(MAIN, SYNC, DATA), operation = operation()).toList()
 
         assertThat(recorded()).containsExactlyElementsIn(remaining.map { it.key() })
         assertThat(recorded(WORK)).containsExactly(SYNC.key(WORK))

@@ -16,6 +16,7 @@ import com.merxury.blocker.core.data.device.DeviceRepositoryTestBase
 import com.merxury.blocker.core.data.device.PmBlockClaimObserver
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.device.installedApp
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.ACTION
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.ACTIVITY
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.COMPONENT
@@ -310,7 +311,7 @@ internal class WakeBlockRepositoryTest : WakeBlockTestFixture() {
         val provider = declaration(PROVIDER, ComponentType.PROVIDER)
         val pmWrites = if (acknowledgeBeforeReadBack) emptySet() else setOf(provider.id)
         val observed = object : ComponentStatusRepository by components {
-            override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?) = components.control(request, keepKnownState, writeObserver).onStart {
+            override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?, operation: OperationScope) = components.control(request, keepKnownState, writeObserver, operation).onStart {
                 if (acknowledgeBeforeReadBack && request.goal == ControlGoal.BLOCK) writeObserver?.onWrite(listOf(provider.id))
             }
         }

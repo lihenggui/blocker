@@ -21,10 +21,8 @@ import com.merxury.blocker.core.data.util.SyncManager
 import com.merxury.blocker.sync.status.WorkManagerSyncManager
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlin.time.Clock
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -33,9 +31,4 @@ abstract class SyncModule {
     internal abstract fun bindsSyncStatusMonitor(
         syncStatusMonitor: WorkManagerSyncManager,
     ): SyncManager
-
-    companion object {
-        @Provides
-        internal fun providesClock(): Clock = Clock.System
-    }
 }

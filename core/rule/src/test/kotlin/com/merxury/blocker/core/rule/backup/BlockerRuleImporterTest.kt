@@ -41,6 +41,7 @@ import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import com.merxury.blocker.core.testing.storage.FakeBackupStorage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -54,7 +55,7 @@ class BlockerRuleImporterTest {
     private val components = FakeComponentStatusRepository()
     private val storage = FakeBackupStorage()
     private val channel = FakePrivilegedChannel()
-    private val importer = BlockerRuleImporter(installedApps, components, channel, backupJson)
+    private val importer = BlockerRuleImporter(installedApps, components, channel, backupJson, fakeOperationRecorder())
 
     private val allRunnable = listOf(status(BOOT), status(SYNC), status(MAIN), status(DATA))
 

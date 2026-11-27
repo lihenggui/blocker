@@ -22,6 +22,7 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.PmSetting
 import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
@@ -244,7 +245,7 @@ class ComponentControlOrderTest {
                 journal += components
             }
 
-            override suspend fun afterPackage(event: ControlEvent.PackageDone, alreadyDisabled: Set<ComponentId>) {
+            override suspend fun afterPackage(event: ControlEvent.PackageDone, alreadyDisabled: Set<ComponentId>, before: Map<ComponentId, ControlState>) {
                 persisted += event
             }
         }

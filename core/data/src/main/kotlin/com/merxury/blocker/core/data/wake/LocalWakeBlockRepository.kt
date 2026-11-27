@@ -9,6 +9,7 @@ import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.PmBlockClaimObserver
 import com.merxury.blocker.core.data.device.PmBlockRecords
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.database.record.PmBlockRecordEntity
 import com.merxury.blocker.core.database.wake.WakeBlockDao
 import com.merxury.blocker.core.database.wake.WakeBlockEntity
@@ -482,7 +483,7 @@ internal class LocalWakeBlockRepository @Inject constructor(
         expectedPm: PmSetting? = null,
     ): ControlEvent.PackageDone? {
         val request = ControlRequest(UserId.SYSTEM, declarations, goal, layers, expectedPm)
-        return components.control(request, keepKnownState = false, writeObserver).filterIsInstance<ControlEvent.PackageDone>().singleOrNull()
+        return components.control(request, keepKnownState = false, writeObserver, OperationScope.Unrecorded).filterIsInstance<ControlEvent.PackageDone>().singleOrNull()
     }
 
     /** Acquires permission before serializing writes and checks the channel again inside the lock. */

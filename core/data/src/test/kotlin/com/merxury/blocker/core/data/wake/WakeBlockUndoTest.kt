@@ -16,6 +16,7 @@ import com.merxury.blocker.core.data.device.DeviceRepositoryTestBase
 import com.merxury.blocker.core.data.device.PmBlockClaimObserver
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.device.installedApp
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.ACTION
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.ACTIVITY
 import com.merxury.blocker.core.data.wake.WakeBlockTestValues.COMPONENT
@@ -321,8 +322,8 @@ internal class WakeBlockUndoTest : WakeBlockTestFixture() {
             assertThat(batchClaims).contains(prior)
 
             val block = ControlRequest(UserId.SYSTEM, listOf(first, second), ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER))
-            status.control(block.copy(goal = ControlGoal.UNBLOCK), keepKnownState = false, writeObserver = null).first()
-            status.control(block, keepKnownState = false, writeObserver = null).first()
+            status.control(block.copy(goal = ControlGoal.UNBLOCK), keepKnownState = false, writeObserver = null, operation = OperationScope.Unrecorded).first()
+            status.control(block, keepKnownState = false, writeObserver = null, operation = OperationScope.Unrecorded).first()
             val replacements = device.pmBlocks.recordsFor(app)
             assertThat(replacements).hasSize(2)
             assertThat(replacements).containsNoneIn(batchClaims)

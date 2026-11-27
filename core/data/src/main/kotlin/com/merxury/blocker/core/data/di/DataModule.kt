@@ -36,6 +36,8 @@ import com.merxury.blocker.core.data.device.LocalDeviceUserRepository
 import com.merxury.blocker.core.data.device.LocalInstalledAppRepository
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
+import com.merxury.blocker.core.data.history.LocalOperationHistoryRepository
+import com.merxury.blocker.core.data.history.OperationHistoryRepository
 import com.merxury.blocker.core.data.licenses.fetcher.AndroidLicensesFetcherImpl
 import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
 import com.merxury.blocker.core.data.repository.catalog.CatalogHttpFetcher
@@ -164,6 +166,9 @@ abstract class DataModule {
 
     @Binds
     internal abstract fun bindComponentStatusRepository(repository: LocalComponentStatusRepository): ComponentStatusRepository
+
+    @Binds
+    internal abstract fun bindOperationHistoryRepository(repository: LocalOperationHistoryRepository): OperationHistoryRepository
 
     @Binds
     internal abstract fun bindSelectedUserRepository(repository: InMemorySelectedUserRepository): SelectedUserRepository

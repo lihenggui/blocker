@@ -23,12 +23,13 @@ import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.impl.settings.SettingsScreen
 import com.merxury.blocker.feature.settings.api.navigation.SettingsNavKey
 
-fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator) {
+fun EntryProviderScope<NavKey>.settingsEntry(navigator: Navigator, navigateToHistory: () -> Unit) {
     entry<SettingsNavKey> {
         val snackbarHostState = LocalSnackbarHostState.current
         SettingsScreen(
             onNavigationClick = { navigator.goBack() },
             snackbarHostState = snackbarHostState,
+            onHistoryClick = navigateToHistory,
         )
     }
 }

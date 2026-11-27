@@ -29,6 +29,8 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.SelectedUserRepository
+import com.merxury.blocker.core.data.history.OperationRecorder
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -44,6 +46,7 @@ import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
@@ -84,6 +87,7 @@ class ComponentProvider internal constructor(
         fun componentStatuses(): ComponentStatusRepository
         fun selectedUsers(): SelectedUserRepository
         fun controlLayers(): GetControlLayersUseCase
+        fun operationRecorder(): OperationRecorder
         fun privilegedChannel(): PrivilegedChannel
         fun analyticsHelper(): AnalyticsHelper
 
@@ -96,23 +100,29 @@ class ComponentProvider internal constructor(
 
     private val ipcJson = Json { ignoreUnknownKeys = true }
 
+    private val callerPackages by lazy {
+        PackageManagerCallerPackageSource(checkNotNull(context).packageManager)
+    }
+
     private val callerVerifier: ProviderCallerVerifier by lazy {
         ProviderCallerVerifier(
             ownUid = Process.myUid(),
             trustedCallers = TRUSTED_PROVIDER_CALLERS,
-            packageSource = PackageManagerCallerPackageSource(checkNotNull(context).packageManager),
+            packageSource = callerPackages,
         )
     }
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
-        enforceTrustedCaller()
+        val callingUid = Binder.getCallingUid()
+        enforceTrustedCaller(callingUid)
         return when (method) {
             "getComponents" -> arg?.let { packageName ->
                 runCall(method, onFailure = { componentsBundle(packageName, emptyList()) }) { getBlockedComponents(packageName) }
             }
 
             "blocks" -> if (arg != null && extras != null) {
-                runCall(method) { controlComponents(arg, extras) }
+                val caller = verifiedCallingPackage(callingUid)
+                runCall(method) { controlComponents(arg, extras, caller) }
             } else {
                 null
             }
@@ -124,11 +134,17 @@ class ComponentProvider internal constructor(
     // The provider is exported without a permission so LibChecker, which has its own
     // signing key, can reach it. Identify the caller by its kernel-provided Binder UID
     // rather than the package name it reports about itself.
-    private fun enforceTrustedCaller() {
-        val callingUid = Binder.getCallingUid()
+    private fun enforceTrustedCaller(callingUid: Int) {
         if (callerVerifier.isAllowed(callingUid)) return
         Timber.w("Rejected ComponentProvider call from uid %d", callingUid)
         throw SecurityException("uid $callingUid is not allowed to call Blocker's ComponentProvider")
+    }
+
+    private fun verifiedCallingPackage(callingUid: Int): String? = try {
+        callingPackage?.takeIf { it in callerPackages.packagesForUid(callingUid).orEmpty() }
+    } catch (_: SecurityException) {
+        // Android may reject the calling package while verifying it against the Binder UID.
+        null
     }
 
     private fun runCall(
@@ -211,13 +227,13 @@ class ComponentProvider internal constructor(
         withoutPermissionPrompts(work)
     }
 
-    private suspend fun ProviderEntryPoint.controlComponents(packageName: String, data: Bundle): Bundle? {
+    private suspend fun ProviderEntryPoint.controlComponents(packageName: String, data: Bundle, caller: String?): Bundle? {
         val rawString = data.getString("cmp_list") ?: return null
         val entries = ipcJson.decodeFromString<ShareCmpInfo>(rawString).components
         if (entries.isEmpty()) return data
         // A repeated class ends in the state asked for by its last entry.
         val changes = entries.associate { it.name to it.block }
-        if (packageName.isNotBlank() && !writeBeforeDeadline(packageName, changes)) return null
+        if (packageName.isNotBlank() && !writeBeforeDeadline(packageName, changes, caller)) return null
         // The old provider logged each input entry, including entries that made no change.
         entries.forEach { analyticsHelper().logControlComponentViaProvider(newState = !it.block) }
         return data
@@ -241,12 +257,14 @@ class ComponentProvider internal constructor(
         }
     }
 
-    private suspend fun ProviderEntryPoint.writeBeforeDeadline(packageName: String, changes: Map<String, Boolean>): Boolean {
+    private suspend fun ProviderEntryPoint.writeBeforeDeadline(packageName: String, changes: Map<String, Boolean>, caller: String?): Boolean {
         val progress = WriteProgress(packageName)
         val task = startQuietly {
             val requests = prepareControl(packageName, changes) ?: return@startQuietly false
             if (requests.isEmpty()) return@startQuietly true
-            progress.beginControl() && applyControl(requests, progress)
+            progress.beginControl() && operationRecorder().withOperation(OperationSource.EXTERNAL_PROVIDER, ref = caller) {
+                applyControl(requests, progress, it)
+            }
         }
         return try {
             withTimeoutOrNull(writeTimeoutMillis) { task.await() } ?: progress.onTimeout()
@@ -256,10 +274,10 @@ class ComponentProvider internal constructor(
         }
     }
 
-    private suspend fun ProviderEntryPoint.applyControl(requests: List<ControlRequest>, progress: WriteProgress): Boolean {
+    private suspend fun ProviderEntryPoint.applyControl(requests: List<ControlRequest>, progress: WriteProgress, operation: OperationScope): Boolean {
         for (request in requests) {
             if (!progress.canStart()) return false
-            val failed = componentStatuses().control(request, keepKnownState = true, writeObserver = progress)
+            val failed = componentStatuses().control(request, keepKnownState = true, writeObserver = progress, operation = operation)
                 .filterIsInstance<ControlEvent.PackageDone>()
                 .fold(false) { failed, event -> failed || event.outcomes.any { it.failures.isControlException() } }
             if (failed) return false

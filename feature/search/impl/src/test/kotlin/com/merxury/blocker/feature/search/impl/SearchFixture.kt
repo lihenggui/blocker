@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.search.impl
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PackageControlActivity
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.applist.CountServicesUseCase
 import com.merxury.blocker.core.domain.applist.PerformAppActionUseCase
@@ -55,6 +56,7 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
@@ -116,9 +118,9 @@ internal fun rule(id: Int, name: String, keywords: List<String> = emptyList()) =
 internal class GatedControl(private val delegate: FakeComponentStatusRepository) : ComponentStatusRepository by delegate {
     var gate: CompletableDeferred<Unit> = CompletableDeferred(Unit)
 
-    override fun control(request: ControlRequest): Flow<ControlEvent> = flow {
+    override fun control(request: ControlRequest, operation: OperationScope): Flow<ControlEvent> = flow {
         gate.await()
-        emitAll(delegate.control(request))
+        emitAll(delegate.control(request, operation))
     }
 }
 
@@ -137,7 +139,7 @@ internal class SearchFixture(dispatcher: CoroutineDispatcher) {
     /** The application's scope, which batches and indexing run in; it outlives every view model. */
     val applicationScope = CoroutineScope(SupervisorJob() + dispatcher)
     val control = GatedControl(components)
-    val batches = ComponentBatchRunner(control, applicationScope, PackageControlActivity())
+    val batches = ComponentBatchRunner(control, applicationScope, PackageControlActivity(), fakeOperationRecorder())
     val index = ComponentIndex(components, channel, applicationScope)
     val ruleMatcher = GeneralRuleMatcher(components, installedApps, rules, userData, selectedUsers, SELF_PACKAGE, dispatcher, applicationScope)
 
