@@ -21,8 +21,8 @@ package com.merxury.blocker.core.model.history
  *
  * @property restored the number restored to their target state
  * @property alreadyAtTarget the number already in their target state
- * @property skipped the number where no restoration was attempted
- * @property failed the number where restoration was attempted and failed
+ * @property skipped the number skipped entirely or with a skipped layer, with no failed layers
+ * @property failed the number with at least one failed layer
  */
 data class UndoResult(
     val restored: Int,

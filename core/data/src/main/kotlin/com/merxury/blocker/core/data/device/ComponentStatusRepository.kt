@@ -145,6 +145,9 @@ interface ComponentStatusRepository {
      * records whose setting is [PmSetting.DISABLED] or [PmSetting.UNKNOWN]. A later refresh
      * can prune journal entries left by an interrupted write. An already disabled component
      * acquires a record only when Blocker verifies that its wake protection owns the disable.
+     * Wake protection manages its own claim pruning for guarded requests with
+     * [ControlRequest.expectedPm] and [OperationScope.Unrecorded]. Guarded history restores
+     * reconcile the journal from read-back as usual.
      *
      * A [ControlGoal.BLOCK] never reaches Blocker's own components in the user Blocker runs in:
      * they return the cached state with [ControlResult.SKIPPED] and
@@ -162,7 +165,7 @@ interface ComponentStatusRepository {
     fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver? = null, operation: OperationScope): Flow<ControlEvent>
 
     /**
-     * Restores the layers recorded in a component backup, with PackageManager for providers.
+     * Restores the layers recorded in a component backup or operation, with PackageManager for providers.
      * Uses the same protection, journaling and read-back as [control].
      */
     fun restore(request: ControlRequest, operation: OperationScope): Flow<ControlEvent>
