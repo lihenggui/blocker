@@ -41,7 +41,6 @@ import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.PermissionMonitor
-import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
@@ -85,9 +84,6 @@ class SnackbarScreenshotTests {
      */
     @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
-
-    @Inject
-    lateinit var timeZoneMonitor: TimeZoneMonitor
 
     @Inject
     lateinit var userDataRepository: FakeUserDataRepository
@@ -201,10 +197,7 @@ class SnackbarScreenshotTests {
                             CompositionLocalProvider(
                                 LocalSnackbarHostState provides snackbarHostState,
                             ) {
-                                val fakeAppState = rememberBlockerAppState(
-                                    timeZoneMonitor = timeZoneMonitor,
-                                    permissionMonitor = permissionMonitor,
-                                )
+                                val fakeAppState = rememberBlockerAppState(permissionMonitor = permissionMonitor)
                                 BlockerApp(
                                     appState = fakeAppState,
                                     snackbarHostState = snackbarHostState,

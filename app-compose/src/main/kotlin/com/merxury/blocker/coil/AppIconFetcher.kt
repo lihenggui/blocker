@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.coil
+package com.merxury.blocker.coil
 
 import android.content.Context
 import android.content.pm.ApplicationInfo

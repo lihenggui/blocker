@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.previewparameter
+package com.merxury.blocker.feature.impl.licenses
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.merxury.blocker.core.model.data.LicenseGroup
 import com.merxury.blocker.core.model.licenses.LicenseItem
 import com.merxury.blocker.core.model.licenses.Scm
 import com.merxury.blocker.core.model.licenses.SpdxLicense
-import com.merxury.blocker.core.ui.previewparameter.LicensesPreviewParameterData.licensesList
+import com.merxury.blocker.feature.impl.licenses.LicensesPreviewParameterData.licensesList
 
 class LicensesPreviewParameterProvider : PreviewParameterProvider<List<LicenseGroup>> {
     override val values: Sequence<List<LicenseGroup>> = sequenceOf(licensesList)

@@ -30,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.trace
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.metrics.performance.JankStats
@@ -40,10 +39,8 @@ import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.device.DeviceUserMonitor
 import com.merxury.blocker.core.data.device.PackageChangeMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
-import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
-import com.merxury.blocker.core.ui.LocalTimeZone
 import com.merxury.blocker.ui.BlockerApp
 import com.merxury.blocker.ui.rememberBlockerAppState
 import com.merxury.blocker.util.isSystemInDarkTheme
@@ -66,9 +63,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var permissionMonitor: PermissionMonitor
-
-    @Inject
-    lateinit var timeZoneMonitor: TimeZoneMonitor
 
     @Inject
     lateinit var analyticsHelper: AnalyticsHelper
@@ -148,17 +142,9 @@ class MainActivity : ComponentActivity() {
         splashScreen.setKeepOnScreenCondition { viewModel.uiState.value.shouldKeepSplashScreen() }
 
         setContent {
-            val appState = rememberBlockerAppState(
-                permissionMonitor = permissionMonitor,
-                timeZoneMonitor = timeZoneMonitor,
-            )
+            val appState = rememberBlockerAppState(permissionMonitor = permissionMonitor)
 
-            val currentTimeZone by appState.currentTimeZone.collectAsStateWithLifecycle()
-
-            CompositionLocalProvider(
-                LocalAnalyticsHelper provides analyticsHelper,
-                LocalTimeZone provides currentTimeZone,
-            ) {
+            CompositionLocalProvider(LocalAnalyticsHelper provides analyticsHelper) {
                 BlockerTheme(
                     darkTheme = themeSettings.darkTheme,
                     useDynamicTheming = themeSettings.useDynamicTheming,

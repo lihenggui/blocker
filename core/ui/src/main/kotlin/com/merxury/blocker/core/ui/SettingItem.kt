@@ -32,7 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -180,46 +179,6 @@ fun BlockerSettingItem(
 }
 
 @Composable
-fun BlockerItem(
-    title: String,
-    icon: Icon,
-    modifier: Modifier = Modifier,
-    onItemClick: () -> Unit = {},
-    iconColor: Color = MaterialTheme.colorScheme.primary,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onItemClick() }
-            .padding(
-                PaddingValues(vertical = 8.dp),
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        when (icon) {
-            is ImageVectorIcon -> Icon(
-                imageVector = icon.imageVector,
-                contentDescription = title,
-                tint = iconColor,
-            )
-
-            is DrawableResourceIcon -> Icon(
-                painter = painterResource(id = icon.id),
-                contentDescription = title,
-                tint = iconColor,
-            )
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-    }
-}
-
-@Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun HeaderPreview() {
@@ -308,20 +267,6 @@ private fun SettingsItemWithPaddingPreview() {
                 title = "Item with extra space",
                 summary = "Summary of the item",
                 extraIconPadding = true,
-            )
-        }
-    }
-}
-
-@Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun SettingsItemPreview() {
-    BlockerTheme {
-        Surface {
-            BlockerItem(
-                title = "Item with icon and extra space",
-                icon = ImageVectorIcon(BlockerIcons.CheckList),
             )
         }
     }

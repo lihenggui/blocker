@@ -16,22 +16,39 @@
 
 package com.merxury.blocker.feature.appdetail.impl.ui
 
+import android.content.res.Configuration
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerButtonAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon
+import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.BlockerItem
 import com.merxury.blocker.feature.appdetail.api.R.string
 
 @Composable
@@ -94,6 +111,46 @@ fun ShareRuleDialog(
 }
 
 @Composable
+private fun BlockerItem(
+    title: String,
+    icon: Icon,
+    modifier: Modifier = Modifier,
+    onItemClick: () -> Unit = {},
+    iconColor: Color = MaterialTheme.colorScheme.primary,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onItemClick() }
+            .padding(
+                PaddingValues(vertical = 8.dp),
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        when (icon) {
+            is ImageVectorIcon -> Icon(
+                imageVector = icon.imageVector,
+                contentDescription = title,
+                tint = iconColor,
+            )
+
+            is DrawableResourceIcon -> Icon(
+                painter = painterResource(id = icon.id),
+                contentDescription = title,
+                tint = iconColor,
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+    }
+}
+
+@Composable
 @Preview
 private fun ShareRuleDialogPreview() {
     BlockerTheme {
@@ -103,6 +160,20 @@ private fun ShareRuleDialogPreview() {
                 shareAppRule = {},
                 shareAllRules = {},
                 onDismissRequest = {},
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun BlockerItemPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerItem(
+                title = "Item with icon and extra space",
+                icon = ImageVectorIcon(BlockerIcons.CheckList),
             )
         }
     }

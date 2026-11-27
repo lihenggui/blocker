@@ -29,15 +29,12 @@ android {
 dependencies {
     api(projects.core.analytics)
     api(projects.core.designsystem)
-    api(projects.core.ifwApi)
     api(projects.core.model)
-    api(libs.androidx.metrics)
-    api(libs.appiconloader)
 
-    implementation(projects.core.common)
+    implementation(projects.core.ifwApi)
+    implementation(libs.androidx.metrics)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
-    implementation(libs.kotlinx.datetime)
     implementation(libs.timber)
 
     testImplementation(libs.androidx.compose.ui.test)
@@ -46,5 +43,4 @@ dependencies {
     testImplementation(libs.truth)
     testImplementation(projects.core.testing)
     testImplementation(projects.core.screenshotTesting)
-
 }

@@ -27,9 +27,8 @@ import com.merxury.blocker.core.ui.applist.previewAppRows
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.previewComponentRows
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
-import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.feature.ruledetail.impl.AppBarAction.MORE
+import com.merxury.blocker.feature.ruledetail.impl.AppBarAction.SORT
 
 /** One matched app, the first preview app with the preview components, shown with the Android icon. */
 internal fun previewMatchedApps(): MatchedAppsUiState.Loaded {

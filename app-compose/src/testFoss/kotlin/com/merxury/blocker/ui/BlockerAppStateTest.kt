@@ -27,7 +27,6 @@ import com.merxury.blocker.core.navigation.NavigationState
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.navigation.rememberNavigationState
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
-import com.merxury.blocker.core.testing.util.TestTimeZoneMonitor
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
 import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
 import com.merxury.blocker.feature.generalrule.api.navigation.GeneralRuleNavKey
@@ -43,7 +42,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.TimeZone
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -66,8 +64,6 @@ class BlockerAppStateTest {
     // Create the test dependencies.
 
     private val permissionMonitor = TestPermissionMonitor()
-
-    private val timeZoneMonitor = TestTimeZoneMonitor()
 
     // Subject under test.
     private lateinit var state: BlockerAppState
@@ -93,7 +89,6 @@ class BlockerAppStateTest {
                 return@remember BlockerAppState(
                     permissionMonitor = permissionMonitor,
                     coroutineScope = backgroundScope,
-                    timeZoneMonitor = timeZoneMonitor,
                     navigationState = navigationState,
                 )
             }
@@ -114,10 +109,7 @@ class BlockerAppStateTest {
     @Test
     fun blockerAppState_destinations() = runTest {
         composeTestRule.setContent {
-            state = rememberBlockerAppState(
-                permissionMonitor = permissionMonitor,
-                timeZoneMonitor = timeZoneMonitor,
-            )
+            state = rememberBlockerAppState(permissionMonitor = permissionMonitor)
         }
         val navigationState = state.navigationState
 
@@ -182,7 +174,6 @@ class BlockerAppStateTest {
             state = BlockerAppState(
                 permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
-                timeZoneMonitor = timeZoneMonitor,
                 navigationState = testNavigationState(),
             )
         }
@@ -192,25 +183,6 @@ class BlockerAppStateTest {
         assertEquals(
             NO_PERMISSION,
             state.currentPermission.value,
-        )
-    }
-
-    @Test
-    fun blockerAppState_differentTZ_withTimeZoneMonitorChange() = runTest(UnconfinedTestDispatcher()) {
-        composeTestRule.setContent {
-            state = BlockerAppState(
-                coroutineScope = backgroundScope,
-                permissionMonitor = permissionMonitor,
-                timeZoneMonitor = timeZoneMonitor,
-                navigationState = testNavigationState(),
-            )
-        }
-        val changedTz = TimeZone.of("Europe/Prague")
-        backgroundScope.launch { state.currentTimeZone.collect() }
-        timeZoneMonitor.setTimeZone(changedTz)
-        assertEquals(
-            changedTz,
-            state.currentTimeZone.value,
         )
     }
 }

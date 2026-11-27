@@ -73,7 +73,6 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_PM
 import com.merxury.blocker.core.rule.entity.resultMessage
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.ItemHeader
-import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.profile.text
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.impl.settings.SettingsUiState.Loading

@@ -24,8 +24,8 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.core.ui.previewparameter.LicensesPreviewParameterProvider
 import com.merxury.blocker.feature.impl.licenses.LicenseScreen
+import com.merxury.blocker.feature.impl.licenses.LicensesPreviewParameterProvider
 import com.merxury.blocker.feature.impl.licenses.LicensesUiState.Loading
 import com.merxury.blocker.feature.impl.licenses.LicensesUiState.Success
 import dagger.hilt.android.testing.HiltTestApplication

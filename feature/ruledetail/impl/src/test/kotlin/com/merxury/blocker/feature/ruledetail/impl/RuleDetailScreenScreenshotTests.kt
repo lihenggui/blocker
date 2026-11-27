@@ -26,9 +26,8 @@ import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
-import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.feature.ruledetail.impl.AppBarAction.MORE
+import com.merxury.blocker.feature.ruledetail.impl.AppBarAction.SORT
 import com.merxury.blocker.feature.ruledetail.impl.RuleInfoUiState.Error
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before

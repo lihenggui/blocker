@@ -34,8 +34,9 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
 - [`core/rule`](core/rule) owns Blocker backups, Intent Firewall XML import and export, My Android
   Tools import, PackageManager reset, and the workers for rule operations.
 - [`core/common`](core/common) holds shared infrastructure and extensions.
-  [`core/designsystem`](core/designsystem) holds Material 3 wrappers and styling.
-  [`core/ui`](core/ui) and [`core/navigation`](core/navigation) hold shared UI and
+  [`core/designsystem`](core/designsystem) holds domain-free Material 3 wrappers and the theme.
+  [`core/ui`](core/ui) holds shared UI reused by two or more features. Single-feature UI
+  stays in its owning `feature/*/impl` module. [`core/navigation`](core/navigation) holds
   navigation helpers.
 - [`sync/work`](sync/work) runs WorkManager jobs. [`build-logic`](build-logic)
   owns Gradle conventions. [`lint`](lint) owns custom lint checks.

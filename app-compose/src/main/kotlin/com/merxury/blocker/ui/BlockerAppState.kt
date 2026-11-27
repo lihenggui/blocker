@@ -18,25 +18,27 @@
 package com.merxury.blocker.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.DisposableEffectResult
+import androidx.compose.runtime.DisposableEffectScope
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalView
+import androidx.metrics.performance.PerformanceMetricsState
+import androidx.metrics.performance.PerformanceMetricsState.Holder
 import com.merxury.blocker.core.data.util.PermissionMonitor
-import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.navigation.NavigationState
 import com.merxury.blocker.core.navigation.rememberNavigationState
-import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.datetime.TimeZone
 
 @Composable
 fun rememberBlockerAppState(
     permissionMonitor: PermissionMonitor,
-    timeZoneMonitor: TimeZoneMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ): BlockerAppState {
     val navigationState =
@@ -48,13 +50,11 @@ fun rememberBlockerAppState(
         navigationState,
         coroutineScope,
         permissionMonitor,
-        timeZoneMonitor,
     ) {
         BlockerAppState(
             navigationState = navigationState,
             coroutineScope = coroutineScope,
             permissionMonitor = permissionMonitor,
-            timeZoneMonitor = timeZoneMonitor,
         )
     }
 }
@@ -64,20 +64,12 @@ class BlockerAppState(
     val navigationState: NavigationState,
     coroutineScope: CoroutineScope,
     permissionMonitor: PermissionMonitor,
-    timeZoneMonitor: TimeZoneMonitor,
 ) {
     val currentPermission = permissionMonitor.permissionStatus
         .stateIn(
             scope = coroutineScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = null,
-        )
-
-    val currentTimeZone = timeZoneMonitor.currentTimeZone
-        .stateIn(
-            coroutineScope,
-            SharingStarted.WhileSubscribed(5_000),
-            TimeZone.currentSystemDefault(),
         )
 }
 
@@ -89,5 +81,19 @@ private fun NavigationTrackingSideEffect(navigationState: NavigationState) {
     TrackDisposableJank(navigationState.currentKey) { metricsHolder ->
         metricsHolder.state?.putState("Navigation", navigationState.currentKey.toString())
         onDispose {}
+    }
+}
+
+@Composable
+private fun TrackDisposableJank(
+    vararg keys: Any,
+    reportMetric: DisposableEffectScope.(state: Holder) -> DisposableEffectResult,
+) {
+    val localView = LocalView.current
+    val metrics = remember(localView) {
+        PerformanceMetricsState.getHolderForHierarchy(localView)
+    }
+    DisposableEffect(metrics, *keys) {
+        reportMetric(this, metrics)
     }
 }

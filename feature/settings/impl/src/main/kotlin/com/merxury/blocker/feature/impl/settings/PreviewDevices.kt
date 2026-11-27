@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui
+package com.merxury.blocker.feature.impl.settings
 
 import androidx.compose.ui.tooling.preview.Preview
 

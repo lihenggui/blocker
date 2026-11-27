@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.state.toolbar
+package com.merxury.blocker.feature.ruledetail.impl
 
-enum class AppBarAction {
-    MORE,
-    SEARCH,
-    SHARE_RULE,
-    SORT,
-}
+data class AppBarUiState(
+    val actions: List<AppBarAction> = listOf(),
+)

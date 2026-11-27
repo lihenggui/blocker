@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Blocker
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.state.toolbar
+package com.merxury.blocker.coil
 
-data class AppBarUiState(
-    val actions: List<AppBarAction> = listOf(),
-)
+import android.content.pm.PackageInfo
+import coil3.key.Keyer
+import coil3.request.Options
+import me.zhanghai.android.appiconloader.AppIconLoader
+
+class AppIconKeyer : Keyer<PackageInfo> {
+    override fun key(data: PackageInfo, options: Options): String? {
+        if (data.applicationInfo == null) return null
+        return AppIconLoader.getIconKey(data, options.context)
+    }
+}

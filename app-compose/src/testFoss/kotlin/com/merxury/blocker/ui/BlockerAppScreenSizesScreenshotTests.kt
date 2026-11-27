@@ -53,7 +53,6 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.R
 import com.merxury.blocker.core.data.test.repository.FakeOperationHistoryRepository
 import com.merxury.blocker.core.data.util.PermissionMonitor
-import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentId
@@ -118,9 +117,6 @@ class BlockerAppScreenSizesScreenshotTests {
     val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
 
     @Inject
-    lateinit var timeZoneMonitor: TimeZoneMonitor
-
-    @Inject
     lateinit var permissionMonitor: PermissionMonitor
 
     @Inject
@@ -157,10 +153,7 @@ class BlockerAppScreenSizesScreenshotTests {
                     override = DeviceConfigurationOverride.ForcedSize(DpSize(width, height)),
                 ) {
                     BlockerTheme {
-                        val appState = rememberBlockerAppState(
-                            permissionMonitor = permissionMonitor,
-                            timeZoneMonitor = timeZoneMonitor,
-                        )
+                        val appState = rememberBlockerAppState(permissionMonitor = permissionMonitor)
                         BlockerApp(
                             appState,
                             windowAdaptiveInfo = WindowAdaptiveInfo(
@@ -189,7 +182,7 @@ class BlockerAppScreenSizesScreenshotTests {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 DeviceConfigurationOverride(DeviceConfigurationOverride.ForcedSize(DpSize(widthDp.dp, 880.dp))) {
                     BlockerTheme {
-                        val appState = rememberBlockerAppState(permissionMonitor, timeZoneMonitor)
+                        val appState = rememberBlockerAppState(permissionMonitor = permissionMonitor)
                         LaunchedEffect(appState) {
                             startNavigation(Navigator(appState.navigationState))
                         }

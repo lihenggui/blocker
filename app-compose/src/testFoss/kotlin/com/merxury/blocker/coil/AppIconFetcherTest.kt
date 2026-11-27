@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.coil
+package com.merxury.blocker.coil
 
+import android.app.Application
 import android.content.Context
 import android.content.pm.PackageInfo
 import androidx.test.core.app.ApplicationProvider
@@ -31,11 +32,13 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 
 @RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
 class AppIconFetcherTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private lateinit var imageLoader: ImageLoader
