@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import android.os.Build.VERSION_CODES
 import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.appcontrol.AppControl
@@ -54,14 +55,19 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [VERSION_CODES.P], manifest = Config.NONE)
 class WakeAppViewModelTest {
     @get:Rule val main = MainDispatcherRule(StandardTestDispatcher())
 
@@ -144,7 +150,7 @@ class WakeAppViewModelTest {
     fun givenThreeRowsAndBackgroundUsage_whenBlockingThenUndoing_thenCountsFourChoicesAndRestoresThatBatch() = runTest {
         val existing = detailPath("outside").record()
         manual.blocks.value = listOf(existing)
-        automatic.blocks.value = listOf(known)
+        automatic.setBlocks(listOf(known))
         observe()
         viewModel.blockAll(current.choices.mapTo(mutableSetOf()) { it.key } - setOf(DEEP_RESTRICTION_CHOICE, FORCE_STOP_CHOICE))
         runCurrent()
@@ -191,7 +197,7 @@ class WakeAppViewModelTest {
         assertThat(current.potential).hasSize(1)
 
         val pm = known.copy(method = "PM")
-        automatic.blocks.value = listOf(pm)
+        automatic.setBlocks(listOf(pm))
         runCurrent()
 
         verify(scanner).invoke(DETAIL_PACKAGE, setOf(pm.component))
@@ -337,10 +343,10 @@ class WakeAppViewModelTest {
     fun givenOutboundPathAndBackgroundChoice_whenBlocking_thenOnlyTheOpenAppStopsAndCountIncludesBothWrites() = runTest {
         val peer = "another.app"
         val path = detailPath("out", target = peer)
-        automatic.blocks.value = listOf(AutomaticWakeBlock("outgoing", DETAIL_PACKAGE, peer, checkNotNull(path.component), "", false, true))
+        automatic.setBlocks(listOf(AutomaticWakeBlock("outgoing", DETAIL_PACKAGE, peer, checkNotNull(path.component), "", false, true)))
         appControl.running[UserId.SYSTEM] = mutableSetOf(DETAIL_PACKAGE, peer)
         beforeForceStop = {
-            assertThat(automatic.blocks.value.single().active).isTrue()
+            assertThat(automatic.currentBlocks.single().active).isTrue()
             assertThat(background.writes).containsExactly(appKey to false)
         }
         observe()
@@ -448,6 +454,22 @@ class WakeAppViewModelTest {
         assertThat(current.status).isEqualTo(WakeAppStatus.KeepAlive)
         assertThat(background.writes).containsExactly(appKey to false, appKey to true).inOrder()
         assertThat(background.reads).isEmpty()
+    }
+
+    @Test
+    fun givenBackgroundReadbackIsUnavailable_whenToggling_thenTheWriteStillReachesTheRepository() = runTest {
+        methods = listOf(timed)
+        observe()
+        background.sendUsage(appKey, null)
+        background.writeFailure = BackgroundUsageFailure.NO_ACCESS
+        runCurrent()
+        assertThat(current.background).isNull()
+
+        viewModel.toggle(current.methods.single().key, allowed = false)
+        runCurrent()
+
+        assertThat(background.writes).containsExactly(appKey to false)
+        assertThat(current.notice?.text).isEqualTo(blockFailureText(WakeBlockFailure.NoAccess, 0, 1))
     }
 
     @Test
@@ -574,7 +596,7 @@ class WakeAppViewModelTest {
     @Test
     fun givenUserAndAutomaticBlocks_whenRestoringThenUndoing_thenUsesRestoreToken() = runTest {
         manual.blocks.value = listOf(first.record())
-        automatic.blocks.value = listOf(known.copy(active = true, allowed = false))
+        automatic.setBlocks(listOf(known.copy(active = true, allowed = false)))
         background.sendUsage(appKey, BackgroundUsage(false, true))
         observe()
 

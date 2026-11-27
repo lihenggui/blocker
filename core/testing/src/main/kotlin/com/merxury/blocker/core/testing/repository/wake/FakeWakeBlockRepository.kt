@@ -57,7 +57,7 @@ class FakeWakeBlockRepository : WakeBlockRepository {
     }
 
     override suspend fun removeAppBlocks(packageName: String, outboundPathKeys: Set<String>): Pair<WakeBlockOutcome, List<WakeBlock>> {
-        val selected = blocks.value.filter { it.target == packageName || it.pathKey in outboundPathKeys }
+        val selected = blocks.value.filter { it.target == packageName || it.sender == packageName || it.pathKey in outboundPathKeys }
         val outcome = unblock(selected.map { it.pathKey })
         return outcome to selected.filter { it.pathKey in outcome.done }
     }

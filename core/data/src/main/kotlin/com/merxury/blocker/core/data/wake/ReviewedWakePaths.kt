@@ -34,12 +34,13 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
         val (owner, secondary) = identities.partition { userOfUid(it.uid) == 0 }
         val byUid = owner.groupBy { it.uid }
         val byPackage = owner.groupBy { it.packageName }
+        val previousById = previous.associateBy { it.pathId }
         val secondaryByPackage = secondary.groupBy { it.packageName }
         val paths = mutableMapOf<String, WakeProtection>()
         val digests = mutableMapOf<String, Set<String>>()
         for (proof in catalog) {
             val component = proof.getString("component")
-            val action = if (proof.isNull("action")) "" else proof.getString("action")
+            val action = proof.reviewedAction
             val method = proof.optString("method", "IFW")
             val review = proof.getString("review")
             val fixedPackage = proof.optString("target")
@@ -92,17 +93,32 @@ class ReviewedWakePaths @Inject constructor(@param:ApplicationContext private va
                     if (!matchesCaller(caller, target)) continue
                     if (!matchesEvent(event, target.packageName, proof, method, component, action, firewallResets)) continue
                     val id = listOf(caller.packageName, caller.signatures, target.packageName, target.signatures, component, action, method).joinToString("|")
-                    val old = previous.find { it.pathId == id && it.targetRevision == target.revision && it.callerRevision == caller.revision }
+                    val old = previousById[id]
                     if (old?.disabledByUser == true) continue
+                    val current = old?.takeIf { it.targetRevision == target.revision && it.callerRevision == caller.revision }
                     paths[id] = WakeProtection(
-                        id, caller.packageName, target.packageName, component, action, review, false, old?.configured == true,
-                        method, caller.revision, target.revision, target.signatures, old?.previousState, old?.pendingChange == true,
+                        id, caller.packageName, target.packageName, component, action, review, false, current?.configured == true,
+                        method, caller.revision, target.revision, target.signatures, current?.previousState,
+                        pendingChange = old?.reblockPending == true || current?.pendingChange == true,
                     )
                 }
             }
         }
         return paths.values.toList()
     }
+
+    /** Catalog membership is independent of which identities or events a capture can read. */
+    internal fun obsoleteReblocks(previous: List<WakeProtection>): List<WakeProtection> = previous.filter { path ->
+        path.reblockPending && catalog.none { proof ->
+            proof.getString("component") == path.component && proof.reviewedAction == path.action &&
+                proof.optString("method", "IFW") == path.method &&
+                proof.optString("target").let { it.isEmpty() || it == path.target } &&
+                proof.optString("caller").let { it.isEmpty() || it == path.caller } &&
+                (!proof.optBoolean("peerSdk") || path.caller != path.target)
+        }
+    }
+
+    private val JSONObject.reviewedAction get() = if (isNull("action")) "" else getString("action")
 
     private fun matchesEvent(
         event: WakeRecord,

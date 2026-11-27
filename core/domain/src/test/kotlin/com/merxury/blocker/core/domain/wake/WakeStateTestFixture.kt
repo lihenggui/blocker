@@ -110,8 +110,8 @@ internal class WakeStateTestFixture(scope: TestScope) {
     val state = ObserveAppWakeStateUseCase(activity, observer)
     val overview = ObserveWakeOverviewUseCase(history, observer, dispatcher)
 
-    fun status(component: ComponentDeclaration, off: Boolean, user: UserId = UserId.SYSTEM) {
-        val state = ControlState(if (off) PmSetting.DISABLED else PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)
+    fun status(component: ComponentDeclaration, off: Boolean, user: UserId = UserId.SYSTEM, ifw: IfwBlock = IfwBlock.NOT_BLOCKED) {
+        val state = ControlState(if (off) PmSetting.DISABLED else PmSetting.DEFAULT, ifw)
         val userStatuses = statuses.getOrPut(user, ::mutableMapOf)
         userStatuses[component.id] = ComponentStatus(component, state)
         components.sendComponents(user, userStatuses.values.toList())

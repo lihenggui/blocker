@@ -13,12 +13,17 @@ import com.merxury.blocker.core.database.wake.WakeIdentity
 import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.component.UIDS_PER_USER
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -141,6 +146,47 @@ class ReviewedWakePathsTest {
             assertThat(candidates(request.copy(wallMillis = 20), resets = resets)).isEmpty()
             assertThat(candidates(request.copy(wallMillis = 21), resets = resets)).hasSize(1)
         }
+    }
+
+    @Test
+    fun givenRemovedReviewAndIncompleteIdentities_whenReconciling_thenOnlyTheRemovedReblockEnds() = runTest {
+        val pending = candidates().single().copy(pendingChange = true)
+        val retired = pending.copy(pathId = "retired", component = "$pkg.Retired")
+        val repository = mock<WakeRepository>()
+        whenever(repository.protections()).thenReturn(listOf(pending, retired))
+        whenever(repository.observedComponents(any())).thenReturn(emptyList())
+        whenever(repository.firewallResets()).thenReturn(emptyMap())
+        val protection = WakeProtectionRepository(
+            repository, mock(), catalog, mock(), mock(), FakePrivilegedChannel(), mock(), mock(), WakeRuleLock(), mock(),
+        )
+
+        protection.applyReviewedPaths(WakeImport("boot", emptyList(), listOf(UserId.SYSTEM.value)), WakeWrites.Enforce, event.wallMillis)
+
+        verify(repository).saveProtections(listOf(retired.copy(pendingChange = false)))
+    }
+
+    @Test
+    fun givenAllowedPaths_whenCallerOrTargetRevisionsChange_thenFreshEvidenceStillRespectsAllow() {
+        val ifw = event.copy(callerUid = peer.uid, callerPackage = peer.packageName, action = "sdk.fixedPeer.WAKE")
+        val pm = event.copy(action = "dedicated.WAKE")
+        val owner = listOf(app, peer)
+        val previous = listOf(candidates(ifw, owner).single(), candidates(pm, owner).single()).map {
+            it.copy(disabledByUser = true, callerRevision = "previous-caller", targetRevision = "previous-target")
+        }
+
+        assertThat(catalog.evaluate(listOf(ifw, pm), owner, listOf(UserId.SYSTEM.value), previous)).isEmpty()
+    }
+
+    @Test
+    fun givenPendingReblocksFromOldRevisions_whenFreshEvidenceQualifies_thenRequestsUseCurrentRevisions() {
+        val ifw = event.copy(callerUid = peer.uid, callerPackage = peer.packageName, action = "sdk.fixedPeer.WAKE")
+        val pm = event.copy(action = "dedicated.WAKE")
+        val owner = listOf(app, peer)
+        val fresh = listOf(candidates(ifw, owner).single(), candidates(pm, owner).single())
+        val previous = fresh.map { it.copy(callerRevision = "previous-caller", targetRevision = "previous-target", pendingChange = true) }
+
+        assertThat(catalog.evaluate(listOf(ifw, pm), owner, listOf(UserId.SYSTEM.value), previous))
+            .containsExactlyElementsIn(fresh.map { it.copy(pendingChange = true) })
     }
 
     @Test

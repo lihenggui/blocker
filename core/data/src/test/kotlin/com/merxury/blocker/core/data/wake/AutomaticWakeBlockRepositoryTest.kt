@@ -13,12 +13,18 @@ import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.ChannelState
+import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
+import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.util.TestWakeRunRequester
+import com.merxury.core.ifw.ManagedWakeRules
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -32,7 +38,11 @@ class AutomaticWakeBlockRepositoryTest {
     private val history = wake.history()
     private val pmBlocks = PmBlockRecords(records.pmBlockRecordDao())
     private val runs = TestWakeRunRequester()
-    private val repository = LocalAutomaticWakeBlockRepository(history, pmBlocks, WakeRuleLock(), runs)
+    private val channel = FakePrivilegedChannel()
+    private val lock = WakeRuleLock()
+    private val rules = mock<ManagedWakeRules>()
+    private val protection = WakeProtectionRepository(mock(), mock(), mock(), rules, mock(), channel, pmBlocks, mock(), lock, mock())
+    private val repository = LocalAutomaticWakeBlockRepository(history, pmBlocks, lock, runs, protection)
     private val reviewed = WakeProtection("review", "peer.app", "target.app", "target.app.Wake", "", "example", false, true)
 
     @After fun close() {
@@ -41,6 +51,7 @@ class AutomaticWakeBlockRepositoryTest {
     }
 
     @Test fun givenReviewedAndUnknownIds_whenAllowingAndReblocking_thenKnownFlagsChangeAndRunsAreRequested() = runTest {
+        whenever(rules.supportsPeerFilter()).thenReturn(true)
         history.putProtections(listOf(reviewed))
         repository.blocks.test {
             val initial = awaitItem().single()
@@ -67,11 +78,69 @@ class AutomaticWakeBlockRepositoryTest {
         }
     }
 
-    @Test fun givenInboundOutboundAndPreviouslyAllowedRows_whenAllowingForApp_thenOnlyChangedFlagsAreReturned() = runTest {
-        val outbound = reviewed.copy(pathId = "out", caller = reviewed.target, target = reviewed.caller, configured = false)
+    @Test fun givenAnAllowedUnconfiguredProtection_whenReblocking_thenItIsVisibleBeforeReconciliation() = runTest {
+        whenever(rules.supportsPeerFilter()).thenReturn(true)
+        val allowed = reviewed.copy(configured = false, disabledByUser = true)
+        history.putProtections(listOf(allowed))
+
+        repository.blocks.test {
+            assertThat(awaitItem().single().allowed).isTrue()
+            assertThat(repository.setBlocked(setOf(allowed.pathId), blocked = true).outcome.failure).isNull()
+            val pending = awaitItem().single()
+            assertThat(pending.active).isTrue()
+            assertThat(pending.allowed).isFalse()
+            assertThat(history.readProtections().single().configured).isFalse()
+        }
+    }
+
+    @Test fun givenShellOnlyAccess_whenReblocking_thenTheAllowedRowAndRunQueueDoNotChange() = runTest {
+        val allowed = reviewed.copy(configured = false, disabledByUser = true)
+        history.putProtections(listOf(allowed))
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+
+        val result = repository.setBlocked(setOf(allowed.pathId), blocked = true)
+
+        assertThat(result.outcome.failure).isEqualTo(WakeBlockFailure.NoAccess)
+        assertThat(result.outcome.done).isEmpty()
+        assertThat(result.changedIds).isEmpty()
+        assertThat(history.readProtections()).containsExactly(allowed)
+        assertThat(runs.requests).isEqualTo(0)
+    }
+
+    @Test fun givenUnsupportedSenderFilters_whenReblockingPeerFirewallPaths_thenOnlySupportedPathsAreRequested() = runTest {
+        whenever(rules.supportsPeerFilter()).thenReturn(false)
+        val peer = reviewed.copy(configured = false, disabledByUser = true)
+        val self = peer.copy(pathId = "self", caller = peer.target)
+        history.putProtections(listOf(peer, self))
+
+        val result = repository.setBlocked(setOf(peer.pathId, self.pathId), blocked = true)
+
+        assertThat(result.outcome.failure).isEqualTo(WakeBlockFailure.SenderFilterUnsupported(listOf(peer.pathId)))
+        assertThat(result.outcome.done).containsExactly(self.pathId)
+        assertThat(result.changedIds).containsExactly(self.pathId)
+        assertThat(history.readProtections()).containsExactly(peer, self.copy(disabledByUser = false, pendingChange = true))
+    }
+
+    @Test fun givenOnlyHiddenCandidatesInObserveOnlyMode_whenRestoring_thenNoAccessIsNeeded() = runTest {
+        val hidden = reviewed.copy(configured = false)
+        history.putProtections(listOf(hidden))
+        channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
+
+        val outcome = repository.allowForApp(reviewed.target)
+
+        assertThat(outcome.failure).isNull()
+        assertThat(outcome.done).isEmpty()
+        assertThat(history.readProtections()).containsExactly(hidden)
+        assertThat(channel.quietConnectCount).isEqualTo(0)
+    }
+
+    @Test fun givenVisibleAndHiddenRows_whenRestoringAndUndoing_thenOnlyVisibleBlocksChange() = runTest {
+        whenever(rules.supportsPeerFilter()).thenReturn(true)
+        val outbound = reviewed.copy(pathId = "out", caller = reviewed.target, target = reviewed.caller, configured = false, pendingChange = true)
+        val hidden = reviewed.copy(pathId = "hidden", configured = false)
         val alreadyAllowed = reviewed.copy(pathId = "already", disabledByUser = true, configured = false)
         val unrelated = reviewed.copy(pathId = "other", target = "other.app")
-        history.putProtections(listOf(reviewed, outbound, alreadyAllowed, unrelated))
+        history.putProtections(listOf(reviewed, outbound, hidden, alreadyAllowed, unrelated))
 
         val outcome = repository.allowForApp(reviewed.target)
 
@@ -80,12 +149,17 @@ class AutomaticWakeBlockRepositoryTest {
         assertThat(runs.requests).isEqualTo(1)
         assertThat(history.readProtections()).containsExactly(
             reviewed.copy(disabledByUser = true),
-            outbound.copy(disabledByUser = true),
+            outbound.copy(disabledByUser = true, pendingChange = false),
+            hidden,
             alreadyAllowed,
             unrelated,
         )
         assertThat(repository.allowForApp(reviewed.target).done).isEmpty()
         assertThat(runs.requests).isEqualTo(1)
+
+        val undo = repository.setBlocked(outcome.done, blocked = true)
+        assertThat(undo.changedIds).containsExactly(reviewed.pathId, outbound.pathId)
+        assertThat(history.readProtections()).containsExactly(reviewed, outbound, hidden, alreadyAllowed, unrelated)
     }
 
     @Test fun givenAutomaticPackageManagerBlock_whenUserRecordsTheSameComponent_thenOwnershipChanges() = runTest {

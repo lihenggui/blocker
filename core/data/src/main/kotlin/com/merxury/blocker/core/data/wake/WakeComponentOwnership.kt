@@ -55,16 +55,22 @@ class WakeComponentOwnership @Inject constructor(
         }
         val durable = Json.decodeFromString<List<WakeProtection>>(stored).associateBy { it.pathId }
         check(durable.values.all { it.needsComponentJournal() })
-        // A wake-screen toggle changes only the override in Room. Keep that decision while
-        // recovering the system-write metadata from the journal, which can be ahead of Room.
+        // The journal can be ahead of Room. A write prepared in the journal alone cannot
+        // have reached PackageManager because both copies are saved before making the call.
         val recovered = durable.values.map { saved ->
             val current = local[saved.pathId]
-            if (current != null && current.copy(disabledByUser = saved.disabledByUser) == saved) current else saved
+            if (current == null) return@map saved
+            val override = current.copy(disabledByUser = saved.disabledByUser)
+            val reblock = current.reblockPending && override.copy(pendingChange = false, previousState = saved.previousState) == saved
+            val roomHasOnlyUserChoice = !current.configured && current.previousState == null &&
+                (current.disabledByUser || current.reblockPending)
+            val preparedOnlyInJournal = !saved.configured && saved.componentWritePending && roomHasOnlyUserChoice
+            if (override == saved || reblock || preparedOnlyInJournal) current else saved
         }
         if (recovered.any { it != durable[it.pathId] }) {
             journal.write(Json.encodeToString(recovered.filter { it.needsComponentJournal() }))
         }
-        val released = local.values.filter { it.pathId !in durable && (it.configured || it.pendingChange) }
+        val released = local.values.filter { it.pathId !in durable && (it.configured || it.componentWritePending) }
             .map { it.copy(configured = false, pendingChange = false) }
         history.putProtections(released + recovered.filter { it != local[it.pathId] })
     }

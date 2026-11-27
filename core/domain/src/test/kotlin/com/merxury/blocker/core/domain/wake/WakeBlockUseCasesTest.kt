@@ -68,7 +68,7 @@ class WakeBlockUseCasesTest {
         )
         val reviewed = AutomaticWakeBlock("reviewed", TEST_APP, TEST_PEER, "$TEST_PEER.Wake", "", active = false, allowed = true)
         f.manual.excluded = setOf("failed")
-        f.automatic.blocks.value = listOf(reviewed)
+        f.automatic.setBlocks(listOf(reviewed))
         f.appControl.running[UserId.SYSTEM] = mutableSetOf(TEST_APP, TEST_PEER, TEST_OTHER)
         f.appControl.running[UserId(10)] = mutableSetOf(TEST_APP)
         val states = paths.map { it.state(if (it.pathKey == "already") WakePathBlock.USER else WakePathBlock.NONE) }
@@ -124,7 +124,7 @@ class WakeBlockUseCasesTest {
         val matched = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "example.BIND", active = true, allowed = false)
         val unapplied = matched.copy(pathId = "unapplied", active = false)
         val unmatched = AutomaticWakeBlock("unmatched", TEST_APP, TEST_PEER, "$TEST_PEER.Service", "", active = true, allowed = false)
-        f.automatic.blocks.value = listOf(matched, unapplied, unmatched)
+        f.automatic.setBlocks(listOf(matched, unapplied, unmatched))
 
         assertThat(setBlocked(listOf(path.state(WakePathBlock.AUTOMATIC)), blocked = false).done).containsExactly("incoming")
         assertThat(setBlocked(listOf(unmatched), blocked = false).done).containsExactly("unmatched")
@@ -132,7 +132,7 @@ class WakeBlockUseCasesTest {
         assertThat(setBlocked(listOf(path.state(WakePathBlock.NONE)), blocked = true).done).containsExactly("incoming")
         assertThat(setBlocked(listOf(unmatched), blocked = true).done).containsExactly("unmatched")
         assertThat(f.automatic.allowedIds).isEmpty()
-        assertThat(f.automatic.blocks.value).containsExactly(matched, unapplied, unmatched)
+        assertThat(f.automatic.currentBlocks).containsExactly(matched, unapplied, unmatched)
         assertThat(f.automatic.changes).containsExactly(
             setOf("review") to false,
             setOf("unmatched") to false,
@@ -150,7 +150,7 @@ class WakeBlockUseCasesTest {
         val active = AutomaticWakeBlock("active", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "action", active = true, allowed = false)
         val allowed = active.copy(pathId = "allowed", action = "other", active = false, allowed = true)
         val staleUnmatched = active.copy(pathId = "unmatched", caller = "other")
-        f.automatic.blocks.value = listOf(active, allowed, staleUnmatched)
+        f.automatic.setBlocks(listOf(active, allowed, staleUnmatched))
 
         val result = setBlocked.blockWithUndo(
             listOf(path.state(WakePathBlock.NONE)),
@@ -164,7 +164,7 @@ class WakeBlockUseCasesTest {
         setBlocked.undo(result.undo)
         assertThat(f.manual.blocks.value).isEmpty()
         assertThat(f.automatic.allowedIds).containsExactly("allowed")
-        assertThat(f.automatic.blocks.value).containsExactly(active, allowed, staleUnmatched)
+        assertThat(f.automatic.currentBlocks).containsExactly(active, allowed, staleUnmatched)
     }
 
     @Test fun givenLapsedComponentRowAndAllowedReview_whenBlockingAndUndoing_thenBothReturnToTheirPriorState() = runTest {
@@ -174,7 +174,7 @@ class WakeBlockUseCasesTest {
         val original = path.blockRow(at = 10)
         f.manual.blocks.value = listOf(original)
         val allowed = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Other", "", active = false, allowed = true)
-        f.automatic.blocks.value = listOf(allowed)
+        f.automatic.setBlocks(listOf(allowed))
 
         val result = setBlocked.blockWithUndo(listOf(path.state(WakePathBlock.NONE)), listOf(allowed))
 
@@ -185,7 +185,7 @@ class WakeBlockUseCasesTest {
         assertThat(f.automatic.allowedIds).isEmpty()
         assertThat(setBlocked.undo(result.undo)).isEqualTo(result.outcome)
         assertThat(f.manual.blocks.value).containsExactly(original)
-        assertThat(f.automatic.blocks.value).containsExactly(allowed)
+        assertThat(f.automatic.currentBlocks).containsExactly(allowed)
     }
 
     @Test fun givenManualUndoFailsWithReviewedChange_whenUndoingBatch_thenReviewedChangeIsStillReversed() = runTest {
@@ -193,7 +193,7 @@ class WakeBlockUseCasesTest {
         val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val path = finding("manual").toWakePath()
         val allowed = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Other", "", active = false, allowed = true)
-        f.automatic.blocks.value = listOf(allowed)
+        f.automatic.setBlocks(listOf(allowed))
         val result = setBlocked.blockWithUndo(listOf(path.state(WakePathBlock.NONE)), listOf(allowed))
         f.manual.excluded = setOf(path.pathKey)
 
@@ -201,14 +201,14 @@ class WakeBlockUseCasesTest {
 
         assertThat(undo).isEqualTo(WakeBlockOutcome(setOf(allowed.pathId), WakeBlockFailure.NotBlockable(listOf(path.pathKey))))
         assertThat(f.manual.blocks.value).containsExactly(path.blockRow())
-        assertThat(f.automatic.blocks.value).containsExactly(allowed)
+        assertThat(f.automatic.currentBlocks).containsExactly(allowed)
     }
 
     @Test fun givenAnUnappliedReview_whenBlockingItsPath_thenAUserBlockIsSaved() = runTest {
         val f = WakeStateTestFixture(this)
         val setBlocked = SetWakePathsBlockedUseCase(f.manual, f.automatic, f.background)
         val path = finding("incoming").toWakePath()
-        f.automatic.blocks.value = listOf(AutomaticWakeBlock("unapplied", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = false, allowed = false))
+        f.automatic.setBlocks(listOf(AutomaticWakeBlock("unapplied", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = false, allowed = false)))
 
         val result = setBlocked(listOf(path.state(WakePathBlock.NONE)), blocked = true)
 
@@ -224,7 +224,7 @@ class WakeBlockUseCasesTest {
         val reviewed = AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false)
         val unapplied = reviewed.copy(pathId = "unapplied", active = false)
         f.manual.blocks.value = listOf(path.blockRow())
-        f.automatic.blocks.value = listOf(reviewed, unapplied)
+        f.automatic.setBlocks(listOf(reviewed, unapplied))
 
         val result = setBlocked(listOf(path.state(WakePathBlock.USER)), blocked = false)
 
@@ -240,7 +240,7 @@ class WakeBlockUseCasesTest {
         val reviewed = finding("automatic", actor = TEST_OTHER, detail = ".Other").toWakePath().copy(action = "example.BIND")
         f.manual.excluded = setOf("manual")
         val rule = AutomaticWakeBlock("review", TEST_OTHER, TEST_APP, "$TEST_APP.Other", "example.BIND", active = true, allowed = false)
-        f.automatic.blocks.value = listOf(rule, rule.copy(pathId = "other-action", action = "example.OTHER"))
+        f.automatic.setBlocks(listOf(rule, rule.copy(pathId = "other-action", action = "example.OTHER")))
 
         val result = setBlocked(listOf(manual.state(WakePathBlock.USER), reviewed.state(WakePathBlock.AUTOMATIC)), blocked = false)
 
@@ -350,13 +350,13 @@ class WakeBlockUseCasesTest {
         val caller = AutomaticWakeBlock("caller", TEST_APP, TEST_PEER, "$TEST_PEER.Service", "", active = true, allowed = false)
         val target = AutomaticWakeBlock("target", TEST_OTHER, TEST_APP, "$TEST_APP.Service", "", active = true, allowed = false)
         val allowed = target.copy(pathId = "allowed", active = false, allowed = true)
-        f.automatic.blocks.value = listOf(unrelated, caller, target, allowed)
+        f.automatic.setBlocks(listOf(unrelated, caller, target, allowed))
 
         val result = restore(TEST_APP)
 
-        assertThat(result.outcome.done).containsExactly("no-longer-observed", "outbound", "caller", "target", "background:$TEST_APP")
+        assertThat(result.outcome.done).containsExactly("no-longer-observed", "outbound", "old-outbound", "caller", "target", "background:$TEST_APP")
         assertThat(result.outcome.failure).isEqualTo(WakeBlockFailure.NotBlockable(listOf("failed")))
-        assertThat(f.manual.blocks.value).containsExactly(oldOutgoing, failed)
+        assertThat(f.manual.blocks.value).containsExactly(failed)
         assertThat(f.automatic.allowedIds).containsExactly("caller", "target", "allowed")
         assertThat(background.allowed).isTrue()
 
@@ -448,7 +448,7 @@ class WakeBlockUseCasesTest {
         val f = WakeStateTestFixture(this)
         val block = finding("incoming").toWakePath().blockRow()
         f.manual.blocks.value = listOf(block)
-        f.automatic.blocks.value = listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false))
+        f.automatic.setBlocks(listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false)))
         val background = FakeBackgroundUsageRepository(allowed = false)
         val removed = CompletableDeferred<Unit>()
         val resume = CompletableDeferred<Unit>()
@@ -479,7 +479,7 @@ class WakeBlockUseCasesTest {
         val f = WakeStateTestFixture(this)
         val block = finding("incoming").toWakePath().blockRow()
         f.manual.blocks.value = listOf(block)
-        f.automatic.blocks.value = listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false))
+        f.automatic.setBlocks(listOf(AutomaticWakeBlock("review", TEST_PEER, TEST_APP, "$TEST_APP.Wake", "", active = true, allowed = false)))
         val background = FakeBackgroundUsageRepository(allowed = false)
         val reinstated = CompletableDeferred<Unit>()
         val resume = CompletableDeferred<Unit>()

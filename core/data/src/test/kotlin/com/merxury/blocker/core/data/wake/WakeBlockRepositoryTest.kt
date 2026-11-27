@@ -4,6 +4,7 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.os.Build
@@ -426,6 +427,20 @@ class WakeBlockRepositoryTest {
         assertThat(writer.userWrites).isEmpty()
     }
 
+    @Test fun givenThePackageActionResolvesOneReceiver_whenChangingThePath_thenOnlyThatReceiverIsChanged() = runTest {
+        val repository = repository()
+        val action = Intent.ACTION_PACKAGE_ADDED
+        val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
+        receivers.matches[TARGET to action] = listOf(receiver)
+        receivers.matches[TARGET to Intent.ACTION_PACKAGE_REMOVED] = listOf(declaration(OTHER_RECEIVER, ComponentType.RECEIVER))
+        val path = actionPath("package-added").copy(action = action)
+
+        assertThat(repository.block(listOf(path to COMPONENT)).done).containsExactly(path.pathKey)
+        assertThat(repository.unblockPaths(listOf(path)).done).containsExactly(path.pathKey)
+        assertThat(components.requests.map { it.components }).containsExactly(listOf(receiver), listOf(receiver))
+        assertThat(writer.userWrites).isEmpty()
+    }
+
     @Test fun givenOneAlreadyDisabledReceiver_whenUndoingBatch_thenOnlyTheNewlyDisabledReceiverIsUnblocked() = runTest {
         val repository = repository()
         val receiver = declaration(RECEIVER, ComponentType.RECEIVER)
@@ -680,7 +695,7 @@ class WakeBlockRepositoryTest {
                     WakeProtection(it.id.className, PEER, TARGET, it.id.className, ACTION, "receiver", false, true, method = "PM", previousState = 0)
                 },
             )
-            val protections = LocalAutomaticWakeBlockRepository(history, device.pmBlocks, lock, TestWakeRunRequester())
+            val protections = LocalAutomaticWakeBlockRepository(history, device.pmBlocks, lock, TestWakeRunRequester(), mock())
             device.componentControl.apply = {
                 val outcomes = matches.map { declaration ->
                     ComponentOutcome(declaration.key, ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED), ControlResult.ACHIEVED, emptyMap())
@@ -946,6 +961,19 @@ class WakeBlockRepositoryTest {
         assertThat(dao.all()).containsExactly(unrelated)
         assertThat(repository.restoreBlocks(undo)).isEqualTo(outcome)
         assertThat(dao.all()).containsExactly(inbound, toPeer, unrelated, component)
+    }
+
+    @Test fun givenAnOldOutboundBlock_whenRestoringTheSender_thenItIsRemovedWithoutAnObservedPath() = runTest {
+        val repository = repository()
+        val old = firewallRow("old-outbound", PEER).copy(sender = TARGET)
+        val unrelated = firewallRow("other-sender", PEER)
+        dao.upsert(listOf(old, unrelated))
+
+        val (outcome, undo) = repository.removeAppBlocks(TARGET, emptySet())
+
+        assertThat(outcome).isEqualTo(WakeBlockOutcome(setOf(old.pathKey), null))
+        assertThat(dao.all()).containsExactly(unrelated)
+        assertThat(undo.map { it.pathKey }).containsExactly(old.pathKey)
     }
 
     @Test fun givenResetScope_whenResettingProtection_thenOnlyMatchingFirewallRowsAreRemoved() = runTest {

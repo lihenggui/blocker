@@ -275,7 +275,7 @@ internal class LocalWakeBlockRepository @Inject constructor(
         } else {
             emptyList()
         }
-        fun WakeBlockEntity.selected(): Boolean = pathKey in keys || (target != null && this.target == target) || aliases().isNotEmpty()
+        fun WakeBlockEntity.selected(): Boolean = pathKey in keys || (target != null && (this.target == target || sender == target)) || aliases().isNotEmpty()
         val changed = mutableSetOf<WakeBlock>()
         val directPaths = paths.values.filter { it.blockMethod == WakeBlockMethod.COMPONENT }
         val outcome = change(hasChanges = { directPaths.isNotEmpty() || dao.all().any { it.selected() } }) { identity ->

@@ -36,7 +36,7 @@ interface AutomaticWakeBlockRepository {
     /** Changes the reviewed paths by ID and requests reconciliation. */
     suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): ChangeResult
 
-    /** Allows all reviewed paths that involve [packageName]. The completed IDs had their flags changed. */
+    /** Allows active reviewed paths involving [packageName]. The completed IDs had their flags changed. */
     suspend fun allowForApp(packageName: String): WakeBlockOutcome
 }
 
@@ -45,6 +45,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
     private val userBlocks: PmBlockRecords,
     private val lock: WakeRuleLock,
     private val runs: WakeRunRequester,
+    private val protection: WakeProtectionRepository,
 ) : AutomaticWakeBlockRepository {
     override val blocks = history.protections().map { rows ->
         rows.map { row ->
@@ -54,7 +55,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
                 row.target,
                 row.component,
                 row.action,
-                active = row.configured && !row.disabledByUser,
+                active = (row.configured || row.pendingChange) && !row.disabledByUser,
                 allowed = row.disabledByUser,
                 method = row.method,
             )
@@ -63,7 +64,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
 
     override val ownedComponents = combine(history.protections(), userBlocks.observe(UserId.SYSTEM)) { rows, user ->
         rows.asSequence()
-            .filter { it.method == "PM" && (it.configured || it.pendingChange) }
+            .filter { it.method == "PM" && (it.configured || it.componentWritePending) }
             .map { ComponentId(it.target, it.component) }
             .filterNot { ComponentKey(it, UserId.SYSTEM) in user }
             .toSet()
@@ -71,7 +72,9 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
 
     override suspend fun setBlocked(pathIds: Set<String>, blocked: Boolean): ChangeResult = change(blocked, pathIds) { it.pathId in pathIds }
 
-    override suspend fun allowForApp(packageName: String): WakeBlockOutcome = change(blocked = false) { !it.disabledByUser && (it.caller == packageName || it.target == packageName) }.outcome
+    override suspend fun allowForApp(packageName: String): WakeBlockOutcome = change(blocked = false) {
+        !it.disabledByUser && (it.configured || it.reblockPending) && (it.caller == packageName || it.target == packageName)
+    }.outcome
 
     private suspend fun change(
         blocked: Boolean,
@@ -83,8 +86,18 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
         var changedIds = emptySet<String>()
         val failure = try {
             lock.withLock {
-                val rows = history.readProtections().filter(select)
-                val changed = rows.filter { it.disabledByUser == blocked }.map { it.copy(disabledByUser = !blocked) }
+                val selected = history.readProtections().filter(select)
+                if (selected.isNotEmpty() && protection.writeAccess() != WakeWrites.Enforce) return@withLock WakeBlockFailure.NoAccess
+                val peers = selected.filter { blocked && it.requiresPeerFilter }
+                val unsupported = if (peers.isNotEmpty() && !protection.supportsPeerFilter()) peers else emptyList()
+                val rows = selected - unsupported.toSet()
+                val changed = rows.filter { it.disabledByUser == blocked }.map { row ->
+                    if (blocked && !row.configured && !row.pendingChange) {
+                        row.copy(disabledByUser = false, pendingChange = true, previousState = null)
+                    } else {
+                        row.copy(disabledByUser = !blocked, pendingChange = row.pendingChange && (blocked || !row.reblockPending))
+                    }
+                }
                 currentCoroutineContext().ensureActive()
                 withContext(NonCancellable) {
                     if (changed.isNotEmpty()) history.putProtections(changed)
@@ -92,9 +105,13 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
                     done = rows.mapTo(mutableSetOf()) { it.pathId }
                     if (done.isNotEmpty()) runs.requestRun()
                 }
+                val missing = requested.orEmpty() - done
+                when {
+                    unsupported.isNotEmpty() -> WakeBlockFailure.SenderFilterUnsupported(unsupported.map { it.pathId })
+                    missing.isNotEmpty() -> WakeBlockFailure.NotBlockable(missing.toList())
+                    else -> null
+                }
             }
-            val missing = requested.orEmpty() - done
-            if (missing.isEmpty()) null else WakeBlockFailure.NotBlockable(missing.toList())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -104,3 +121,9 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
         return ChangeResult(WakeBlockOutcome(done, failure), changedIds)
     }
 }
+
+internal val WakeProtection.requiresPeerFilter get() = method == "IFW" && caller != target
+
+// A PM request has no rollback state until reconciliation prepares the actual system write.
+internal val WakeProtection.reblockPending get() = pendingChange && !componentWritePending
+internal val WakeProtection.componentWritePending get() = method == "PM" && pendingChange && previousState != null

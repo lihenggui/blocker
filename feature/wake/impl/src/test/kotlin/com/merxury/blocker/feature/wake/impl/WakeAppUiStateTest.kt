@@ -4,6 +4,7 @@
 package com.merxury.blocker.feature.wake.impl
 
 import android.content.Intent
+import android.os.Build.VERSION_CODES
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -25,8 +26,13 @@ import com.merxury.blocker.core.model.wake.WakeVerdict
 import com.merxury.blocker.feature.wake.api.R.plurals
 import com.merxury.blocker.feature.wake.api.R.string
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import com.merxury.blocker.feature.appdetail.api.R.string as appString
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [VERSION_CODES.P], manifest = Config.NONE)
 class WakeAppUiStateTest {
     @Test
     fun givenUnsortedRelations_whenMapping_thenGroupsByDirectionAndSortsEachByCount() {
@@ -366,7 +372,7 @@ class WakeAppUiStateTest {
     }
 
     @Test
-    fun givenBackgroundRestrictionOnly_whenCheckingControls_thenAllowsUnknownOrChangeableUsageWithoutADuplicateChoice() {
+    fun givenBackgroundRestrictionOnly_whenCheckingControls_thenAllowsChangeableUsageWithoutADuplicateChoice() {
         val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
         val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer)))
         val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
@@ -375,14 +381,35 @@ class WakeAppUiStateTest {
         val protected = ui.copy(background = BackgroundUsage(allowed = true, changeable = false))
 
         assertThat(row.hasSwitch).isTrue()
-        for (available in listOf(ui, changeable)) {
-            assertThat(row.canToggle(available.background)).isTrue()
-            assertThat(available.choices.map { it.key }).containsExactly(row.key, FORCE_STOP_CHOICE).inOrder()
-            assertThat(available.canBlockAll).isTrue()
-        }
+        assertThat(row.canToggle(changeable.background)).isTrue()
+        assertThat(changeable.choices.map { it.key }).containsExactly(row.key, FORCE_STOP_CHOICE).inOrder()
+        assertThat(changeable.canBlockAll).isTrue()
         assertThat(row.canToggle(protected.background)).isFalse()
         assertThat(protected.choices).isEmpty()
         assertThat(protected.canBlockAll).isFalse()
+    }
+
+    @Test
+    fun givenSupportedApiWithNoBackgroundReadback_whenCheckingControls_thenTheBackgroundOnlyRowCanRequestAccess() {
+        val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
+        val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer)))
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
+        val row = ui.methods.single()
+
+        assertThat(row.canToggle(ui.background)).isTrue()
+        assertThat(ui.choices.map { it.key }).containsExactly(row.key, FORCE_STOP_CHOICE).inOrder()
+    }
+
+    @Test
+    @Config(sdk = [VERSION_CODES.O])
+    fun givenApi26BackgroundUsageState_whenCheckingControls_thenTheBackgroundOnlyRowOffersNoAction() {
+        val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
+        val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer)))
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
+
+        assertThat(ui.methods.single().canToggle(ui.background)).isFalse()
+        assertThat(ui.canBlockAll).isFalse()
+        assertThat(ui.choices).isEmpty()
     }
 
     @Test
