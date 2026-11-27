@@ -16,10 +16,14 @@
 
 package com.merxury.blocker.core.utils
 
+import android.content.res.Resources
+import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.manifest.ManifestActivity
 import com.merxury.blocker.core.model.manifest.ManifestProvider
 import com.merxury.blocker.core.model.manifest.ManifestReceiver
 import com.merxury.blocker.core.model.manifest.ManifestService
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -48,6 +52,34 @@ class ManifestParserTest {
         val resource = classLoader.getResource("test-app.apk")
         requireNotNull(resource) { "Test APK not found in resources" }
         testApkFile = File(resource.toURI())
+    }
+
+    @Test
+    fun givenHexResourceReference_whenResolvingLabel_thenReturnsResourceString() {
+        val resources = Resources.getSystem()
+        val id = android.R.string.ok
+        val hexId = id.toString(16)
+
+        assertThat(ManifestParser.resolveLabel("@0x$hexId", resources, "fallback"))
+            .isEqualTo(resources.getString(id))
+        assertThat(ManifestParser.resolveLabel("@0X$hexId", resources, "fallback"))
+            .isEqualTo(resources.getString(id))
+    }
+
+    @Test
+    fun givenCancellationDuringParsing_whenParsingManifest_thenPropagatesCancellation() = runTest {
+        val cancellation = CancellationException("test cancellation")
+        val file =
+            object : File(testApkFile.path) {
+                override fun isFile(): Boolean = throw cancellation
+            }
+
+        try {
+            ManifestParser.parseManifest(file, StandardTestDispatcher(testScheduler))
+            throw AssertionError("Expected manifest parsing to propagate cancellation")
+        } catch (e: CancellationException) {
+            assertThat(e).hasMessageThat().isEqualTo("test cancellation")
+        }
     }
 
     @Test

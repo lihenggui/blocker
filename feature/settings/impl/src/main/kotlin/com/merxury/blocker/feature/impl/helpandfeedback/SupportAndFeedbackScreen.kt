@@ -60,15 +60,12 @@ fun SupportAndFeedbackScreen(
         onReportBugClick = { viewModel.openReportBugPage(context) },
         onExportLogClick = {
             scope.launch {
-                viewModel.exportErrorLog()
-                    .collect { file ->
-                        shareFile(
-                            context = context,
-                            file = file,
-                            scope = scope,
-                            snackbarHostState = snackbarHostState,
-                        )
-                    }
+                shareFile(
+                    context = context,
+                    file = viewModel.exportErrorLog(),
+                    scope = scope,
+                    snackbarHostState = snackbarHostState,
+                )
             }
         },
         onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
