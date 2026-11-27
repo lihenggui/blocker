@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteReadOnlyDatabaseException
 import com.google.common.truth.Truth.assertThat
@@ -238,6 +239,21 @@ class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
 
         seeder.seedOnce()
 
+        assertThat(pmBlocks.of(own)).containsExactly(SELF_OFF.key())
+    }
+
+    @Test
+    fun givenReblockRequestAndPreparedWakeWrite_whenSeeding_thenOnlyThePreparedWriteClaimsAComponent() = runTest {
+        createDatabase(2, TRACKER to true, SELF_OFF to true)
+        val pending = WakeProtection("path", PKG, PKG, SELF_OFF.id.className, "", "proof", false, false, "PM", pendingChange = true)
+        val prepared = pending.copy(
+            pathId = "prepared",
+            component = TRACKER.id.className,
+            previousState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+        )
+        wakeDb.history().putProtections(listOf(pending, prepared))
+
+        assertThat(seeder.seedOnce()).isTrue()
         assertThat(pmBlocks.of(own)).containsExactly(SELF_OFF.key())
     }
 
