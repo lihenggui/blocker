@@ -28,10 +28,10 @@ import com.merxury.blocker.core.ui.component.ComponentRow
 import com.merxury.blocker.core.ui.control.ActivityLaunchFailed
 import com.merxury.blocker.core.ui.control.QueuedControlMessage
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
+import com.merxury.blocker.feature.ruledetail.api.navigation.RuleDetailTabs
 import java.io.File
 import kotlin.time.Instant
 

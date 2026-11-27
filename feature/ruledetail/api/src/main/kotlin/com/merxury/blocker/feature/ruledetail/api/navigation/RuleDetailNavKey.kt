@@ -18,12 +18,12 @@ package com.merxury.blocker.feature.ruledetail.api.navigation
 
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
+import com.merxury.blocker.feature.ruledetail.api.navigation.RuleDetailTabs.Applicable
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RuleDetailNavKey(val ruleId: String, val tab: String = Applicable.name) : NavKey
+data class RuleDetailNavKey(val ruleId: String, val tab: String = Applicable.routeName) : NavKey
 
-fun Navigator.navigateToRuleDetail(ruleId: String, tab: String = Applicable.name) {
+fun Navigator.navigateToRuleDetail(ruleId: String, tab: String = Applicable.routeName) {
     navigate(RuleDetailNavKey(ruleId, tab))
 }

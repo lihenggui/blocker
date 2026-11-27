@@ -51,7 +51,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.system.AppAction
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppActionConfirmDialog
@@ -62,6 +61,7 @@ import com.merxury.blocker.core.ui.applist.needsConfirmation
 import com.merxury.blocker.core.ui.control.AccessMessageSnackbar
 import com.merxury.blocker.core.ui.profile.ProfileSwitcher
 import com.merxury.blocker.core.ui.screen.EmptyScreen
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import com.merxury.blocker.feature.search.api.R.string
 import com.merxury.blocker.feature.search.impl.component.SearchActions
 import com.merxury.blocker.feature.search.impl.component.SearchResultTabs

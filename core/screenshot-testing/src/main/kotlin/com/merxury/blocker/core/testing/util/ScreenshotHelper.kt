@@ -46,11 +46,16 @@ import com.github.takahirom.roborazzi.captureScreenRoboImage
 import com.github.takahirom.roborazzi.checkRoboAccessibility
 import com.google.android.apps.common.testing.accessibility.framework.AccessibilityCheckPreset
 import com.google.android.apps.common.testing.accessibility.framework.AccessibilityViewCheckResult
+import com.google.android.apps.common.testing.accessibility.framework.checks.SpeakableTextPresentCheck
+import com.google.android.apps.common.testing.accessibility.framework.checks.TouchTargetSizeCheck
 import com.google.android.apps.common.testing.accessibility.framework.integrations.espresso.AccessibilityViewCheckException
+import com.google.android.apps.common.testing.accessibility.framework.uielement.ViewHierarchyElement
 import com.google.android.apps.common.testing.accessibility.framework.utils.contrast.BitmapImage
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers
+import org.hamcrest.TypeSafeMatcher
 import org.robolectric.RuntimeEnvironment
 import java.io.File
 import java.io.FileOutputStream
@@ -63,16 +68,49 @@ val DefaultRoborazziOptions =
         recordOptions = RecordOptions(resizeScale = 0.5),
     )
 
+private val NoAccessibilitySuppressions = Matchers.nullValue(AccessibilityViewCheckResult::class.java)
+
 enum class DefaultTestDevices(val description: String, val spec: String) {
     PHONE("phone", "spec:shape=Normal,width=640,height=360,unit=dp,dpi=480"),
     FOLDABLE("foldable", "spec:shape=Normal,width=673,height=841,unit=dp,dpi=480"),
     TABLET("tablet", "spec:shape=Normal,width=1280,height=800,unit=dp,dpi=480"),
 }
 
+/**
+ * Suppresses size and label findings for rows cut off at the bottom of the screenshot that
+ * can be revealed by scrolling. ATF reports viewport-clipped bounds for virtual Compose
+ * nodes, so use the hierarchy element even when the result has no Android View.
+ */
+fun viewportEdgeClippedScrollItemSuppression(): Matcher<AccessibilityViewCheckResult> = object : TypeSafeMatcher<AccessibilityViewCheckResult>() {
+    override fun describeTo(description: Description) {
+        description.appendText("a size or label result for a row clipped at the bottom edge")
+    }
+
+    override fun matchesSafely(result: AccessibilityViewCheckResult): Boolean {
+        val check = result.sourceCheckClass
+        if (check != TouchTargetSizeCheck::class.java &&
+            check != SpeakableTextPresentCheck::class.java
+        ) {
+            return false
+        }
+
+        val element: ViewHierarchyElement = result.element ?: return false
+        val bounds = element.boundsInScreen ?: return false
+        val viewportBottom: Int = element.window?.rootView?.boundsInScreen?.bottom ?: return false
+        if (bounds.isEmpty || bounds.top >= viewportBottom || bounds.bottom < viewportBottom) return false
+
+        var parent: ViewHierarchyElement? = element.parentView
+        while (parent != null) {
+            if (parent.canScrollForward() == true) return true
+            parent = parent.parentView
+        }
+        return false
+    }
+}
+
 fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.captureMultiDevice(
     screenshotName: String,
-    // TODO use Matchers.not(Matchers.anything())
-    accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = Matchers.anything(),
+    accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = NoAccessibilitySuppressions,
     body: @Composable () -> Unit,
 ) {
     DefaultTestDevices.entries.forEach {
@@ -91,8 +129,7 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
     deviceSpec: String,
     screenshotName: String,
     roborazziOptions: RoborazziOptions = DefaultRoborazziOptions,
-    // TODO use Matchers.not(Matchers.anything())
-    accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = Matchers.anything(),
+    accessibilitySuppressions: Matcher<in AccessibilityViewCheckResult> = NoAccessibilitySuppressions,
     darkMode: Boolean = false,
     captureAllWindows: Boolean = false,
     beforeCapture: () -> Unit = {},
@@ -151,11 +188,10 @@ fun <A : ComponentActivity> AndroidComposeTestRule<ActivityScenarioRule<A>, A>.c
         accessibilityException.results.forEachIndexed { index, check ->
             val viewImage = check.viewImage
             if (viewImage is BitmapImage) {
-                val file = File("build/outputs/roborazzi/${screenshotName}_${deviceName}_$index.png")
-                println("Writing check.viewImage to $file")
-                FileOutputStream(
-                    file,
-                ).use {
+                val outputFile = File("build/outputs/roborazzi/${screenshotName}_${deviceName}_$index.png")
+                outputFile.parentFile?.mkdirs()
+                println("Writing check.viewImage to $outputFile")
+                FileOutputStream(outputFile).use {
                     viewImage.bitmap.compress(PNG, 100, it)
                 }
             }

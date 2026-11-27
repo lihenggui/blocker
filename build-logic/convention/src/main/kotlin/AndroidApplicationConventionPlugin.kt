@@ -17,12 +17,11 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.merxury.blocker.configureBadgingTasks
-import com.merxury.blocker.configureSpotlessForAndroid
 import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configureLicensee
 import com.merxury.blocker.configurePrintApksTask
-import com.merxury.blocker.configureRenameBuildOutputTask
+import com.merxury.blocker.configureSpotlessForAndroid
 import com.merxury.blocker.disableUnnecessaryAndroidTests
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -48,7 +47,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             extensions.configure<ApplicationAndroidComponentsExtension> {
                 disableUnnecessaryAndroidTests(target)
                 configurePrintApksTask(this)
-                configureRenameBuildOutputTask(this)
                 configureBadgingTasks(extensions.getByType<ApplicationExtension>(), this)
                 configureLicensee()
             }

@@ -18,9 +18,9 @@ package com.merxury.blocker.feature.appdetail.impl
 
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.system.ReadFailure
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.component.ComponentRow
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import java.io.File
 
 /**

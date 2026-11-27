@@ -40,11 +40,11 @@ import com.merxury.blocker.core.model.control.ControlFailure
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.system.ReadFailure
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.control.ControlMessage
 import com.merxury.blocker.core.ui.control.text
 import com.merxury.blocker.core.ui.profile.ProfileLabel
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowItem
 import com.merxury.blocker.feature.appdetail.impl.ui.TopBarActions

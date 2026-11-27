@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,7 +85,7 @@ fun BlockerCollapsingTopAppBar(
     onNavigationClick: () -> Unit = {},
     actions: (@Composable RowScope.() -> Unit)? = {},
     iconSource: Any? = null,
-    onIconClick: (() -> Unit)? = {},
+    onIconClick: (() -> Unit)? = null,
 ) {
     val titleSize = with(LocalDensity.current) {
         lerp(collapsedTitleSize.toPx(), expandedTitleSize.toPx(), progress).toSp()
@@ -118,7 +119,9 @@ fun BlockerCollapsingTopAppBar(
                     text = title,
                     maxLines = 2,
                     fontSize = titleSize,
-                    modifier = Modifier.fillMaxWidth(0.7f),
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .clearBlankTextSemantics(title),
                 )
                 Row {
                     if (actions != null) {
@@ -131,7 +134,8 @@ fun BlockerCollapsingTopAppBar(
                     modifier = Modifier
                         .padding(vertical = padding)
                         .fillMaxWidth(0.7f)
-                        .graphicsLayer { alpha = detailsAlpha },
+                        .graphicsLayer { alpha = detailsAlpha }
+                        .clearBlankTextSemantics(subtitle),
                 )
                 BlockerBodySmallText(
                     text = summary,
@@ -139,20 +143,39 @@ fun BlockerCollapsingTopAppBar(
                     modifier = Modifier
                         .padding(vertical = padding)
                         .fillMaxWidth(0.7f)
-                        .graphicsLayer { alpha = detailsAlpha },
+                        .graphicsLayer { alpha = detailsAlpha }
+                        .clearBlankTextSemantics(summary),
                 )
-                CollapsingToolbarIcon(iconSource = iconSource, opacity = detailsAlpha, onClick = onIconClick)
+                CollapsingToolbarIcon(
+                    iconSource = iconSource,
+                    title = title,
+                    opacity = detailsAlpha,
+                    onClick = onIconClick,
+                )
             }
         }
     }
 }
 
+private fun Modifier.clearBlankTextSemantics(text: String): Modifier = if (text.isBlank()) {
+    clearAndSetSemantics {}
+} else {
+    this
+}
+
 @Composable
 private fun CollapsingToolbarIcon(
     iconSource: Any?,
+    title: String,
     opacity: Float,
     onClick: (() -> Unit)?,
 ) {
+    val iconClick = onClick?.takeIf { opacity > 0.05f }
+    val iconDescription = if (iconClick != null) {
+        title.takeIf { it.isNotBlank() } ?: stringResource(R.string.core_designsystem_app_icon)
+    } else {
+        null
+    }
     val context = LocalContext.current
     val imageRequest = remember(context, iconSource) {
         ImageRequest.Builder(context)
@@ -170,11 +193,11 @@ private fun CollapsingToolbarIcon(
                 .size(appIconSize)
                 .testTag(COLLAPSING_TOP_APP_BAR_ICON_TAG)
                 .then(
-                    if (onClick != null && opacity > 0.05f) {
+                    if (iconClick != null) {
                         Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = ripple(bounded = false),
-                            onClick = onClick,
+                            onClick = iconClick,
                         )
                     } else {
                         Modifier
@@ -182,7 +205,7 @@ private fun CollapsingToolbarIcon(
                 )
                 .graphicsLayer { alpha = opacity },
             model = imageRequest,
-            contentDescription = null,
+            contentDescription = iconDescription,
         )
     }
 }

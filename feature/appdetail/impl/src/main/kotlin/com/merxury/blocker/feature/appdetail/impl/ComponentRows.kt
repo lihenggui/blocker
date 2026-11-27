@@ -25,9 +25,9 @@ import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.component.ComponentRow
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import java.io.File
 
 /** The app a detail screen shows: [packageName] for [userId], or for the user Blocker runs in when null. */

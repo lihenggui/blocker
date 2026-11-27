@@ -25,9 +25,12 @@ import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.JavaContext
 import com.android.tools.lint.detector.api.Scope
 import com.android.tools.lint.detector.api.Severity
+import com.intellij.psi.PsiClass
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UElement
+import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UQualifiedReferenceExpression
+import org.jetbrains.uast.UResolvable
 
 /**
  * A detector that checks for incorrect usages of Compose Material APIs over equivalents in
@@ -42,21 +45,45 @@ class DesignSystemDetector :
         UQualifiedReferenceExpression::class.java,
     )
 
-    override fun createUastHandler(context: JavaContext): UElementHandler = object : UElementHandler() {
-        override fun visitCallExpression(node: UCallExpression) {
-            val name = node.methodName ?: return
-            val preferredName = METHOD_NAMES[name] ?: return
-            reportIssue(context, node, name, preferredName)
-        }
+    override fun createUastHandler(context: JavaContext): UElementHandler? {
+        val sourcePackage = context.uastFile?.packageName
+        // The design system implements its wrappers by calling the underlying Material APIs.
+        if (sourcePackage?.isInPackage(DESIGN_SYSTEM_PACKAGE) == true) return null
 
-        override fun visitQualifiedReferenceExpression(node: UQualifiedReferenceExpression) {
-            val name = node.receiver.asRenderString()
-            val preferredName = RECEIVER_NAMES[name] ?: return
-            reportIssue(context, node, name, preferredName)
+        return object : UElementHandler() {
+            override fun visitCallExpression(node: UCallExpression) {
+                val name = node.methodName ?: return
+                val preferredName = METHOD_NAMES[name] ?: return
+                val declaringPackage = node.resolve()?.let { context.evaluator.getPackage(it)?.qualifiedName } ?: return
+                if (!declaringPackage.isInPackage(MATERIAL_PACKAGE) && !declaringPackage.isInPackage(MATERIAL3_PACKAGE)) return
+                reportIssue(context, node, name, preferredName)
+            }
+
+            override fun visitQualifiedReferenceExpression(node: UQualifiedReferenceExpression) {
+                val receiver = node.receiver
+                if (!receiver.isMaterialIcons()) return
+                // Report once for a chain such as Icons.Filled.Home.
+                if ((receiver as? UQualifiedReferenceExpression)?.receiver?.isMaterialIcons() == true) return
+                reportIssue(context, node, "Icons", "BlockerIcons")
+            }
         }
     }
 
+    private fun UExpression.isMaterialIcons(): Boolean {
+        val type = getExpressionType()?.canonicalText
+            ?: ((this as? UResolvable)?.resolve() as? PsiClass)?.qualifiedName
+            ?: return false
+        return type == MATERIAL_ICONS || type.startsWith("$MATERIAL_ICONS.")
+    }
+
+    private fun String.isInPackage(packageName: String): Boolean = this == packageName || startsWith("$packageName.")
+
     companion object {
+        private const val DESIGN_SYSTEM_PACKAGE = "com.merxury.blocker.core.designsystem"
+        private const val MATERIAL_PACKAGE = "androidx.compose.material"
+        private const val MATERIAL3_PACKAGE = "androidx.compose.material3"
+        private const val MATERIAL_ICONS = "$MATERIAL_PACKAGE.icons.Icons"
+
         @JvmField
         val ISSUE: Issue = Issue.create(
             id = "DesignSystem",
@@ -84,10 +111,10 @@ class DesignSystemDetector :
             "FilterChip" to "BlockerFilterChip",
             "ElevatedFilterChip" to "BlockerFilterChip",
             "DropdownMenu" to "BlockerDropdownMenu",
-            "NavigationBar" to "BlockerNavigationBar",
-            "NavigationBarItem" to "BlockerNavigationBarItem",
-            "NavigationRail" to "BlockerNavigationRail",
-            "NavigationRailItem" to "BlockerNavigationRailItem",
+            "NavigationBar" to "BlockerNavigationSuiteScaffold",
+            "NavigationBarItem" to "BlockerNavigationSuiteScaffold",
+            "NavigationRail" to "BlockerNavigationSuiteScaffold",
+            "NavigationRailItem" to "BlockerNavigationSuiteScaffold",
             "TabRow" to "BlockerTabRow",
             "Tab" to "BlockerTab",
             "IconToggleButton" to "BlockerIconToggleButton",
@@ -100,11 +127,8 @@ class DesignSystemDetector :
             "LargeTopAppBar" to "BlockerTopAppBar",
             "Switch" to "BlockerSwitch",
         )
-        val RECEIVER_NAMES = mapOf(
-            "Icons" to "BlockerIcons",
-        )
 
-        fun reportIssue(
+        private fun reportIssue(
             context: JavaContext,
             node: UElement,
             name: String,

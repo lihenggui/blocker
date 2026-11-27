@@ -22,7 +22,6 @@ import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -66,7 +65,6 @@ import javax.inject.Inject
 /**
  * Tests that the Snackbar is correctly displayed on different screen sizes.
  */
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 // Configure Robolectric to use a very large screen size that can fit all of the test sizes.

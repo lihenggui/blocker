@@ -45,13 +45,12 @@ private val coverageExclusions = listOf(
     "**/R\$*.class",
     "**/BuildConfig.*",
     "**/Manifest*.*",
-    "**/Manifest*.*",
     "**/*_Hilt*.class",
     "**/Hilt_*.class",
 )
 
 private fun String.capitalize() = replaceFirstChar {
-    if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString()
 }
 
 /**
@@ -87,7 +86,6 @@ internal fun Project.configureJacoco(
                 "create${variant.name.capitalize()}CombinedCoverageReport",
                 JacocoReport::class,
             ) {
-
                 classDirectories.setFrom(
                     allJars,
                     allDirectories.map { dirs ->
@@ -121,7 +119,6 @@ internal fun Project.configureJacoco(
                 )
             }
 
-
         variant.artifacts.forScope(ScopedArtifacts.Scope.PROJECT)
             .use(reportTask)
             .toGet(
@@ -134,9 +131,11 @@ internal fun Project.configureJacoco(
     tasks.withType<Test>().configureEach {
         // Fix java.lang.UnsupportedOperationException:
         // Failed to create a Robolectric sandbox: Android SDK 36 requires Java 21 (have Java 17)
-        javaLauncher.set(toolchains.launcherFor {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        })
+        javaLauncher.set(
+            toolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            },
+        )
         configure<JacocoTaskExtension> {
             // Required for JaCoCo + Robolectric
             // https://github.com/robolectric/robolectric/issues/2230

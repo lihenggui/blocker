@@ -54,13 +54,13 @@ class NavigatorTest {
     }
 
     @Test
-    fun testStartKey() {
+    fun whenNavigatorIsCreated_thenStartKeyIsCurrent() {
         assertThat(navigationState.startKey).isEqualTo(TestFirstTopLevelKey)
         assertThat(navigationState.currentTopLevelKey).isEqualTo(TestFirstTopLevelKey)
     }
 
     @Test
-    fun testNavigate() {
+    fun whenNavigatingToDetail_thenCurrentSubStackReceivesKey() {
         navigator.navigate(TestKeyFirst)
 
         assertThat(navigationState.currentTopLevelKey).isEqualTo(TestFirstTopLevelKey)
@@ -68,13 +68,13 @@ class NavigatorTest {
     }
 
     @Test
-    fun testNavigateTopLevel() {
+    fun whenNavigatingToTopLevel_thenCurrentTopLevelChanges() {
         navigator.navigate(TestSecondTopLevelKey)
         assertThat(navigationState.currentTopLevelKey).isEqualTo(TestSecondTopLevelKey)
     }
 
     @Test
-    fun testNavigateSingleTop() {
+    fun givenCurrentDetail_whenNavigatingToSameDetail_thenStackHasOneEntryForIt() {
         navigator.navigate(TestKeyFirst)
 
         assertThat(navigationState.currentSubStack).containsExactly(
@@ -91,7 +91,7 @@ class NavigatorTest {
     }
 
     @Test
-    fun testNavigateTopLevelSingleTop() {
+    fun givenOpenDetail_whenReselectingCurrentTopLevel_thenSubStackResets() {
         navigator.navigate(TestSecondTopLevelKey)
         navigator.navigate(TestKeyFirst)
 
@@ -108,7 +108,7 @@ class NavigatorTest {
     }
 
     @Test
-    fun testSubStack() {
+    fun whenNavigatingBetweenDetails_thenTopLevelStaysCurrent() {
         navigator.navigate(TestKeyFirst)
 
         assertThat(navigationState.currentKey).isEqualTo(TestKeyFirst)
@@ -121,7 +121,7 @@ class NavigatorTest {
     }
 
     @Test
-    fun testMultiStack() {
+    fun whenReturningToStartStack_thenPreviousDetailIsRestored() {
         // add to start stack
         navigator.navigate(TestKeyFirst)
 
@@ -148,7 +148,7 @@ class NavigatorTest {
     }
 
     @Test
-    fun testPopOneNonTopLevel() {
+    fun givenTwoDetails_whenGoingBack_thenPreviousDetailIsCurrent() {
         navigator.navigate(TestKeyFirst)
         navigator.navigate(TestKeySecond)
 
@@ -170,7 +170,7 @@ class NavigatorTest {
     }
 
     @Test
-    fun testPopOneTopLevel() {
+    fun givenTwoTopLevels_whenGoingBack_thenPreviousTopLevelAndDetailAreRestored() {
         navigator.navigate(TestKeyFirst)
         navigator.navigate(TestSecondTopLevelKey)
 
@@ -194,7 +194,7 @@ class NavigatorTest {
     }
 
     @Test
-    fun popMultipleNonTopLevel() {
+    fun givenTwoDetails_whenGoingBackTwice_thenStartKeyIsCurrent() {
         navigator.navigate(TestKeyFirst)
         navigator.navigate(TestKeySecond)
 
@@ -216,7 +216,7 @@ class NavigatorTest {
     }
 
     @Test
-    fun popMultipleTopLevel() {
+    fun givenMultipleTopLevelsWithDetails_whenGoingBackFourTimes_thenStartKeyIsCurrent() {
         // second sub-stack
         navigator.navigate(TestSecondTopLevelKey)
         navigator.navigate(TestKeyFirst)
@@ -248,7 +248,7 @@ class NavigatorTest {
     }
 
     @Test
-    fun throwOnEmptyBackStack() {
+    fun givenOnlyStartKey_whenGoingBack_thenThrowsIllegalStateException() {
         assertFailsWith<IllegalStateException> {
             navigator.goBack()
         }

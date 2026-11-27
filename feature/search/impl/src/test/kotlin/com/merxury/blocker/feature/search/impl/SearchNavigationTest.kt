@@ -21,8 +21,8 @@ import androidx.navigation3.runtime.NavKey
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.navigation.NavigationState
 import com.merxury.blocker.core.navigation.Navigator
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
 import com.merxury.blocker.feature.ruledetail.api.navigation.RuleDetailNavKey
 import com.merxury.blocker.feature.ruledetail.api.navigation.navigateToRuleDetail
@@ -57,7 +57,7 @@ class SearchNavigationTest {
         assertThat(state.currentSubStack).containsExactly(
             SearchNavKey,
             AppDetailNavKey("com.example"),
-            AppDetailNavKey("com.example", tab = AppDetailTabs.Receiver.name, searchKeyword = listOf("push"), userId = 10),
+            AppDetailNavKey("com.example", tab = "receiver", searchKeyword = listOf("push"), userId = 10),
         ).inOrder()
     }
 

@@ -21,7 +21,6 @@ import android.util.Log
 import androidx.activity.BackEventCompat
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
@@ -74,7 +73,6 @@ import com.merxury.blocker.feature.wake.api.R.string as wakeString
 /**
  * Tests that the navigation UI is rendered correctly on different screen sizes.
  */
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 // Configure Robolectric to use a very large screen size that can fit all of the test sizes.

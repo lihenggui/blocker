@@ -23,6 +23,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
+import com.merxury.blocker.core.testing.util.viewportEdgeClippedScrollItemSuppression
 import com.merxury.blocker.feature.impl.helpandfeedback.SupportAndFeedbackScreen
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
@@ -52,7 +53,10 @@ class SupportAndFeedbackScreenScreenshotTests {
 
     @Test
     fun supportAndFeedbackScreen() {
-        composeTestRule.captureMultiDevice("SupportAndFeedbackScreen") {
+        composeTestRule.captureMultiDevice(
+            screenshotName = "SupportAndFeedbackScreen",
+            accessibilitySuppressions = viewportEdgeClippedScrollItemSuppression(),
+        ) {
             BlockerTheme {
                 Surface {
                     SupportAndFeedbackScreen()
@@ -67,6 +71,7 @@ class SupportAndFeedbackScreenScreenshotTests {
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "SupportAndFeedbackScreen",
+            accessibilitySuppressions = viewportEdgeClippedScrollItemSuppression(),
             darkMode = true,
         ) {
             SupportAndFeedbackScreen()
