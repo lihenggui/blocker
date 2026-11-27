@@ -5,11 +5,14 @@ package com.merxury.blocker.feature.history.impl
 
 import com.merxury.blocker.core.data.device.DeviceUserRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.history.OperationHistoryRepository
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.history.Operation
 import com.merxury.blocker.core.model.history.OperationSource
+import com.merxury.blocker.core.model.system.InstalledApp
+import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.ui.profile.ProfileLabel
 import com.merxury.blocker.core.ui.profile.profileLabel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,11 +25,24 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import timber.log.Timber
 
-internal data class DeviceLabels(val profiles: Map<UserId, ProfileLabel>, val apps: Map<AppKey, String>) {
-    private val appsByPackage = apps.entries.groupBy({ it.key.packageName }, { it.value })
+internal class DeviceLabels(val profiles: Map<UserId, ProfileLabel>, private val apps: Map<AppKey, InstalledApp>) {
+    private val appsByPackage = apps.values.groupBy { it.key.packageName }
 
-    fun appLabel(packageName: String): String = appsByPackage[packageName]?.firstOrNull() ?: packageName
+    fun appLabel(packageName: String): String = appsByPackage[packageName]
+        ?.firstNotNullOfOrNull { it.label.takeIf(String::isNotBlank) } ?: packageName
+
+    fun appIcon(packageName: String): ApkIcon {
+        val app = appsByPackage[packageName]?.firstOrNull()
+        return ApkIcon(packageName, app?.apkPath, app?.versionCode ?: 0, app?.uid)
+    }
 }
+
+internal fun OperationHistoryRepository.observeHistory(): Flow<Result<List<Operation>>> = observeOperations()
+    .map { Result.success(it) }
+    .catch {
+        Timber.e(it, "Could not load operation history")
+        emit(Result.failure(it))
+    }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal fun observeDeviceLabels(
@@ -49,8 +65,8 @@ internal fun observeDeviceLabels(
                 }
         }
         combine(appFlows) { lists ->
-            val labels = lists.asSequence().flatten().filter { it.label.isNotBlank() }.associate { it.key to it.label }
-            DeviceLabels(profiles, labels)
+            val apps = lists.asSequence().flatten().associateBy { it.key }
+            DeviceLabels(profiles, apps)
         }
     }
 
@@ -75,14 +91,43 @@ internal fun Flow<Result<List<Operation>>>.withRuleLabels(
     }
 }
 
-internal fun Operation.reference(device: DeviceLabels, rules: Map<Int, String>): String? = when (source) {
-    OperationSource.APP_DETAIL, OperationSource.DEBLOATER, OperationSource.EXTERNAL_PROVIDER ->
-        ref?.takeIf(String::isNotBlank)?.let(device::appLabel)
-
-    OperationSource.RULE_DETAIL -> ruleId?.let(rules::get)
-
-    else -> null
+internal fun List<Operation>.historyRows(device: DeviceLabels, rules: Map<Int, String>): List<HistoryOperation> {
+    val undone = filter { it.undoneByOperationId != null }.groupBy { it.undoneByOperationId }
+    return map { it.historyRow(device, rules, undone[it.id].orEmpty()) }
 }
+
+internal fun Operation.historyRow(
+    device: DeviceLabels,
+    rules: Map<Int, String>,
+    undoneOperations: List<Operation>,
+): HistoryOperation {
+    val target = when (undoneOperations.size) {
+        0 -> null
+        1 -> UndoTarget.Single(undoneOperations.single().headline(device, rules))
+        else -> UndoTarget.Several(undoneOperations.size)
+    }
+    return HistoryOperation(
+        operation = this,
+        headline = headline(device, rules),
+        appIcon = when (source) {
+            OperationSource.APP_DETAIL, OperationSource.DEBLOATER -> ref?.takeIf(String::isNotBlank)?.let(device::appIcon)
+            else -> null
+        },
+        undoTarget = target,
+    )
+}
+
+private fun Operation.headline(device: DeviceLabels, rules: Map<Int, String>): OperationHeadline = OperationHeadline(
+    source = source,
+    reference = when (source) {
+        OperationSource.APP_DETAIL, OperationSource.DEBLOATER, OperationSource.EXTERNAL_PROVIDER ->
+            ref?.takeIf(String::isNotBlank)?.let(device::appLabel)
+
+        OperationSource.RULE_DETAIL -> ruleId?.let(rules::get)
+
+        else -> null
+    },
+)
 
 private val Operation.ruleId: Int?
     get() = ref?.toIntOrNull()?.takeIf { source == OperationSource.RULE_DETAIL }

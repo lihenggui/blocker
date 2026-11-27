@@ -31,9 +31,18 @@ class FakeOperationHistoryRepository @Inject constructor() : OperationHistoryRep
     val operations = MutableStateFlow<List<Operation>>(emptyList())
     val entries = mutableMapOf<Long, List<OperationEntry>>()
     var undoResult = UndoResult(restored = 0, alreadyAtTarget = 0, skipped = 0, failed = 0)
+    val undoIds = mutableListOf<Long>()
+    val undoStarts = mutableListOf<Instant>()
 
     override fun observeOperations() = operations.asStateFlow()
     override suspend fun getEntries(operationId: Long) = entries[operationId].orEmpty()
-    override suspend fun undoOperation(id: Long) = undoResult
-    override suspend fun undoSince(since: Instant) = undoResult
+    override suspend fun undoOperation(id: Long): UndoResult {
+        undoIds += id
+        return undoResult
+    }
+
+    override suspend fun undoSince(since: Instant): UndoResult {
+        undoStarts += since
+        return undoResult
+    }
 }

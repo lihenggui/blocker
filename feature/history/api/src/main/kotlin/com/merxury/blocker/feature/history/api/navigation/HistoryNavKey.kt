@@ -23,6 +23,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object HistoryNavKey : NavKey
 
+@Serializable
+data class HistoryOperationNavKey(val id: Long) : NavKey
+
 fun Navigator.navigateToHistory() {
     navigate(HistoryNavKey)
+}
+
+fun Navigator.navigateToHistoryOperation(id: Long) {
+    navigate(HistoryOperationNavKey(id))
 }

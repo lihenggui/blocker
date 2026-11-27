@@ -27,10 +27,13 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -47,10 +50,21 @@ import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.R
+import com.merxury.blocker.core.data.test.repository.FakeOperationHistoryRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
+import com.merxury.blocker.core.model.component.ControlState
+import com.merxury.blocker.core.model.component.IfwBlock
+import com.merxury.blocker.core.model.component.PmSetting
+import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.history.Operation
+import com.merxury.blocker.core.model.history.OperationEntry
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
@@ -67,10 +81,12 @@ import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.LooperMode
 import java.util.TimeZone
 import javax.inject.Inject
+import kotlin.time.Instant
 import com.merxury.blocker.core.designsystem.R.string as designString
 import com.merxury.blocker.core.ui.R.string as uiString
 import com.merxury.blocker.feature.applist.api.R.string as appsString
 import com.merxury.blocker.feature.globalifwrule.impl.R.string as firewallString
+import com.merxury.blocker.feature.history.impl.R.string as historyString
 import com.merxury.blocker.feature.settings.api.R.string as settingsString
 import com.merxury.blocker.feature.wake.api.R.string as wakeString
 
@@ -107,6 +123,9 @@ class BlockerAppScreenSizesScreenshotTests {
 
     @Inject
     lateinit var permissionMonitor: PermissionMonitor
+
+    @Inject
+    lateinit var operationHistory: FakeOperationHistoryRepository
 
     @Before
     fun setup() {
@@ -170,15 +189,17 @@ class BlockerAppScreenSizesScreenshotTests {
     private fun showApp(widthDp: Float = 412f) {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
-                BlockerTheme {
-                    val appState = rememberBlockerAppState(networkMonitor, permissionMonitor, timeZoneMonitor)
-                    BlockerApp(
-                        appState = appState,
-                        windowAdaptiveInfo = WindowAdaptiveInfo(
-                            windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(widthDp = widthDp, heightDp = 880f),
-                            windowPosture = Posture(),
-                        ),
-                    )
+                DeviceConfigurationOverride(DeviceConfigurationOverride.ForcedSize(DpSize(widthDp.dp, 880.dp))) {
+                    BlockerTheme {
+                        val appState = rememberBlockerAppState(networkMonitor, permissionMonitor, timeZoneMonitor)
+                        BlockerApp(
+                            appState = appState,
+                            windowAdaptiveInfo = WindowAdaptiveInfo(
+                                windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(widthDp = widthDp, heightDp = 880f),
+                                windowPosture = Posture(),
+                            ),
+                        )
+                    }
                 }
             }
         }
@@ -252,32 +273,76 @@ class BlockerAppScreenSizesScreenshotTests {
     }
 
     @Test
-    fun givenCompactLayout_whenOpeningHistoryAndGoingBack_thenSettingsReturns() {
-        assertHistoryReturnsToSettings(widthDp = 412f, useSystemBack = true)
+    fun givenCompactLayout_whenOpeningAnOperationAndGoingBackTwice_thenSettingsReturns() {
+        openHistory(widthDp = 412f)
+        historyRow().performClick()
+
+        historyTitle().assertDoesNotExist()
+        composeTestRule.onNodeWithText("SyncService").assertIsDisplayed()
+
+        systemBack()
+        historyTitle().assertIsDisplayed()
+        composeTestRule.onNodeWithText("SyncService").assertDoesNotExist()
+        systemBack()
+        assertSettingsDisplayed()
     }
 
     @Test
-    fun givenExpandedLayout_whenOpeningHistoryAndGoingBack_thenSettingsReturns() {
-        assertHistoryReturnsToSettings(widthDp = 900f, useSystemBack = false)
+    fun givenExpandedLayout_whenOpeningAnOperation_thenDetailIsShownBesideTheSelectedRow() {
+        openHistory(widthDp = 900f)
+        historyRow().performClick()
+
+        historyTitle().assertIsDisplayed()
+        historyRow().assertIsDisplayed().assertIsSelected()
+        composeTestRule.onNodeWithText("SyncService").assertIsDisplayed()
+        composeTestRule.onRoot().captureRoboImage(
+            "src/testFoss/screenshots/HistoryExpandedTwoPane.png",
+            roborazziOptions = DefaultRoborazziOptions,
+        )
+
+        composeTestRule.onAllNodesWithContentDescription(text(designString.core_designsystem_back))[1].performClick()
+        historyTitle().assertIsDisplayed()
+        historyRow().assertIsNotSelected()
+        composeTestRule.onNodeWithText("SyncService").assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back)).performClick()
+        assertSettingsDisplayed()
     }
 
-    private fun assertHistoryReturnsToSettings(widthDp: Float, useSystemBack: Boolean) {
+    private fun openHistory(widthDp: Float) {
+        val operation = Operation(
+            id = 1,
+            timestamp = Instant.parse("2025-12-10T14:35:00Z"),
+            source = OperationSource.SEARCH,
+            entryCount = 1,
+            blockedCount = 1,
+        )
+        val before = ControlState(PmSetting.ENABLED, IfwBlock.NOT_BLOCKED)
+        operationHistory.entries[operation.id] = listOf(
+            OperationEntry(
+                operationId = operation.id,
+                key = ComponentKey(ComponentId("com.example.notes", "com.example.notes.SyncService"), UserId.SYSTEM),
+                type = ComponentType.SERVICE,
+                before = before,
+                after = before.copy(pm = PmSetting.DISABLED),
+            ),
+        )
+        operationHistory.operations.value = listOf(operation)
         showApp(widthDp)
         composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_more_menu)).performClick()
         composeTestRule.onNodeWithText(text(appsString.feature_applist_api_settings)).performClick()
-        val history = composeTestRule.onNodeWithText(text(settingsString.feature_settings_api_operation_history))
-        history.performScrollTo().performClick()
+        composeTestRule.onNodeWithText(text(settingsString.feature_settings_api_operation_history)).performScrollTo().performClick()
+        composeTestRule.onNode(hasTestTag("settings:content")).assertDoesNotExist()
+        historyTitle().assertIsDisplayed()
+    }
 
-        val settingsContent = composeTestRule.onNode(hasTestTag("settings:content"))
-        settingsContent.assertDoesNotExist()
-        history.assertIsDisplayed()
+    private fun systemBack() = composeTestRule.runOnUiThread { composeTestRule.activity.onBackPressedDispatcher.onBackPressed() }
 
-        if (useSystemBack) {
-            composeTestRule.runOnUiThread { composeTestRule.activity.onBackPressedDispatcher.onBackPressed() }
-        } else {
-            composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back)).performClick()
-        }
-        settingsContent.assertIsDisplayed()
+    private fun historyTitle() = composeTestRule.onNodeWithText(text(historyString.feature_history_impl_title))
+
+    private fun historyRow() = composeTestRule.onNode(hasClickAction() and hasText(text(historyString.feature_history_impl_source_search)) and !hasTestTag("BlockerNavItem"))
+
+    private fun assertSettingsDisplayed() {
+        composeTestRule.onNode(hasTestTag("settings:content")).assertIsDisplayed()
         composeTestRule.onNodeWithText(text(settingsString.feature_settings_api_settings)).assertIsDisplayed()
     }
 

@@ -16,18 +16,38 @@
 
 package com.merxury.blocker.feature.history.impl.navigation
 
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
-import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.history.api.navigation.HistoryNavKey
+import com.merxury.blocker.feature.history.api.navigation.HistoryOperationNavKey
+import com.merxury.blocker.feature.history.api.navigation.navigateToHistoryOperation
+import com.merxury.blocker.feature.history.impl.HistoryOperationRoute
+import com.merxury.blocker.feature.history.impl.HistoryOperationViewModel
 import com.merxury.blocker.feature.history.impl.HistoryRoute
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.historyEntry(navigator: Navigator) {
-    entry<HistoryNavKey> {
+    entry<HistoryNavKey>(metadata = ListDetailSceneStrategy.listPane()) {
+        val selected = navigator.state.currentKey as? HistoryOperationNavKey
         HistoryRoute(
+            selectedOperationId = selected?.id,
             navigateBack = navigator::goBack,
-            snackbarHostState = LocalSnackbarHostState.current,
+            onOperationClick = { id ->
+                if (id != selected?.id) {
+                    if (selected != null) navigator.goBack()
+                    navigator.navigateToHistoryOperation(id)
+                }
+            },
+        )
+    }
+    entry<HistoryOperationNavKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
+        HistoryOperationRoute(
+            viewModel = hiltViewModel<HistoryOperationViewModel, HistoryOperationViewModel.Factory> { it.create(key.id) },
+            navigateBack = navigator::goBack,
         )
     }
 }

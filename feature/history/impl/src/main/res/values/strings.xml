@@ -16,39 +16,81 @@
   -->
 <resources>
     <string name="feature_history_impl_title">Operation history</string>
-    <string name="feature_history_impl_empty">No component operations recorded yet.</string>
-    <string name="feature_history_impl_undo_since">Undo everything since this day</string>
     <string name="feature_history_impl_undo">Undo</string>
     <string name="feature_history_impl_cancel">Cancel</string>
-    <string name="feature_history_impl_confirm_title">Undo component changes?</string>
-    <string name="feature_history_impl_undoing">Restoring components…</string>
     <string name="feature_history_impl_undone">Undone</string>
-    <string name="feature_history_impl_expand">Show component changes</string>
-    <string name="feature_history_impl_collapse">Hide component changes</string>
-    <string name="feature_history_impl_source_app_detail">App detail</string>
+    <string name="feature_history_impl_source_app_detail">App details</string>
     <string name="feature_history_impl_source_search">Search</string>
-    <string name="feature_history_impl_source_general_rule">General rule</string>
-    <string name="feature_history_impl_source_rule_detail">Rule detail</string>
+    <string name="feature_history_impl_source_general_rule">General rules</string>
+    <string name="feature_history_impl_source_rule_detail">Rule details</string>
     <string name="feature_history_impl_source_debloater">Debloater</string>
-    <string name="feature_history_impl_source_provider">External provider</string>
+    <string name="feature_history_impl_source_provider">Another app</string>
     <string name="feature_history_impl_source_import_blocker">Import Blocker rules</string>
     <string name="feature_history_impl_source_import_mat">Import MyAndroidTools rules</string>
-    <string name="feature_history_impl_no_snapshots">No component changes available.</string>
-    <string name="feature_history_impl_confirm_since">Restore component states to how they were before the changes recorded on or after %1$s?</string>
-    <string name="feature_history_impl_undo_result">Restored: %1$d · Already at the earlier state: %2$d · Skipped: %3$d · Failed: %4$d</string>
+    <string name="feature_history_impl_source_reset_pm">Restore PM modifications</string>
     <string name="feature_history_impl_load_failed">Could not load operation history.</string>
     <string name="feature_history_impl_entries_failed">Could not load component changes.</string>
-    <string name="feature_history_impl_undo_failed">Could not undo component changes.</string>
-    <string name="feature_history_impl_on">On</string>
-    <string name="feature_history_impl_off">Off</string>
-    <string name="feature_history_impl_source_reset_pm">Restore PM modifications</string>
-    <string name="feature_history_impl_state_change">%1$s → %2$s</string>
-    <plurals name="feature_history_impl_component_count">
-        <item quantity="one">%d component</item>
-        <item quantity="other">%d components</item>
+    <string name="feature_history_impl_empty_title">No operations yet</string>
+    <string name="feature_history_impl_empty_body">After you turn components on or off, you can review and undo the changes here.</string>
+    <string name="feature_history_impl_provider_headline">From %s</string>
+    <string name="feature_history_impl_source_import">Import</string>
+    <string name="feature_history_impl_undoing">Undoing</string>
+    <string name="feature_history_impl_undo_later">Undo this and later operations</string>
+    <string name="feature_history_impl_undone_suffix">%s · Undone</string>
+    <string name="feature_history_impl_undone_status">Undone · %s</string>
+    <string name="feature_history_impl_on">Turned on</string>
+    <string name="feature_history_impl_off">Turned off</string>
+    <string name="feature_history_impl_undo_failed">Could not undo the changes.</string>
+    <string name="feature_history_impl_summary_joiner">%1$s · %2$s</string>
+    <string name="feature_history_impl_day_time">%1$s %2$s</string>
+    <string name="feature_history_impl_source_time">%1$s · %2$s</string>
+    <string name="feature_history_impl_restoration_joiner">%1$s. %2$s.</string>
+    <plurals name="feature_history_impl_turned_off">
+        <item quantity="one">Turned off %d component</item>
+        <item quantity="other">Turned off %d components</item>
     </plurals>
-    <plurals name="feature_history_impl_confirm_operation">
-        <item quantity="one">Restore %d component to its state before this operation?</item>
-        <item quantity="other">Restore %d components to their state before this operation?</item>
+    <plurals name="feature_history_impl_turned_on">
+        <item quantity="one">Turned on %d component</item>
+        <item quantity="other">Turned on %d components</item>
+    </plurals>
+    <plurals name="feature_history_impl_off_count">
+        <item quantity="one">%d off</item>
+        <item quantity="other">%d off</item>
+    </plurals>
+    <plurals name="feature_history_impl_on_count">
+        <item quantity="one">%d on</item>
+        <item quantity="other">%d on</item>
+    </plurals>
+    <plurals name="feature_history_impl_changed">
+        <item quantity="one">Changed %d component</item>
+        <item quantity="other">Changed %d components</item>
+    </plurals>
+    <plurals name="feature_history_impl_undo_row">
+        <item quantity="one">%1$s · Restored %2$d component</item>
+        <item quantity="other">%1$s · Restored %2$d components</item>
+    </plurals>
+    <plurals name="feature_history_impl_operation_count">
+        <item quantity="one">%d operation</item>
+        <item quantity="other">%d operations</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_title">
+        <item quantity="one">Undo %d operation?</item>
+        <item quantity="other">Undo %d operations?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_body">
+        <item quantity="one">This operation and the %d operation after it will be undone.</item>
+        <item quantity="other">This operation and the %d operations after it will be undone.</item>
+    </plurals>
+    <plurals name="feature_history_impl_restored">
+        <item quantity="one">Restored %d component</item>
+        <item quantity="other">Restored %d components</item>
+    </plurals>
+    <plurals name="feature_history_impl_not_restored">
+        <item quantity="one">%d could not be restored</item>
+        <item quantity="other">%d could not be restored</item>
+    </plurals>
+    <plurals name="feature_history_impl_none_restored">
+        <item quantity="one">%d component could not be restored</item>
+        <item quantity="other">%d components could not be restored</item>
     </plurals>
 </resources>

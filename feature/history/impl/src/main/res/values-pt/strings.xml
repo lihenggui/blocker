@@ -16,41 +16,93 @@
   -->
 <resources>
     <string name="feature_history_impl_title">Histórico de operações</string>
-    <string name="feature_history_impl_empty">Ainda não foram registadas operações de componentes.</string>
-    <string name="feature_history_impl_undo_since">Desfazer tudo desde este dia</string>
-    <string name="feature_history_impl_undo">Desfazer</string>
+    <string name="feature_history_impl_undo">Anular</string>
     <string name="feature_history_impl_cancel">Cancelar</string>
-    <string name="feature_history_impl_confirm_title">Desfazer as alterações dos componentes?</string>
-    <string name="feature_history_impl_undoing">A restaurar componentes…</string>
-    <string name="feature_history_impl_undone">Desfeito</string>
-    <string name="feature_history_impl_expand">Mostrar alterações dos componentes</string>
-    <string name="feature_history_impl_collapse">Ocultar alterações dos componentes</string>
-    <string name="feature_history_impl_source_app_detail">Detalhes do app</string>
+    <string name="feature_history_impl_undone">Anulado</string>
+    <string name="feature_history_impl_source_app_detail">Detalhes da aplicação</string>
     <string name="feature_history_impl_source_search">Pesquisar</string>
-    <string name="feature_history_impl_source_general_rule">Regra geral</string>
+    <string name="feature_history_impl_source_general_rule">Regras gerais</string>
     <string name="feature_history_impl_source_rule_detail">Detalhes da regra</string>
-    <string name="feature_history_impl_source_debloater">Simplificação de aplicativos</string>
-    <string name="feature_history_impl_source_provider">Fornecedor externo</string>
+    <string name="feature_history_impl_source_debloater">Simplificação de aplicações</string>
+    <string name="feature_history_impl_source_provider">Outra aplicação</string>
     <string name="feature_history_impl_source_import_blocker">Importar regras Blocker</string>
     <string name="feature_history_impl_source_import_mat">Importar regras MyAndroidTools</string>
-    <string name="feature_history_impl_no_snapshots">Não há alterações de componentes disponíveis.</string>
-    <string name="feature_history_impl_confirm_since">Repor os componentes no estado anterior às alterações registadas a partir de %1$s?</string>
-    <string name="feature_history_impl_undo_result">Repostos: %1$d · Já no estado anterior: %2$d · Ignorados: %3$d · Falhas: %4$d</string>
+    <string name="feature_history_impl_source_reset_pm">Repor as alterações do PM</string>
     <string name="feature_history_impl_load_failed">Não foi possível carregar o histórico de operações.</string>
     <string name="feature_history_impl_entries_failed">Não foi possível carregar as alterações dos componentes.</string>
-    <string name="feature_history_impl_undo_failed">Não foi possível anular as alterações dos componentes.</string>
+    <string name="feature_history_impl_empty_title">Ainda não existem operações</string>
+    <string name="feature_history_impl_empty_body">Após ativar ou desativar componentes, pode rever e anular as alterações aqui.</string>
+    <string name="feature_history_impl_provider_headline">De %s</string>
+    <string name="feature_history_impl_source_import">Importação</string>
+    <string name="feature_history_impl_undoing">A anular</string>
+    <string name="feature_history_impl_undo_later">Anular esta operação e as seguintes</string>
+    <string name="feature_history_impl_undone_suffix">%s · Anulado</string>
+    <string name="feature_history_impl_undone_status">Anulado · %s</string>
     <string name="feature_history_impl_on">Ativado</string>
     <string name="feature_history_impl_off">Desativado</string>
-    <string name="feature_history_impl_source_reset_pm">Repor as alterações do PM</string>
-    <string name="feature_history_impl_state_change">%1$s → %2$s</string>
-    <plurals name="feature_history_impl_component_count">
-        <item quantity="one">%d componente</item>
-        <item quantity="many">%d componentes</item>
-        <item quantity="other">%d componentes</item>
+    <string name="feature_history_impl_undo_failed">Não foi possível anular as alterações.</string>
+    <string name="feature_history_impl_summary_joiner">%1$s · %2$s</string>
+    <string name="feature_history_impl_day_time">%1$s %2$s</string>
+    <string name="feature_history_impl_source_time">%1$s · %2$s</string>
+    <string name="feature_history_impl_restoration_joiner">%1$s. %2$s.</string>
+    <plurals name="feature_history_impl_turned_off">
+        <item quantity="one">%d componente desativado</item>
+        <item quantity="many">%d componentes desativados</item>
+        <item quantity="other">%d componentes desativados</item>
     </plurals>
-    <plurals name="feature_history_impl_confirm_operation">
-        <item quantity="one">Restaurar %d componente para o estado anterior a esta operação?</item>
-        <item quantity="many">Restaurar %d componentes para o estado anterior a esta operação?</item>
-        <item quantity="other">Restaurar %d componentes para o estado anterior a esta operação?</item>
+    <plurals name="feature_history_impl_turned_on">
+        <item quantity="one">%d componente ativado</item>
+        <item quantity="many">%d componentes ativados</item>
+        <item quantity="other">%d componentes ativados</item>
+    </plurals>
+    <plurals name="feature_history_impl_off_count">
+        <item quantity="one">%d desativado</item>
+        <item quantity="many">%d desativados</item>
+        <item quantity="other">%d desativados</item>
+    </plurals>
+    <plurals name="feature_history_impl_on_count">
+        <item quantity="one">%d ativado</item>
+        <item quantity="many">%d ativados</item>
+        <item quantity="other">%d ativados</item>
+    </plurals>
+    <plurals name="feature_history_impl_changed">
+        <item quantity="one">%d componente alterado</item>
+        <item quantity="many">%d componentes alterados</item>
+        <item quantity="other">%d componentes alterados</item>
+    </plurals>
+    <plurals name="feature_history_impl_undo_row">
+        <item quantity="one">%1$s · %2$d componente reposto</item>
+        <item quantity="many">%1$s · %2$d componentes repostos</item>
+        <item quantity="other">%1$s · %2$d componentes repostos</item>
+    </plurals>
+    <plurals name="feature_history_impl_operation_count">
+        <item quantity="one">%d operação</item>
+        <item quantity="many">%d operações</item>
+        <item quantity="other">%d operações</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_title">
+        <item quantity="one">Anular %d operação?</item>
+        <item quantity="many">Anular %d operações?</item>
+        <item quantity="other">Anular %d operações?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_body">
+        <item quantity="one">Esta operação e mais %d operação serão anuladas.</item>
+        <item quantity="many">Esta operação e as %d operações seguintes serão anuladas.</item>
+        <item quantity="other">Esta operação e as %d operações seguintes serão anuladas.</item>
+    </plurals>
+    <plurals name="feature_history_impl_restored">
+        <item quantity="one">%d componente reposto</item>
+        <item quantity="many">%d componentes repostos</item>
+        <item quantity="other">%d componentes repostos</item>
+    </plurals>
+    <plurals name="feature_history_impl_not_restored">
+        <item quantity="one">Não foi possível repor %d</item>
+        <item quantity="many">Não foi possível repor %d</item>
+        <item quantity="other">Não foi possível repor %d</item>
+    </plurals>
+    <plurals name="feature_history_impl_none_restored">
+        <item quantity="one">Não foi possível repor %d componente</item>
+        <item quantity="many">Não foi possível repor %d componentes</item>
+        <item quantity="other">Não foi possível repor %d componentes</item>
     </plurals>
 </resources>

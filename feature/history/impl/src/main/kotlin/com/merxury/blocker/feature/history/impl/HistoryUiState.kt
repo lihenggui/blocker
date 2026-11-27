@@ -5,51 +5,52 @@ package com.merxury.blocker.feature.history.impl
 
 import com.merxury.blocker.core.model.history.Operation
 import com.merxury.blocker.core.model.history.OperationSource
-import com.merxury.blocker.core.model.history.UndoResult
-import com.merxury.blocker.core.ui.profile.ProfileLabel
+import com.merxury.blocker.core.ui.coil.ApkIcon
 import java.time.LocalDate
 import java.time.ZoneId
-import kotlin.time.Instant
 
 internal data class HistoryUiState(
     val days: List<HistoryDay>? = null,
     val zone: ZoneId = ZoneId.systemDefault(),
     val loadFailed: Boolean = false,
-    val expanded: ExpandedOperation? = null,
-    val confirmation: UndoRequest? = null,
-    val isUndoing: Boolean = false,
-    val message: HistoryMessage? = null,
 )
 
-internal data class HistoryDay(val date: LocalDate, val operations: List<HistoryOperation>, val canUndoSince: Boolean)
+internal data class HistoryDay(val date: LocalDate, val operations: List<HistoryOperation>)
 
-internal data class HistoryOperation(val operation: Operation, val reference: String? = null) {
-    val canUndo: Boolean
-        get() = operation.entryCount > 0 && operation.undoneByOperationId == null && operation.source != OperationSource.UNDO
+internal data class HistoryOperation(
+    val operation: Operation,
+    val headline: OperationHeadline = OperationHeadline(operation.source),
+    val appIcon: ApkIcon? = null,
+    val undoTarget: UndoTarget? = null,
+) {
+    val isUndone: Boolean get() = operation.undoneByOperationId != null
+
+    val summary: OperationSummary
+        get() = with(operation) {
+            when {
+                source == OperationSource.UNDO -> OperationSummary.Undo(undoTarget, entryCount)
+                blockedCount > 0 && enabledCount > 0 -> OperationSummary.Mixed(blockedCount, enabledCount)
+                blockedCount > 0 -> OperationSummary.Blocked(blockedCount)
+                enabledCount > 0 -> OperationSummary.Enabled(enabledCount)
+                else -> OperationSummary.Changed(entryCount)
+            }
+        }
 }
 
-internal data class ExpandedOperation(
-    val id: Long,
-    val entries: List<HistoryEntry>? = null,
-    val loadFailed: Boolean = false,
-)
+internal data class OperationHeadline(val source: OperationSource, val reference: String? = null)
 
-internal data class HistoryEntry(
-    val component: String,
-    val app: String,
-    val profile: ProfileLabel?,
-    val before: ComponentState,
-    val after: ComponentState,
-)
-
-internal enum class ComponentState { ON, OFF, UNKNOWN }
-
-internal sealed interface UndoRequest {
-    data class Single(val id: Long, val entryCount: Int) : UndoRequest
-    data class Since(val day: LocalDate, val start: Instant) : UndoRequest
+internal sealed interface UndoTarget {
+    data class Single(val headline: OperationHeadline) : UndoTarget
+    data class Several(val count: Int) : UndoTarget
 }
 
-internal sealed interface HistoryMessage {
-    class Undone(val result: UndoResult) : HistoryMessage
-    class UndoFailed : HistoryMessage
+internal sealed interface OperationSummary {
+    data class Blocked(val count: Int) : OperationSummary
+    data class Enabled(val count: Int) : OperationSummary
+    data class Mixed(val blocked: Int, val enabled: Int) : OperationSummary
+    data class Changed(val count: Int) : OperationSummary
+    data class Undo(val target: UndoTarget?, val restored: Int) : OperationSummary
 }
+
+internal val Operation.canUndo: Boolean
+    get() = entryCount > 0 && undoneByOperationId == null && source != OperationSource.UNDO

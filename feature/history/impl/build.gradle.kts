@@ -29,6 +29,7 @@ android {
 dependencies {
     implementation(projects.feature.history.api)
     implementation(projects.core.data)
+    implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.kotlinx.datetime)
 
     testImplementation(libs.hilt.android.testing)

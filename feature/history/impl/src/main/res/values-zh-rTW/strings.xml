@@ -16,37 +16,69 @@
   -->
 <resources>
     <string name="feature_history_impl_title">操作記錄</string>
-    <string name="feature_history_impl_empty">尚無元件操作記錄。</string>
-    <string name="feature_history_impl_undo_since">復原自此日起的所有操作</string>
     <string name="feature_history_impl_undo">復原</string>
     <string name="feature_history_impl_cancel">取消</string>
-    <string name="feature_history_impl_confirm_title">復原元件變更？</string>
-    <string name="feature_history_impl_undoing">正在還原元件…</string>
     <string name="feature_history_impl_undone">已復原</string>
-    <string name="feature_history_impl_expand">顯示元件變更</string>
-    <string name="feature_history_impl_collapse">隱藏元件變更</string>
-    <string name="feature_history_impl_source_app_detail">應用詳情</string>
+    <string name="feature_history_impl_source_app_detail">應用程式詳情</string>
     <string name="feature_history_impl_source_search">搜尋</string>
     <string name="feature_history_impl_source_general_rule">通用規則</string>
     <string name="feature_history_impl_source_rule_detail">規則詳情</string>
     <string name="feature_history_impl_source_debloater">應用精簡</string>
-    <string name="feature_history_impl_source_provider">外部提供者</string>
+    <string name="feature_history_impl_source_provider">其他應用程式</string>
     <string name="feature_history_impl_source_import_blocker">匯入 Blocker 規則</string>
     <string name="feature_history_impl_source_import_mat">匯入 MyAndroidTools 規則</string>
-    <string name="feature_history_impl_no_snapshots">沒有可用的元件變更記錄。</string>
-    <string name="feature_history_impl_confirm_since">將元件還原至 %1$s 及之後的變更發生前的狀態？</string>
-    <string name="feature_history_impl_undo_result">已還原：%1$d · 已處於先前狀態：%2$d · 已略過：%3$d · 失敗：%4$d</string>
+    <string name="feature_history_impl_source_reset_pm">還原 PM 修改</string>
     <string name="feature_history_impl_load_failed">無法載入操作記錄。</string>
     <string name="feature_history_impl_entries_failed">無法載入元件變更記錄。</string>
-    <string name="feature_history_impl_undo_failed">無法復原元件變更。</string>
-    <string name="feature_history_impl_on">開啟</string>
-    <string name="feature_history_impl_off">關閉</string>
-    <string name="feature_history_impl_source_reset_pm">還原 PM 修改</string>
-    <string name="feature_history_impl_state_change">%1$s → %2$s</string>
-    <plurals name="feature_history_impl_component_count">
-        <item quantity="other">%d 個元件</item>
+    <string name="feature_history_impl_empty_title">還沒有操作記錄</string>
+    <string name="feature_history_impl_empty_body">在 Blocker 中啟用或停用元件後，可以在這裡查看及復原變更。</string>
+    <string name="feature_history_impl_provider_headline">來自 %s</string>
+    <string name="feature_history_impl_source_import">匯入</string>
+    <string name="feature_history_impl_undoing">正在復原</string>
+    <string name="feature_history_impl_undo_later">復原這次及之後的操作</string>
+    <string name="feature_history_impl_undone_suffix">%s · 已復原</string>
+    <string name="feature_history_impl_undone_status">已復原 · %s</string>
+    <string name="feature_history_impl_on">已啟用</string>
+    <string name="feature_history_impl_off">已停用</string>
+    <string name="feature_history_impl_undo_failed">無法復原這些變更。</string>
+    <string name="feature_history_impl_summary_joiner">%1$s · %2$s</string>
+    <string name="feature_history_impl_day_time">%1$s %2$s</string>
+    <string name="feature_history_impl_source_time">%1$s · %2$s</string>
+    <string name="feature_history_impl_restoration_joiner">%1$s，%2$s</string>
+    <plurals name="feature_history_impl_turned_off">
+        <item quantity="other">停用 %d 個元件</item>
     </plurals>
-    <plurals name="feature_history_impl_confirm_operation">
-        <item quantity="other">將 %d 個元件還原到此次操作前的狀態？</item>
+    <plurals name="feature_history_impl_turned_on">
+        <item quantity="other">啟用 %d 個元件</item>
+    </plurals>
+    <plurals name="feature_history_impl_off_count">
+        <item quantity="other">停用 %d 個</item>
+    </plurals>
+    <plurals name="feature_history_impl_on_count">
+        <item quantity="other">啟用 %d 個</item>
+    </plurals>
+    <plurals name="feature_history_impl_changed">
+        <item quantity="other">變更 %d 個元件</item>
+    </plurals>
+    <plurals name="feature_history_impl_undo_row">
+        <item quantity="other">%1$s · 還原 %2$d 個元件</item>
+    </plurals>
+    <plurals name="feature_history_impl_operation_count">
+        <item quantity="other">%d 次操作</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_title">
+        <item quantity="other">復原 %d 次操作？</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_body">
+        <item quantity="other">這次操作和之後的 %d 次操作都會復原。</item>
+    </plurals>
+    <plurals name="feature_history_impl_restored">
+        <item quantity="other">已還原 %d 個元件</item>
+    </plurals>
+    <plurals name="feature_history_impl_not_restored">
+        <item quantity="other">%d 個無法還原</item>
+    </plurals>
+    <plurals name="feature_history_impl_none_restored">
+        <item quantity="other">%d 個元件無法還原</item>
     </plurals>
 </resources>

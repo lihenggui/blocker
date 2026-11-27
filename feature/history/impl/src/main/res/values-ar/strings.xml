@@ -16,47 +16,129 @@
   -->
 <resources>
     <string name="feature_history_impl_title">سجل العمليات</string>
-    <string name="feature_history_impl_empty">لم يتم تسجيل أي عمليات على المكونات بعد.</string>
-    <string name="feature_history_impl_undo_since">التراجع عن كل شيء منذ هذا اليوم</string>
     <string name="feature_history_impl_undo">تراجع</string>
     <string name="feature_history_impl_cancel">إلغاء</string>
-    <string name="feature_history_impl_confirm_title">هل تريد التراجع عن تغييرات المكونات؟</string>
-    <string name="feature_history_impl_undoing">جارٍ استعادة المكونات…</string>
     <string name="feature_history_impl_undone">تم التراجع</string>
-    <string name="feature_history_impl_expand">إظهار تغييرات المكونات</string>
-    <string name="feature_history_impl_collapse">إخفاء تغييرات المكونات</string>
-    <string name="feature_history_impl_source_app_detail">تفاصيل البرنامج</string>
+    <string name="feature_history_impl_source_app_detail">تفاصيل التطبيق</string>
     <string name="feature_history_impl_source_search">البحث</string>
-    <string name="feature_history_impl_source_general_rule">قاعدة عامة</string>
+    <string name="feature_history_impl_source_general_rule">القواعد العامة</string>
     <string name="feature_history_impl_source_rule_detail">تفاصيل القاعدة</string>
     <string name="feature_history_impl_source_debloater">تبسيط التطبيق</string>
-    <string name="feature_history_impl_source_provider">موفر خارجي</string>
+    <string name="feature_history_impl_source_provider">تطبيق آخر</string>
     <string name="feature_history_impl_source_import_blocker">استيراد قواعد Blocker</string>
     <string name="feature_history_impl_source_import_mat">استيراد قواعد MyAndroidTools</string>
-    <string name="feature_history_impl_no_snapshots">لا تتوفر تغييرات للمكوّنات.</string>
-    <string name="feature_history_impl_confirm_since">هل تريد استعادة حالات المكوّنات إلى ما كانت عليه قبل التغييرات المسجّلة في %1$s أو بعده؟</string>
-    <string name="feature_history_impl_undo_result">تمت الاستعادة: %1$d · في الحالة السابقة بالفعل: %2$d · تم التخطي: %3$d · تعذّرت الاستعادة: %4$d</string>
+    <string name="feature_history_impl_source_reset_pm">استعادة تعديلات PM</string>
     <string name="feature_history_impl_load_failed">تعذّر تحميل سجل العمليات.</string>
     <string name="feature_history_impl_entries_failed">تعذّر تحميل تغييرات المكوّنات.</string>
-    <string name="feature_history_impl_undo_failed">تعذّر التراجع عن تغييرات المكوّنات.</string>
-    <string name="feature_history_impl_on">مفعّل</string>
-    <string name="feature_history_impl_off">معطّل</string>
-    <string name="feature_history_impl_source_reset_pm">استعادة تعديلات PM</string>
-    <string name="feature_history_impl_state_change">%1$s ← %2$s</string>
-    <plurals name="feature_history_impl_component_count">
-        <item quantity="zero">لا مكونات (%d)</item>
-        <item quantity="one">مكون واحد (%d)</item>
-        <item quantity="two">مكونان (%d)</item>
-        <item quantity="few">%d مكونات</item>
-        <item quantity="many">%d مكونًا</item>
-        <item quantity="other">%d مكون</item>
+    <string name="feature_history_impl_empty_title">لا توجد عمليات حتى الآن</string>
+    <string name="feature_history_impl_empty_body">بعد تشغيل المكوّنات أو إيقافها، يمكنك مراجعة التغييرات والتراجع عنها هنا.</string>
+    <string name="feature_history_impl_provider_headline">من %s</string>
+    <string name="feature_history_impl_source_import">استيراد</string>
+    <string name="feature_history_impl_undoing">جارٍ التراجع</string>
+    <string name="feature_history_impl_undo_later">التراجع عن هذه العملية والعمليات اللاحقة</string>
+    <string name="feature_history_impl_undone_suffix">%s · تم التراجع</string>
+    <string name="feature_history_impl_undone_status">تم التراجع · %s</string>
+    <string name="feature_history_impl_on">تم التشغيل</string>
+    <string name="feature_history_impl_off">تم الإيقاف</string>
+    <string name="feature_history_impl_undo_failed">تعذّر التراجع عن التغييرات.</string>
+    <string name="feature_history_impl_summary_joiner">%1$s · %2$s</string>
+    <string name="feature_history_impl_day_time">%1$s %2$s</string>
+    <string name="feature_history_impl_source_time">%1$s · %2$s</string>
+    <string name="feature_history_impl_restoration_joiner">%1$s. %2$s.</string>
+    <plurals name="feature_history_impl_turned_off">
+        <item quantity="zero">تم إيقاف %d من المكوّنات</item>
+        <item quantity="one">تم إيقاف مكوّن واحد</item>
+        <item quantity="two">تم إيقاف مكوّنين</item>
+        <item quantity="few">تم إيقاف %d مكوّنات</item>
+        <item quantity="many">تم إيقاف %d مكوّنًا</item>
+        <item quantity="other">تم إيقاف %d مكوّن</item>
     </plurals>
-    <plurals name="feature_history_impl_confirm_operation">
-        <item quantity="zero">هل تريد استعادة المكونات (%d) إلى حالتها قبل هذه العملية؟</item>
-        <item quantity="one">هل تريد استعادة مكون واحد (%d) إلى حالته قبل هذه العملية؟</item>
-        <item quantity="two">هل تريد استعادة مكونين (%d) إلى حالتهما قبل هذه العملية؟</item>
-        <item quantity="few">هل تريد استعادة %d مكونات إلى حالتها قبل هذه العملية؟</item>
-        <item quantity="many">هل تريد استعادة %d مكونًا إلى حالته قبل هذه العملية؟</item>
-        <item quantity="other">هل تريد استعادة %d مكون إلى حالته قبل هذه العملية؟</item>
+    <plurals name="feature_history_impl_turned_on">
+        <item quantity="zero">تم تشغيل %d من المكوّنات</item>
+        <item quantity="one">تم تشغيل مكوّن واحد</item>
+        <item quantity="two">تم تشغيل مكوّنين</item>
+        <item quantity="few">تم تشغيل %d مكوّنات</item>
+        <item quantity="many">تم تشغيل %d مكوّنًا</item>
+        <item quantity="other">تم تشغيل %d مكوّن</item>
+    </plurals>
+    <plurals name="feature_history_impl_off_count">
+        <item quantity="zero">تم إيقاف %d</item>
+        <item quantity="one">تم إيقاف %d</item>
+        <item quantity="two">تم إيقاف %d</item>
+        <item quantity="few">تم إيقاف %d</item>
+        <item quantity="many">تم إيقاف %d</item>
+        <item quantity="other">تم إيقاف %d</item>
+    </plurals>
+    <plurals name="feature_history_impl_on_count">
+        <item quantity="zero">تم تشغيل %d</item>
+        <item quantity="one">تم تشغيل %d</item>
+        <item quantity="two">تم تشغيل %d</item>
+        <item quantity="few">تم تشغيل %d</item>
+        <item quantity="many">تم تشغيل %d</item>
+        <item quantity="other">تم تشغيل %d</item>
+    </plurals>
+    <plurals name="feature_history_impl_changed">
+        <item quantity="zero">تم تغيير %d من المكوّنات</item>
+        <item quantity="one">تم تغيير مكوّن واحد</item>
+        <item quantity="two">تم تغيير مكوّنين</item>
+        <item quantity="few">تم تغيير %d مكوّنات</item>
+        <item quantity="many">تم تغيير %d مكوّنًا</item>
+        <item quantity="other">تم تغيير %d مكوّن</item>
+    </plurals>
+    <plurals name="feature_history_impl_undo_row">
+        <item quantity="zero">%1$s · تمت استعادة %2$d من المكوّنات</item>
+        <item quantity="one">%1$s · تمت استعادة مكوّن واحد</item>
+        <item quantity="two">%1$s · تمت استعادة مكوّنين</item>
+        <item quantity="few">%1$s · تمت استعادة %2$d مكوّنات</item>
+        <item quantity="many">%1$s · تمت استعادة %2$d مكوّنًا</item>
+        <item quantity="other">%1$s · تمت استعادة %2$d مكوّن</item>
+    </plurals>
+    <plurals name="feature_history_impl_operation_count">
+        <item quantity="zero">%d من العمليات</item>
+        <item quantity="one">عملية واحدة</item>
+        <item quantity="two">عمليتان</item>
+        <item quantity="few">%d عمليات</item>
+        <item quantity="many">%d عمليةً</item>
+        <item quantity="other">%d عملية</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_title">
+        <item quantity="zero">هل تريد التراجع عن %d من العمليات؟</item>
+        <item quantity="one">هل تريد التراجع عن عملية واحدة؟</item>
+        <item quantity="two">هل تريد التراجع عن عمليتين؟</item>
+        <item quantity="few">هل تريد التراجع عن %d عمليات؟</item>
+        <item quantity="many">هل تريد التراجع عن %d عمليةً؟</item>
+        <item quantity="other">هل تريد التراجع عن %d عملية؟</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_body">
+        <item quantity="zero">سيتم التراجع عن هذه العملية وعن %d من العمليات التي تليها.</item>
+        <item quantity="one">سيتم التراجع عن هذه العملية وعن العملية التي تليها.</item>
+        <item quantity="two">سيتم التراجع عن هذه العملية وعن العمليتين اللتين تليانها.</item>
+        <item quantity="few">سيتم التراجع عن هذه العملية وعن %d عمليات تليها.</item>
+        <item quantity="many">سيتم التراجع عن هذه العملية وعن %d عمليةً تليها.</item>
+        <item quantity="other">سيتم التراجع عن هذه العملية وعن %d عملية تليها.</item>
+    </plurals>
+    <plurals name="feature_history_impl_restored">
+        <item quantity="zero">تمت استعادة %d من المكوّنات</item>
+        <item quantity="one">تمت استعادة مكوّن واحد</item>
+        <item quantity="two">تمت استعادة مكوّنين</item>
+        <item quantity="few">تمت استعادة %d مكوّنات</item>
+        <item quantity="many">تمت استعادة %d مكوّنًا</item>
+        <item quantity="other">تمت استعادة %d مكوّن</item>
+    </plurals>
+    <plurals name="feature_history_impl_not_restored">
+        <item quantity="zero">تعذّرت استعادة %d</item>
+        <item quantity="one">تعذّرت استعادة %d</item>
+        <item quantity="two">تعذّرت استعادة %d</item>
+        <item quantity="few">تعذّرت استعادة %d</item>
+        <item quantity="many">تعذّرت استعادة %d</item>
+        <item quantity="other">تعذّرت استعادة %d</item>
+    </plurals>
+    <plurals name="feature_history_impl_none_restored">
+        <item quantity="zero">تعذّرت استعادة %d من المكوّنات</item>
+        <item quantity="one">تعذّرت استعادة مكوّن واحد</item>
+        <item quantity="two">تعذّرت استعادة مكوّنين</item>
+        <item quantity="few">تعذّرت استعادة %d مكوّنات</item>
+        <item quantity="many">تعذّرت استعادة %d مكوّنًا</item>
+        <item quantity="other">تعذّرت استعادة %d مكوّن</item>
     </plurals>
 </resources>

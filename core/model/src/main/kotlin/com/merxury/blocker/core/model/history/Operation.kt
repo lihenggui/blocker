@@ -28,6 +28,8 @@ import kotlin.time.Instant
  * for the external provider, or original operation ID for a single undo. Null otherwise.
  * @property undoneByOperationId the ID of the operation that reversed this one, if any
  * @property entryCount the number of component entries in the query result
+ * @property blockedCount the number of components turned off
+ * @property enabledCount the number of components turned on
  */
 data class Operation(
     val id: Long,
@@ -36,4 +38,6 @@ data class Operation(
     val ref: String? = null,
     val undoneByOperationId: Long? = null,
     val entryCount: Int = 0,
+    val blockedCount: Int = 0,
+    val enabledCount: Int = 0,
 )

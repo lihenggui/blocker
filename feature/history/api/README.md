@@ -1,3 +1,3 @@
 # `:feature:history:api`
 
-Navigation key and navigator extension for the operation history screen.
+Navigation keys and navigator extensions for the operation history list and operation details.

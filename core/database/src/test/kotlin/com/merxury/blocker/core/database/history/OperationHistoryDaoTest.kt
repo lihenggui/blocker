@@ -141,8 +141,8 @@ class OperationHistoryDaoTest {
         val latestId = dao.insertOperation(latest, listOf(entry().asEntity(), entry(userId = 10).asEntity()))
         val oldest = operation(100)
         val oldestId = dao.insertOperation(oldest, listOf(entry().asEntity()))
-        val expectedLatest = latest.copy(id = latestId).asExternalModel().copy(entryCount = 2)
-        val expectedOldest = oldest.copy(id = oldestId).asExternalModel().copy(entryCount = 1)
+        val expectedLatest = latest.copy(id = latestId).asExternalModel().copy(entryCount = 2, blockedCount = 2)
+        val expectedOldest = oldest.copy(id = oldestId).asExternalModel().copy(entryCount = 1, blockedCount = 1)
 
         dao.observeOperations().test {
             assertThat(awaitItem().map { it.asExternalModel() }).containsExactly(expectedLatest, expectedOldest).inOrder()
@@ -155,6 +155,51 @@ class OperationHistoryDaoTest {
             dao.insertEntries(listOf(entry().copy(operationId = atSameTimeId).asEntity()))
             assertThat(awaitItem().first().entryCount).isEqualTo(1)
             cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun givenMixedEntries_whenObserved_thenBlockedAndEnabledCountsAreProjected() = runTest {
+        val on = ControlState(PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED)
+        val onExplicitly = ControlState(PmSetting.ENABLED, IfwBlock.CONDITIONAL)
+        val pmOff = on.copy(pm = PmSetting.DISABLED)
+        val ifwOff = on.copy(ifw = IfwBlock.BLOCKED)
+        val entries = listOf(
+            entry(component = "PmOff", before = on, after = pmOff),
+            entry(component = "IfwOff", before = onExplicitly, after = ifwOff),
+            entry(component = "TurnedOn", before = ifwOff, after = onExplicitly),
+            entry(component = "StillOff", before = pmOff, after = ifwOff),
+            entry(component = "StillOn", before = on, after = onExplicitly),
+        )
+        dao.insertOperation(operation(100), entries.map { it.asEntity() })
+
+        dao.observeOperations().test {
+            val operation = awaitItem().single().asExternalModel()
+            assertThat(operation.entryCount).isEqualTo(5)
+            assertThat(operation.blockedCount).isEqualTo(2)
+            assertThat(operation.enabledCount).isEqualTo(1)
+        }
+    }
+
+    @Test
+    fun givenEntriesWithUnknownSides_whenObserved_thenNeitherCountIncludesThem() = runTest {
+        val on = ControlState(PmSetting.ENABLED, IfwBlock.NOT_BLOCKED)
+        val off = on.copy(pm = PmSetting.DISABLED)
+        val unknownPm = on.copy(pm = PmSetting.UNKNOWN)
+        val unknownIfw = on.copy(ifw = IfwBlock.UNKNOWN)
+        val entries = listOf(
+            entry(component = "UnknownToOff", before = unknownPm, after = off),
+            entry(component = "OffToUnknown", before = off, after = unknownIfw),
+            entry(component = "UnknownToOn", before = ControlState.UNKNOWN, after = on),
+            entry(component = "OnToUnknown", before = on, after = ControlState.UNKNOWN),
+        )
+        dao.insertOperation(operation(100), entries.map { it.asEntity() })
+
+        dao.observeOperations().test {
+            val operation = awaitItem().single().asExternalModel()
+            assertThat(operation.entryCount).isEqualTo(4)
+            assertThat(operation.blockedCount).isEqualTo(0)
+            assertThat(operation.enabledCount).isEqualTo(0)
         }
     }
 
