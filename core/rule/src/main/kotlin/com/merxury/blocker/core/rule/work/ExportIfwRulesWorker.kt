@@ -50,7 +50,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         val result = exporter.export(
             storage = storage,
             packageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
-        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        ) { current, done, total -> setForegroundSafely(updateNotification(current, done, total)) }
         Timber.i("Backed up IFW rules: $result")
         return result.toWorkResult(PARAM_EXPORT_COUNT) { it.changedCount(RuleWorkType.EXPORT_IFW_RULES) }
     }

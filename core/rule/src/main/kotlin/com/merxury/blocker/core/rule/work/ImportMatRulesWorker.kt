@@ -61,7 +61,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
             lines = lines,
             target = target,
             includeSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false),
-        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        ) { current, done, total -> setForegroundSafely(updateNotification(current, done, total)) }
         Timber.i("Imported MAT rules: $result")
         return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_MAT_RULES) }
     }

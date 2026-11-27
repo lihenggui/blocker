@@ -90,7 +90,8 @@ internal class ActivePrivilegedChannel(
     override suspend fun connect(): ChannelState {
         // A foreground observer may receive the new preference before the selected flow does.
         val transport = readTransport() ?: return ChannelState.Unavailable(UnavailableReason.FAILED)
-        return (transport.state.value as? ChannelState.Ready) ?: transport.connect()
+        return (transport.state.value as? ChannelState.Ready)?.takeIf { transport.isConnectionCurrent() }
+            ?: transport.connect()
     }
 
     override suspend fun connectIfGranted(): ChannelState = current()?.connectIfGranted() ?: ChannelState.Unavailable(UnavailableReason.FAILED)

@@ -53,14 +53,14 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         val target = inputData.userOr(PARAM_TARGET_USER, currentUserId())
         val source = inputData.sourceSetFor(target)
         Timber.i("Restore the Blocker rules of set '${source.folder}' into user ${target.value}")
-        setForeground(updateNotification("", 0, 0))
+        setForegroundSafely(updateNotification("", 0, 0))
         val result = importer.import(
             storage = storage,
             source = source,
             target = target,
             packageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
             includeSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false),
-        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        ) { current, done, total -> setForegroundSafely(updateNotification(current, done, total)) }
         Timber.i("Restored Blocker rules: $result")
         return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_BLOCKER_RULES) }
     }

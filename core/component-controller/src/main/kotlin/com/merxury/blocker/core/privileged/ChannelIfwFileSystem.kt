@@ -52,7 +52,7 @@ internal class ChannelIfwFileSystem(
 
     override suspend fun readRules(packageName: String): String? = editorOrSelectedExecutor().execute(ReadIfwRuleFile(packageName)).getOrThrow("read the rules of $packageName")
 
-    override suspend fun readRulesIfConnected(packageName: String): String? = executor.executeIfReady(ReadIfwRuleFile(packageName)).getOrThrow("read the rules of $packageName")
+    override suspend fun readRulesIfConnected(packageName: String): String? = editorOrSelectedExecutor().executeIfReady(ReadIfwRuleFile(packageName)).getOrThrow("read the rules of $packageName")
 
     override suspend fun writeRules(packageName: String, content: String) {
         editorOrSelectedExecutor().execute(ReplaceIfwRuleFile(packageName, content)).getOrThrow("write the rules of $packageName")

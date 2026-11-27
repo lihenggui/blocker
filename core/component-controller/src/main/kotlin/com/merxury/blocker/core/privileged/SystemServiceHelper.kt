@@ -20,6 +20,7 @@ import android.os.IBinder
 import timber.log.Timber
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Helper class for accessing system services.
@@ -27,7 +28,7 @@ import java.lang.reflect.Method
  */
 @SuppressLint("PrivateApi")
 internal object SystemServiceHelper {
-    private val SYSTEM_SERVICE_CACHE: MutableMap<String, IBinder?> = HashMap()
+    private val SYSTEM_SERVICE_CACHE = ConcurrentHashMap<String, IBinder>()
     private var getService: Method? = null
 
     init {
@@ -57,7 +58,7 @@ internal object SystemServiceHelper {
             } catch (e: InvocationTargetException) {
                 Timber.w(e)
             }
-            SYSTEM_SERVICE_CACHE[name] = binder
+            binder?.let { return SYSTEM_SERVICE_CACHE.putIfAbsent(name, it) ?: it }
         }
         return binder
     }

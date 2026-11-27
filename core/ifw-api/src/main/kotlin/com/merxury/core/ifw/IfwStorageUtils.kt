@@ -69,14 +69,7 @@ object IfwStorageUtils {
             Timber.e(e, "Cannot access internal method")
             false
         }
-    val ifwFolder: String
-        get() = _ifwFolder!!
-
-    private var _ifwFolder: String? = null
-        get() = if (field != null) {
-            field
-        } else {
-            field = systemSecureDirectory.toString() + IFW_FOLDER + File.separator
-            field
-        }
+    val ifwFolder: String by lazy {
+        systemSecureDirectory.toString() + IFW_FOLDER + File.separator
+    }
 }

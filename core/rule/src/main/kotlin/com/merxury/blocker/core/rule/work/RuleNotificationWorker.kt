@@ -26,12 +26,25 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.util.NotificationUtil
+import kotlinx.coroutines.CancellationException
+import timber.log.Timber
 
 abstract class RuleNotificationWorker(private val context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     abstract fun getNotificationTitle(): Int
 
     override suspend fun getForegroundInfo(): ForegroundInfo = updateNotification("", 0, 0)
+
+    protected suspend fun setForegroundSafely(info: ForegroundInfo) {
+        try {
+            setForeground(info)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            // This also catches ForegroundServiceStartNotAllowedException on API 31+.
+            Timber.w(e, "Cannot update the foreground notification for %s (%s)", javaClass.simpleName, id)
+        }
+    }
 
     fun updateNotification(summary: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID

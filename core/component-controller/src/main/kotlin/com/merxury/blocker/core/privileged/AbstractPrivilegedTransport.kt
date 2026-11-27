@@ -70,8 +70,7 @@ internal abstract class AbstractPrivilegedTransport : PrivilegedTransport {
      */
     protected abstract suspend fun acquireIfGranted(): ChannelState
 
-    /** Whether a previously ready connection can be reused without acquiring it again. */
-    protected open suspend fun isConnectionCurrent(): Boolean = true
+    override suspend fun isConnectionCurrent(): Boolean = true
 
     /**
      * Runs [call] through the channel. Returns the outcome when the other side of the channel

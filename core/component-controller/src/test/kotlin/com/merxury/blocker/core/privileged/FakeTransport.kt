@@ -34,6 +34,8 @@ internal class FakeTransport(
     var acquireCount = 0
         private set
 
+    var connectionCurrent = true
+
     /** When set, [connect] waits for it, as a transport waits for a prompt to be answered. */
     var acquireGate: CompletableDeferred<Unit>? = null
 
@@ -48,6 +50,8 @@ internal class FakeTransport(
     /** Thrown by the next call instead of running it. */
     var throwOnSend: Exception? = null
     val sent = mutableListOf<PrivilegedCall<*>>()
+
+    override suspend fun isConnectionCurrent(): Boolean = connectionCurrent
 
     override suspend fun acquire(): ChannelState {
         acquireCount++

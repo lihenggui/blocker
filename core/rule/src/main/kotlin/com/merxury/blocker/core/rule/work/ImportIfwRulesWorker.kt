@@ -52,7 +52,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
             storage = storage,
             packageName = inputData.getString(PARAM_RESTORE_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
             includeSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false),
-        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        ) { current, done, total -> setForegroundSafely(updateNotification(current, done, total)) }
         Timber.i("Restored IFW rules: $result")
         // The rules apply to every user, so the list of the user Blocker runs in changes too.
         return result.toWorkResult(PARAM_IMPORT_COUNT) { it.changedCount(RuleWorkType.IMPORT_IFW_RULES) }

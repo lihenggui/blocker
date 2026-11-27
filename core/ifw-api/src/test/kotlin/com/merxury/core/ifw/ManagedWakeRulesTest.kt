@@ -3,6 +3,8 @@
 
 package com.merxury.core.ifw
 
+import android.system.ErrnoException
+import android.system.OsConstants
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
@@ -13,6 +15,9 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.Implementation
+import org.robolectric.annotation.Implements
+import org.robolectric.shadows.ShadowLinux
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -21,7 +26,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35], manifest = Config.NONE)
+@Config(sdk = [35], manifest = Config.NONE, shadows = [WakeFileLinuxShadow::class])
 class ManagedWakeRulesTest {
     @get:Rule val folder = TemporaryFolder()
 
@@ -99,5 +104,17 @@ class ManagedWakeRulesTest {
 
         assertFalse(probe.exists())
         assertTrue(managed.exists())
+    }
+}
+
+/** Robolectric supplies stat but leaves the native remove call as a no-op. */
+@Implements(className = "libcore.io.Linux", isInAndroidSdk = false)
+class WakeFileLinuxShadow : ShadowLinux() {
+    @Implementation
+    fun remove(path: String) {
+        val file = File(path)
+        if (!file.delete()) {
+            throw ErrnoException("remove", if (file.exists()) OsConstants.EACCES else OsConstants.ENOENT)
+        }
     }
 }

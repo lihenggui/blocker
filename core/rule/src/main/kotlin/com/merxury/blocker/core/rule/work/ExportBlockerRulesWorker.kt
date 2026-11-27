@@ -51,13 +51,13 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         }
         val user = inputData.userOr(PARAM_TARGET_USER, currentUserId())
         Timber.i("Back up Blocker rules of user ${user.value}")
-        setForeground(updateNotification("", 0, 0))
+        setForegroundSafely(updateNotification("", 0, 0))
         val result = exporter.export(
             storage = storage,
             user = user,
             packageName = inputData.getString(PARAM_BACKUP_APP_PACKAGE_NAME)?.takeIf { it.isNotEmpty() },
             includeSystemApps = inputData.getBoolean(PARAM_BACKUP_SYSTEM_APPS, false),
-        ) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        ) { current, done, total -> setForegroundSafely(updateNotification(current, done, total)) }
         Timber.i("Backed up Blocker rules: $result")
         return result.toWorkResult(PARAM_BACKUP_COUNT) { it.changedCount(RuleWorkType.EXPORT_BLOCKER_RULES) }
     }

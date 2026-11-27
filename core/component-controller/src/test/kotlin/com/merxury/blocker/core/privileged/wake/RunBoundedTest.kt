@@ -86,6 +86,22 @@ private class StubbornProcess(
 
 class RunBoundedTest {
     @Test
+    fun givenInterruptedCaller_whenWaitingForTheProcess_thenPropagatesAndRestoresInterrupt() {
+        val process = StubbornProcess(keepsStdoutOpen = false).apply { hang() }
+
+        Thread.currentThread().interrupt()
+        try {
+            assertThrows(InterruptedException::class.java) {
+                runBounded(process, "SERVICES", null, ByteArrayOutputStream(), kill = Process::destroyForcibly)
+            }
+            assertThat(Thread.currentThread().isInterrupted).isTrue()
+            assertThat(process.kills).isEqualTo(1)
+        } finally {
+            Thread.interrupted()
+        }
+    }
+
+    @Test
     fun givenCommandThatExits_whenRun_thenItsOutputArrives() {
         val output = ByteArrayOutputStream()
 

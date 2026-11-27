@@ -46,7 +46,7 @@ class ResetIfwWorker @AssistedInject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
-    override fun getNotificationTitle(): Int = R.string.core_rule_import_ifw_please_wait
+    override fun getNotificationTitle(): Int = R.string.core_rule_reset_ifw_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         Timber.i("Clear IFW rules")
@@ -54,7 +54,7 @@ class ResetIfwWorker @AssistedInject constructor(
         val count: Int
         try {
             count = repository.reset(packageName) { filename, index, total ->
-                updateNotification(filename + IFW_EXTENSION, index, total)
+                setForegroundSafely(updateNotification(filename + IFW_EXTENSION, index, total))
             } ?: return@withContext Result.failure(workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION))
         } catch (e: CancellationException) {
             throw e

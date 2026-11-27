@@ -190,6 +190,16 @@ class ActivePrivilegedChannelTest {
     }
 
     @Test
+    fun givenReadyRootTransportWithAnExpiredConnection_whenConnectingAgain_thenReacquires() = scope.runTest {
+        val channel = channel()
+        channel.connect()
+        root.connectionCurrent = false
+
+        assertThat(channel.connect()).isEqualTo(ChannelState.Ready(PrivilegedIdentity.ROOT))
+        assertThat(root.acquireCount).isEqualTo(2)
+    }
+
+    @Test
     fun givenShizukuChosenButNotRunning_whenExecute_thenNoFallbackToRoot() = scope.runTest {
         preferences.setControllerType(ControllerType.SHIZUKU)
         root.connect()

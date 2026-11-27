@@ -117,7 +117,9 @@ internal enum class WakeCommand(val args: List<String>) {
     }
 }
 
-private val timer = Executors.newSingleThreadScheduledExecutor()
+private val timer = Executors.newSingleThreadScheduledExecutor { task ->
+    Thread(task, "WakeCommandTimeout").apply { isDaemon = true }
+}
 
 /** Sends SIGKILL: `destroy` does so before Android 8, which has no `destroyForcibly`. */
 private fun Process.killNow() {
@@ -146,6 +148,10 @@ internal fun runBounded(
 ) {
     val timedOut = AtomicBoolean()
     val caller = Thread.currentThread()
+    val interruptLock = Any()
+    var finished = false
+    var interruptedByTimer = false
+    var interruptedExternally = false
     val stop = timer.schedule({
         timedOut.set(true)
         process.destroy()
@@ -158,25 +164,37 @@ internal fun runBounded(
         } catch (e: IOException) {
             Timber.w(e, "Cannot close the output of $name")
         }
-        caller.interrupt()
+        synchronized(interruptLock) {
+            if (!finished) {
+                interruptedByTimer = true
+                caller.interrupt()
+            }
+        }
     }, limitMillis + 3 * graceMillis, TimeUnit.MILLISECONDS)
     try {
         process.outputStream.use { if (input != null) it.write(input) }
         process.inputStream.use { it.copyBounded(output) }
-        val status = try {
-            process.waitFor()
-        } catch (e: InterruptedException) {
-            throw IOException("$name did not exit after it was killed", e)
-        }
+        val status = process.waitFor()
         if (timedOut.get()) throw IOException("$name did not finish within ${limitMillis / 1000.0} s")
         if (status != 0) throw IOException("$name exited with status $status")
+    } catch (e: InterruptedException) {
+        if (timedOut.get()) throw IOException("$name did not exit after it was killed", e)
+        interruptedExternally = true
+        throw e
     } finally {
+        synchronized(interruptLock) {
+            finished = true
+            // Only consume an interrupt sent by this invocation's timer.
+            if (interruptedByTimer) Thread.interrupted()
+        }
         abandon.cancel(false)
         stop.cancel(false)
         killer.cancel(false)
-        // An interrupt that fired just before the cancel must not reach the caller's next wait.
-        Thread.interrupted()
-        kill(process)
+        try {
+            kill(process)
+        } finally {
+            if (interruptedExternally) caller.interrupt()
+        }
     }
 }
 

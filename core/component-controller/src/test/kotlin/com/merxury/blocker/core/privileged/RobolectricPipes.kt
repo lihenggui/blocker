@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.privileged
 
 /**
- * Waits until every [CallBytes] pipe writer has ended. Robolectric backs a pipe with a file, so a
+ * Waits until every [CallBytes] pipe write has finished. Robolectric backs a pipe with a file, so a
  * reader that starts before its writer ends sees a short file instead of waiting, and only one
  * descriptor of a parceled pipe works at a time. Readers in tests therefore read the original
  * descriptor once its writer is done; the device tests cover real pipes.
@@ -27,7 +27,7 @@ package com.merxury.blocker.core.privileged
 internal fun awaitPipeWriters(): Boolean {
     val end = System.currentTimeMillis() + 5_000
     while (System.currentTimeMillis() < end) {
-        if (Thread.getAllStackTraces().keys.none { it.name == "CallBytes" && it.isAlive }) return true
+        if (!CallBytes.hasPendingPipeWrites()) return true
         Thread.sleep(10)
     }
     return false
