@@ -107,6 +107,8 @@ class WakeProtectionRepository @Inject constructor(
         val canManageComponents = writes == WakeWrites.Enforce && !capture.channelUnavailable
         if (canManageComponents) ownership.recover()
         val previous = repository.protections()
+        val obsolete = catalog.obsoleteReblocks(previous)
+        if (obsolete.isNotEmpty()) repository.saveProtections(obsolete.map { it.copy(pendingChange = false) })
         val candidates = catalog.evaluate(
             repository.observedComponents(now - WAKE_HISTORY_RETENTION_MILLIS),
             capture.identities,
@@ -137,16 +139,19 @@ class WakeProtectionRepository @Inject constructor(
         repository.saveProtections(installed.filter { it.target in staleTargets }.map { it.copy(configured = false) })
     }
 
+    internal suspend fun supportsPeerFilter(): Boolean = rules.supportsPeerFilter()
+
     private suspend fun reconcileFirewall(previous: List<WakeProtection>, requested: List<WakeProtection>): String {
-        if (requested.isEmpty() && previous.none { it.configured || it.reblockPending } && !repository.rulesPending) return "OK"
+        if (requested.isEmpty() && previous.none { it.configured } && !repository.rulesPending) return "OK"
 
         repository.markRulesPending(true)
-        val peerUnavailable = requested.any { it.caller != it.target } && !rules.supportsPeerFilter()
-        val desired = requested.filter { (!peerUnavailable || it.caller == it.target) && catalog.isCurrent(it) }
+        val peerUnavailable = requested.any { it.requiresPeerFilter } && !supportsPeerFilter()
+        val desired = requested.filter { (!peerUnavailable || !it.requiresPeerFilter) && catalog.isCurrent(it) }
         rules.replace(desired.map { WakeServiceFilter(it.caller, it.target, it.component, it.action) })
+        val desiredIds = desired.mapTo(mutableSetOf()) { it.pathId }
+        val removed = previous.filter { it.configured && it.pathId !in desiredIds }
         repository.saveProtections(
-            previous.map { it.copy(configured = false, pendingChange = false, disabledByUser = it.disabledByUser || it.reblockPending) } +
-                desired.map { it.copy(configured = true, pendingChange = false) },
+            removed.map { it.copy(configured = false) } + desired.map { it.copy(configured = true, pendingChange = false) },
         )
         repository.markRulesPending(false)
         return if (peerUnavailable) "PEER_FILTER_UNAVAILABLE" else "OK"
@@ -174,15 +179,8 @@ class WakeProtectionRepository @Inject constructor(
             refreshComponentStatus(old.target)
             ownership.save(old.copy(configured = false, pendingChange = false))
         }
-        val expiredRequests = previous.filter { it.method == "PM" && it.reblockPending && it.pathId !in ids }
-        if (expiredRequests.isNotEmpty()) {
-            repository.saveProtections(expiredRequests.map { it.copy(pendingChange = false, disabledByUser = true) })
-        }
         for (candidate in desired) {
-            if (!catalog.isCurrent(candidate)) {
-                if (candidate.reblockPending) repository.saveProtections(listOf(candidate.copy(pendingChange = false, disabledByUser = true)))
-                continue
-            }
+            if (!catalog.isCurrent(candidate)) continue
             val old = active[candidate.pathId]
             val path = if (old != null && old.targetRevision != candidate.targetRevision) {
                 val replacement = if (catalog.sameInstallation(old)) {
@@ -202,10 +200,7 @@ class WakeProtectionRepository @Inject constructor(
                 ownership.save(path.copy(configured = false, pendingChange = false, disabledByUser = true))
                 continue
             }
-            if (!path.componentWritePending && current != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) {
-                if (path.reblockPending) repository.saveProtections(listOf(path.copy(pendingChange = false, disabledByUser = true)))
-                continue
-            }
+            if (!path.componentWritePending && current != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) continue
             val saved = path.copy(previousState = path.previousState ?: current, pendingChange = true)
             ownership.save(saved)
             val original = requireNotNull(saved.previousState)
@@ -225,7 +220,7 @@ class WakeProtectionRepository @Inject constructor(
                 !superseded
             }
             if (superseded) {
-                ownership.save(saved.copy(configured = false, pendingChange = false, disabledByUser = true))
+                ownership.save(if (path.reblockPending) path else saved.copy(configured = false, pendingChange = false, disabledByUser = true))
             } else {
                 check(confirmed)
                 refreshComponentStatus(path.target)

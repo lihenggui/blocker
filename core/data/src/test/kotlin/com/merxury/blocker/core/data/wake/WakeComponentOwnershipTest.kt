@@ -122,6 +122,19 @@ class WakeComponentOwnershipTest {
         verify(dao).putProtections(emptyList())
     }
 
+    @Test fun givenAllowAfterJournalPreparationButBeforeRoomWrite_whenRecovering_thenThePreparedWriteIsDiscarded() = runTest {
+        val requested = owned.copy(configured = false, previousState = null, pendingChange = true)
+        val prepared = requested.copy(previousState = owned.previousState)
+        val allowed = requested.copy(disabledByUser = true, pendingChange = false)
+        whenever(dao.readProtections()).thenReturn(listOf(allowed))
+        whenever(journal.read()).thenReturn(Json.encodeToString(listOf(prepared)))
+
+        ownership.recover()
+
+        verify(journal).write("[]")
+        verify(dao).putProtections(emptyList())
+    }
+
     @Test fun givenUnwritableJournal_whenPreparingChange_thenNoOwnershipIsClaimed() = runTest {
         whenever(dao.readProtections()).thenReturn(emptyList())
         whenever(journal.write(any())).thenThrow(IllegalStateException("full"))

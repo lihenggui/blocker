@@ -170,6 +170,51 @@ class WakeProtectionManagerTest {
         verify(components).compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(0), eq(2), any(), any())
     }
 
+    @Test fun givenPendingFirewallReblock_whenSecondaryPackagesCannotBeRead_thenStillAppliesOnTheNextRun() = runTest {
+        val pending = path.copy(caller = path.target, method = "IFW", previousState = null)
+        authorizedWith(pending)
+        whenever(repository.collect(any(), any())).thenReturn(
+            WakeImport("boot", emptyList(), listOf(UserId.SYSTEM.value), secondaryPackagesAvailable = false),
+        )
+        whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(pending))
+
+        assertThat(manager.reconcile()).isTrue()
+        verify(rules, never()).replace(any())
+        verify(repository, never()).saveProtections(any())
+
+        whenever(repository.collect(any(), any())).thenReturn(WakeImport("boot", emptyList(), listOf(UserId.SYSTEM.value)))
+        assertThat(manager.reconcile()).isTrue()
+        verify(rules).replace(argThat { single().service == pending.component })
+        verify(repository).saveProtections(listOf(pending.copy(configured = true, pendingChange = false)))
+    }
+
+    @Test fun givenPendingPmReblock_whenEvidenceOrDefaultStateIsUnavailable_thenTheRequestSurvives() = runTest {
+        val pending = path.copy(caller = path.target, previousState = null)
+        authorizedWith(pending)
+
+        assertThat(manager.reconcile()).isTrue()
+
+        whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(pending))
+        whenever(catalogue.isCurrent(pending)).thenReturn(false)
+        assertThat(manager.reconcile()).isTrue()
+
+        whenever(catalogue.isCurrent(pending)).thenReturn(true)
+        whenever(catalogue.currentState(pending)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+        assertThat(manager.reconcile()).isTrue()
+
+        verify(repository, never()).saveProtections(any())
+        verify(ownership, never()).save(any())
+        verifyNoInteractions(components)
+
+        val default = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+        val disabled = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        whenever(catalogue.currentState(pending)).thenReturn(default)
+        whenever(components.compareAndSet(eq(pending.target), eq(pending.component), eq(UserId.SYSTEM), eq(default), eq(disabled), any(), any())).thenReturn(true)
+        assertThat(manager.reconcile()).isTrue()
+        verify(ownership).save(pending.copy(previousState = default))
+        verify(components).compareAndSet(eq(pending.target), eq(pending.component), eq(UserId.SYSTEM), eq(default), eq(disabled), any(), any())
+    }
+
     @Test fun givenRootChannelThatRefusesProcessCalls_whenReconciling_thenObservesNothingWithoutRetrying() = runTest {
         // Shizuku before 13 runs as root but refuses every call that needs its own process: the
         // journal probe, and each read, so nothing is read, not even the users.
@@ -313,9 +358,9 @@ class WakeProtectionManagerTest {
         verifyNoInteractions(components)
     }
 
-    @Test fun givenManualOverride_whenReviewingFreshInstallation_thenNewEvidenceCanApply() = runTest {
+    @Test fun givenAllowedPath_whenADifferentlySignedPathQualifies_thenNewProtectionCanApply() = runTest {
         authorizedWith(path.copy(disabledByUser = true, pendingChange = false, targetRevision = "old"))
-        val fresh = path.copy(pendingChange = false, previousState = null, targetRevision = "new")
+        val fresh = path.copy(pathId = "different-signer", pendingChange = false, previousState = null, targetRevision = "new")
         whenever(catalogue.evaluate(any(), any(), any(), any(), any())).thenReturn(listOf(fresh))
         whenever(catalogue.currentState(fresh)).thenReturn(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
         whenever(components.compareAndSet(eq("target"), eq("target.Wake"), eq(UserId.SYSTEM), eq(0), eq(2), any(), any())).thenAnswer { invocation ->
