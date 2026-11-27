@@ -9,11 +9,11 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.database.wake.WakeIdentity
-import com.merxury.blocker.core.database.wake.WakeProtection
-import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.component.UIDS_PER_USER
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.wake.WakeIdentity
+import com.merxury.blocker.core.model.wake.WakeProtection
+import com.merxury.blocker.core.model.wake.WakeRecord
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -156,7 +156,7 @@ class ReviewedWakePathsTest {
         whenever(repository.protections()).thenReturn(listOf(pending, retired))
         whenever(repository.observedComponents(any())).thenReturn(emptyList())
         whenever(repository.firewallResets()).thenReturn(emptyMap())
-        val protection = WakeProtectionRepository(
+        val protection = LocalWakeProtectionRepository(
             repository, mock(), catalog, mock(), mock(), FakePrivilegedChannel(), mock(), mock(), WakeRuleLock(), mock(),
         )
 

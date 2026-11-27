@@ -61,10 +61,10 @@ import kotlin.time.TimeSource
  * Matches the general rules against the components cached for the apps of one user, as the rule
  * list, a rule's detail and the search show them.
  *
- * A rule matches a component whose class name contains one of the rule's keywords the way SQL's
- * `LIKE '%keyword%'` does: ignoring case, with `%` and `_` as wildcards. Apps that are not cached
- * as installed for the user are left out, so are system apps while the user hides them, and so is
- * Blocker in the user it runs in: changing it from a rule could only break the app in use.
+ * A rule matches a component whose class name contains one of the rule's keywords literally,
+ * ignoring case. Apps that are not cached as installed for the user are left out, so are system
+ * apps while the user hides them. Blocker is excluded in the user it runs in to prevent rules
+ * from breaking the app in use.
  *
  * The matches follow the cache: whenever it, the rules or the apps change they are matched again,
  * and each component carries the state the cache holds now. The cache is read at most once every

@@ -29,9 +29,10 @@ android {
 }
 dependencies {
     api(projects.core.common)
-    api(projects.core.database)
-    api(projects.core.datastore)
-    api(projects.core.network)
+    api(projects.core.model)
+    implementation(projects.core.database)
+    implementation(projects.core.datastore)
+    implementation(projects.core.network)
     implementation(projects.core.analytics)
     implementation(projects.core.componentController)
     implementation(projects.core.ifwApi)
@@ -39,6 +40,7 @@ dependencies {
     implementation(libs.smali.dexlib)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
+    implementation(libs.room.runtime)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlinx.serialization.json)
@@ -46,7 +48,6 @@ dependencies {
     testImplementation(projects.core.datastoreTest)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
-    testImplementation(libs.room.runtime)
     testImplementation(libs.truth)
     testImplementation(libs.turbine)
 

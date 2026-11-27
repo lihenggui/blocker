@@ -42,48 +42,46 @@ internal class ConnectivityManagerNetworkMonitor @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : NetworkMonitor {
     override val isOnline: Flow<Boolean> = callbackFlow {
-        trace("NetworkMonitor.callbackFlow") {
-            val connectivityManager = context.getSystemService<ConnectivityManager>()
-            if (connectivityManager == null) {
-                channel.trySend(false)
-                channel.close()
-                return@callbackFlow
+        val connectivityManager = context.getSystemService<ConnectivityManager>()
+        if (connectivityManager == null) {
+            channel.trySend(false)
+            channel.close()
+            return@callbackFlow
+        }
+
+        /**
+         * The callback's methods are invoked on changes to *any* network matching the [NetworkRequest],
+         * not just the active network. So we can simply track the presence (or absence) of such [Network].
+         */
+        val callback = object : NetworkCallback() {
+
+            private val networks = mutableSetOf<Network>()
+
+            override fun onAvailable(network: Network) {
+                networks += network
+                channel.trySend(true)
             }
 
-            /**
-             * The callback's methods are invoked on changes to *any* network matching the [NetworkRequest],
-             * not just the active network. So we can simply track the presence (or absence) of such [Network].
-             */
-            val callback = object : NetworkCallback() {
-
-                private val networks = mutableSetOf<Network>()
-
-                override fun onAvailable(network: Network) {
-                    networks += network
-                    channel.trySend(true)
-                }
-
-                override fun onLost(network: Network) {
-                    networks -= network
-                    channel.trySend(networks.isNotEmpty())
-                }
+            override fun onLost(network: Network) {
+                networks -= network
+                channel.trySend(networks.isNotEmpty())
             }
+        }
 
-            trace("NetworkMonitor.registerNetworkCallback") {
-                val request = Builder()
-                    .addCapability(NET_CAPABILITY_INTERNET)
-                    .build()
-                connectivityManager.registerNetworkCallback(request, callback)
-            }
+        trace("NetworkMonitor.registerNetworkCallback") {
+            val request = Builder()
+                .addCapability(NET_CAPABILITY_INTERNET)
+                .build()
+            connectivityManager.registerNetworkCallback(request, callback)
+        }
 
-            /*
-             * Sends the latest connectivity status to the underlying channel.
-             */
-            channel.trySend(connectivityManager.isCurrentlyConnected())
+        /*
+         * Sends the latest connectivity status to the underlying channel.
+         */
+        channel.trySend(connectivityManager.isCurrentlyConnected())
 
-            awaitClose {
-                connectivityManager.unregisterNetworkCallback(callback)
-            }
+        awaitClose {
+            connectivityManager.unregisterNetworkCallback(callback)
         }
     }
         .flowOn(ioDispatcher)

@@ -5,18 +5,16 @@ package com.merxury.blocker.core.domain.wake
 
 import android.content.pm.PackageManager
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.device.PmBlockRecords
+import com.merxury.blocker.core.data.wake.LocalWakeProtectionRepository
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.UserWakeFirewall
 import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.data.wake.WakeImport
-import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
 import com.merxury.blocker.core.data.wake.WakeRuleLock
 import com.merxury.blocker.core.data.wake.WakeWrites
-import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
@@ -25,12 +23,14 @@ import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePathBlock
 import com.merxury.blocker.core.model.wake.WakePathState
+import com.merxury.blocker.core.model.wake.WakeProtection
 import com.merxury.blocker.core.privileged.wake.ManagedComponentState
 import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
 import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecords
 import com.merxury.blocker.core.testing.repository.wake.FakeAutomaticWakeBlockRepository
 import com.merxury.blocker.core.testing.repository.wake.FakeWakeBlockRepository
 import com.merxury.core.ifw.ManagedWakeRules
@@ -67,10 +67,10 @@ class WakeProtectionManagerTest {
     private val rules = mock<ManagedWakeRules>()
     private val components = mock<ManagedComponentState>()
     private val channel = FakePrivilegedChannel()
-    private val userBlocks = FakePmBlockRecordDao()
+    private val userBlocks = FakePmBlockRecords()
     private val lock = WakeRuleLock()
     private val userFirewall = mock<UserWakeFirewall>()
-    private val protection = WakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, PmBlockRecords(userBlocks), userFirewall, lock, FakeComponentStatusRepository())
+    private val protection = LocalWakeProtectionRepository(repository, ownership, catalogue, rules, components, channel, userBlocks.repository, userFirewall, lock, FakeComponentStatusRepository())
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
         protection,

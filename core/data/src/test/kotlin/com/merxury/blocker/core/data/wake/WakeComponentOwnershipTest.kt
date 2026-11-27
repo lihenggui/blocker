@@ -5,7 +5,7 @@ package com.merxury.blocker.core.data.wake
 
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
-import com.merxury.blocker.core.database.wake.WakeProtection
+import com.merxury.blocker.core.model.wake.WakeProtection
 import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
 import com.merxury.blocker.core.privileged.wake.WakeComponentJournal
 import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
@@ -36,7 +36,7 @@ class WakeComponentOwnershipTest {
         verify(journal).write(encoded.capture())
         whenever(journal.read()).thenReturn(encoded.firstValue)
         ownership.recover()
-        verify(dao, times(2)).putProtections(listOf(owned))
+        verify(dao, times(2)).putProtections(listOf(owned.asEntity()))
     }
 
     @Test fun givenReadableJournal_whenProbing_thenNothingIsThrownOrWritten() = runTest {
@@ -59,7 +59,7 @@ class WakeComponentOwnershipTest {
     }
 
     @Test fun givenNoJournalYet_whenRecoveringOwnership_thenLocalEntriesAreWrittenToIt() = runTest {
-        whenever(dao.readProtections()).thenReturn(listOf(owned))
+        whenever(dao.readProtections()).thenReturn(listOf(owned.asEntity()))
         whenever(journal.read()).thenReturn(null)
         ownership.recover()
         val encoded = argumentCaptor<String>()
@@ -69,14 +69,14 @@ class WakeComponentOwnershipTest {
     }
 
     @Test fun givenInterruptedRelease_whenRecoveringOwnership_thenLocalEntryCannotReclaimComponent() = runTest {
-        whenever(dao.readProtections()).thenReturn(listOf(owned))
+        whenever(dao.readProtections()).thenReturn(listOf(owned.asEntity()))
         whenever(journal.read()).thenReturn("[]")
         ownership.recover()
-        verify(dao).putProtections(listOf(owned.copy(configured = false)))
+        verify(dao).putProtections(listOf(owned.copy(configured = false).asEntity()))
     }
 
     @Test fun givenManualOverrideInJournal_whenLocalWriteWasInterrupted_thenRecoveryPreservesUserChoice() = runTest {
-        whenever(dao.readProtections()).thenReturn(listOf(owned))
+        whenever(dao.readProtections()).thenReturn(listOf(owned.asEntity()))
         val override = owned.copy(configured = false, disabledByUser = true)
         ownership.save(override)
         val encoded = argumentCaptor<String>()
@@ -85,12 +85,12 @@ class WakeComponentOwnershipTest {
 
         ownership.recover()
 
-        verify(dao, times(2)).putProtections(listOf(override))
+        verify(dao, times(2)).putProtections(listOf(override.asEntity()))
     }
 
     @Test fun givenNewScreenOverride_whenRecoveringFromAnOlderJournal_thenTheNewFlagSurvives() = runTest {
         val override = owned.copy(disabledByUser = true)
-        whenever(dao.readProtections()).thenReturn(listOf(override))
+        whenever(dao.readProtections()).thenReturn(listOf(override.asEntity()))
         whenever(journal.read()).thenReturn(Json.encodeToString(listOf(owned)))
 
         ownership.recover()
@@ -101,7 +101,7 @@ class WakeComponentOwnershipTest {
 
     @Test fun givenClearedScreenOverride_whenRecovering_thenTheJournalDoesNotReinstateIt() = runTest {
         val released = owned.copy(configured = false)
-        whenever(dao.readProtections()).thenReturn(listOf(released))
+        whenever(dao.readProtections()).thenReturn(listOf(released.asEntity()))
         whenever(journal.read()).thenReturn(Json.encodeToString(listOf(released.copy(disabledByUser = true))))
 
         ownership.recover()
@@ -113,7 +113,7 @@ class WakeComponentOwnershipTest {
     @Test fun givenReblockRequestAfterAllowing_whenRecovering_thenTheOldJournalDoesNotRestoreOwnership() = runTest {
         val allowed = owned.copy(configured = false, disabledByUser = true)
         val requested = allowed.copy(disabledByUser = false, previousState = null, pendingChange = true)
-        whenever(dao.readProtections()).thenReturn(listOf(requested))
+        whenever(dao.readProtections()).thenReturn(listOf(requested.asEntity()))
         whenever(journal.read()).thenReturn(Json.encodeToString(listOf(allowed)))
 
         ownership.recover()
@@ -126,7 +126,7 @@ class WakeComponentOwnershipTest {
         val requested = owned.copy(configured = false, previousState = null, pendingChange = true)
         val prepared = requested.copy(previousState = owned.previousState)
         val allowed = requested.copy(disabledByUser = true, pendingChange = false)
-        whenever(dao.readProtections()).thenReturn(listOf(allowed))
+        whenever(dao.readProtections()).thenReturn(listOf(allowed.asEntity()))
         whenever(journal.read()).thenReturn(Json.encodeToString(listOf(prepared)))
 
         ownership.recover()

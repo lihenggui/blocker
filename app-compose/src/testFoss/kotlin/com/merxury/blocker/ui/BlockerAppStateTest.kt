@@ -26,7 +26,6 @@ import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.navigation.NavigationState
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.navigation.rememberNavigationState
-import com.merxury.blocker.core.testing.util.TestNetworkMonitor
 import com.merxury.blocker.core.testing.util.TestPermissionMonitor
 import com.merxury.blocker.core.testing.util.TestTimeZoneMonitor
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
@@ -65,7 +64,6 @@ class BlockerAppStateTest {
     val composeTestRule = createComposeRule()
 
     // Create the test dependencies.
-    private val networkMonitor = TestNetworkMonitor()
 
     private val permissionMonitor = TestPermissionMonitor()
 
@@ -93,7 +91,6 @@ class BlockerAppStateTest {
         composeTestRule.setContent {
             state = remember(navigationState) {
                 return@remember BlockerAppState(
-                    networkMonitor = networkMonitor,
                     permissionMonitor = permissionMonitor,
                     coroutineScope = backgroundScope,
                     timeZoneMonitor = timeZoneMonitor,
@@ -118,7 +115,6 @@ class BlockerAppStateTest {
     fun blockerAppState_destinations() = runTest {
         composeTestRule.setContent {
             state = rememberBlockerAppState(
-                networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 timeZoneMonitor = timeZoneMonitor,
             )
@@ -181,30 +177,9 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun blockerAppState_WhenNetworkMonitorIsOffline_StateIsOffline() = runTest(UnconfinedTestDispatcher()) {
-        composeTestRule.setContent {
-            state = BlockerAppState(
-                networkMonitor = networkMonitor,
-                permissionMonitor = permissionMonitor,
-                coroutineScope = backgroundScope,
-                timeZoneMonitor = timeZoneMonitor,
-                navigationState = testNavigationState(),
-            )
-        }
-
-        backgroundScope.launch { state.isOffline.collect() }
-        networkMonitor.setConnected(false)
-        assertEquals(
-            true,
-            state.isOffline.value,
-        )
-    }
-
-    @Test
     fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() = runTest(UnconfinedTestDispatcher()) {
         composeTestRule.setContent {
             state = BlockerAppState(
-                networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
                 timeZoneMonitor = timeZoneMonitor,
@@ -225,7 +200,6 @@ class BlockerAppStateTest {
         composeTestRule.setContent {
             state = BlockerAppState(
                 coroutineScope = backgroundScope,
-                networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 timeZoneMonitor = timeZoneMonitor,
                 navigationState = testNavigationState(),

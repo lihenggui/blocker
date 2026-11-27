@@ -19,20 +19,20 @@ package com.merxury.blocker.core.domain.wake
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.device.PmBlockRecords
+import com.merxury.blocker.core.data.wake.LocalWakeProtectionRepository
 import com.merxury.blocker.core.data.wake.ReviewedWakePaths
 import com.merxury.blocker.core.data.wake.UserWakeFirewall
 import com.merxury.blocker.core.data.wake.WakeComponentOwnership
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
 import com.merxury.blocker.core.data.wake.WakeImport
-import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
 import com.merxury.blocker.core.data.wake.WakeRuleLock
-import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
+import com.merxury.blocker.core.model.wake.WakeProtection
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecords
 import com.merxury.core.ifw.ManagedWakeRules
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -54,12 +54,12 @@ class WakeUserBlockTest {
     private val catalogue = mock<ReviewedWakePaths>()
     private val rules = mock<ManagedWakeRules>()
     private val system = FakeComponentStates()
-    private val userBlocks = FakePmBlockRecordDao()
+    private val userBlocks = FakePmBlockRecords()
     private val lock = WakeRuleLock()
     private val userFirewall = mock<UserWakeFirewall>()
     private val TestScope.manager get() = WakeProtectionManager(
         repository,
-        WakeProtectionRepository(repository, ownership, catalogue, rules, system, FakePrivilegedChannel(), PmBlockRecords(userBlocks), userFirewall, lock, FakeComponentStatusRepository()),
+        LocalWakeProtectionRepository(repository, ownership, catalogue, rules, system, FakePrivilegedChannel(), userBlocks.repository, userFirewall, lock, FakeComponentStatusRepository()),
         lock,
         StandardTestDispatcher(testScheduler),
     )
@@ -138,12 +138,12 @@ class WakeUserBlockTest {
 
         reconcileWith(previous = listOf(claimed), qualifying = listOf(claimed))
         assertThat(manager.reconcile()).isTrue()
-        assertThat(userBlocks.getByPackage("target", 0).map { it.className }).containsExactly("target.Wake", "target.Other")
+        assertThat(userBlocks.blockedClasses("target")).containsExactly("target.Wake", "target.Other")
         reconcileWith(previous = listOf(claimed), qualifying = emptyList())
         assertThat(manager.reconcile()).isTrue()
 
         assertThat(system.setting("target", "target.Wake")).isEqualTo(COMPONENT_ENABLED_STATE_DISABLED)
-        assertThat(userBlocks.getByPackage("target", 0).map { it.className }).containsExactly("target.Wake", "target.Other")
+        assertThat(userBlocks.blockedClasses("target")).containsExactly("target.Wake", "target.Other")
         assertThat(system.changes).isEmpty()
         verify(ownership).save(claimed.copy(configured = false, pendingChange = false))
     }
@@ -154,7 +154,7 @@ class WakeUserBlockTest {
 
         reconcileWith(previous = emptyList(), qualifying = listOf(candidate))
         assertThat(manager.reconcile()).isTrue()
-        assertThat(userBlocks.getByPackage("target", 0)).isEmpty()
+        assertThat(userBlocks.blockedClasses("target")).isEmpty()
         reconcileWith(previous = listOf(claimed), qualifying = emptyList())
         assertThat(manager.reconcile()).isTrue()
 
@@ -173,7 +173,7 @@ class WakeUserBlockTest {
         assertThat(manager.reconcile()).isTrue()
 
         assertThat(system.changes).isEmpty()
-        assertThat(userBlocks.getByPackage(candidate.target, 0).map { it.className }).containsExactly(candidate.component)
+        assertThat(userBlocks.blockedClasses(candidate.target)).containsExactly(candidate.component)
         verify(ownership).save(claimed.copy(configured = false, disabledByUser = true))
     }
 

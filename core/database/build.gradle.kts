@@ -29,7 +29,6 @@ android {
 
 dependencies {
     api(projects.core.model)
-    implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.kotlinx.coroutines.test)

@@ -41,7 +41,6 @@ import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
-import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -88,9 +87,6 @@ class SnackbarScreenshotTests {
      */
     @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
-
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
 
     @Inject
     lateinit var timeZoneMonitor: TimeZoneMonitor
@@ -208,7 +204,6 @@ class SnackbarScreenshotTests {
                                 LocalSnackbarHostState provides snackbarHostState,
                             ) {
                                 val fakeAppState = rememberBlockerAppState(
-                                    networkMonitor = networkMonitor,
                                     timeZoneMonitor = timeZoneMonitor,
                                     permissionMonitor = permissionMonitor,
                                 )

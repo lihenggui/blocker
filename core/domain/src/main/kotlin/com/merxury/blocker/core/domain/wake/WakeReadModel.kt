@@ -3,8 +3,6 @@
 
 package com.merxury.blocker.core.domain.wake
 
-import com.merxury.blocker.core.database.wake.WakeFindingDay
-import com.merxury.blocker.core.database.wake.WakeVerdictDay
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.wake.AppWakeActivity
 import com.merxury.blocker.core.model.wake.AppWakeSummary
@@ -18,10 +16,12 @@ import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
+import com.merxury.blocker.core.model.wake.WakeFindingDay
 import com.merxury.blocker.core.model.wake.WakeHeadline
 import com.merxury.blocker.core.model.wake.WakePath
 import com.merxury.blocker.core.model.wake.WakePeerLink
 import com.merxury.blocker.core.model.wake.WakeVerdict
+import com.merxury.blocker.core.model.wake.WakeVerdictDay
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 
 private val peerTriggers = setOf(ReviveTrigger.PEER_SERVICE, ReviveTrigger.PEER_BROADCAST, ReviveTrigger.PEER_PROVIDER, ReviveTrigger.PEER_ACTIVITY)

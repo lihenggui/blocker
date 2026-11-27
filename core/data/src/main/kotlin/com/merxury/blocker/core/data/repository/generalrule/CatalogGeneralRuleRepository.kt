@@ -4,9 +4,9 @@
 package com.merxury.blocker.core.data.repository.generalrule
 
 import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
-import com.merxury.blocker.core.data.repository.catalog.catalogLanguage
 import com.merxury.blocker.core.data.repository.catalog.resolveCatalogText
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.observeLibDisplayLanguage
 import com.merxury.blocker.core.database.catalog.CatalogDao
 import com.merxury.blocker.core.database.catalog.CatalogRuleTextEntity
 import com.merxury.blocker.core.database.catalog.CatalogRuleWithText
@@ -34,7 +34,7 @@ internal class CatalogGeneralRuleRepository @Inject constructor(
 
     private fun rulesFrom(read: suspend (String) -> List<CatalogRuleWithText>): Flow<List<GeneralRule>> = combine(
         catalog.catalogState,
-        userData.catalogLanguage(),
+        userData.observeLibDisplayLanguage(),
     ) { _, language ->
         val (sequence, rules) = dao.readRuleSnapshot { read(language) } ?: return@combine emptyList()
         rules.map { it.toGeneralRule(language, sequence) }

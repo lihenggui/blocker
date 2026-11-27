@@ -4,14 +4,17 @@
 package com.merxury.blocker.core.data.wake
 
 import android.content.Context
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.database.wake.WakeDetectionDao
 import com.merxury.blocker.core.database.wake.WakeExemption
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
+import com.merxury.blocker.core.database.wake.WakeHistoryDatabase
 import com.merxury.blocker.core.database.wake.WakeHoldAssociation
 import com.merxury.blocker.core.database.wake.WakeHoldPeriod
 import com.merxury.blocker.core.database.wake.WakeHoldProcess
+import com.merxury.blocker.core.database.wake.WakeIdentity
 import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.database.wake.WakeStartInfoSeen
@@ -32,8 +35,10 @@ import com.merxury.blocker.core.privileged.wake.WakeResume
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
@@ -57,8 +62,45 @@ class WakeRepositoryTest {
     private val collector = mock<WakeCollector>()
     private val detection = mock<WakeDetectionDao>()
     private val channel = FakePrivilegedChannel(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
-    private val repository = WakeRepository(ApplicationProvider.getApplicationContext<Context>(), history, index, collector, detection, channel)
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val database = Room.inMemoryDatabaseBuilder(context, WakeHistoryDatabase::class.java).build()
+    private val repository = LocalWakeRepository(context, history, index, collector, detection, channel, database)
+
     private val now = 1_795_335_233_000L
+
+    @After
+    fun closeDatabase() {
+        database.close()
+    }
+
+    @Test
+    fun givenStoredWakeHistory_whenReadingDetectionEvidence_thenRecordsHoldsAndIdentitiesAreMapped() = runTest {
+        val history = database.history()
+        val detection = database.detection()
+        val local = LocalWakeRepository(context, history, index, collector, detection, channel, database)
+        val record = WakeRecord(
+            "start", "boot", 1L, now, "statsd", "ProcessStartTime", null, 10_123,
+            null, "example.app", null, null, 3, null, "example.app", "{}",
+        )
+        val hold = WakeHoldPeriod("period", now - 1_000, now, now)
+        history.importRecords(listOf(record), now - 2_000)
+        history.insertIdentities(listOf(WakeIdentity(10_123, "example.app", "revision", 1L, "signer", "[]", now, now)))
+        detection.putPeriod(hold)
+
+        val evidence = local.detectionEvidence(now - 2_000, now)
+
+        assertThat(evidence.records).containsExactly(record.asModel())
+        assertThat(evidence.periods).containsExactly(hold.asModel())
+        assertThat(evidence.packages).containsExactly(10_123, setOf("example.app"))
+    }
+
+    @Test
+    fun givenEqualStoredStatuses_whenObserving_thenOnlyOneReadingIsEmitted() = runTest {
+        val status = WakeSourceStatus("statsd", now, "OK")
+        whenever(history.statuses()).thenReturn(flowOf(listOf(status), listOf(status.copy())))
+
+        assertThat(repository.statuses().toList()).containsExactly(listOf(status.asModel()))
+    }
 
     private fun start(signature: String) = WakeObservation(
         WAKE_START_INFO,
@@ -157,7 +199,7 @@ class WakeRepositoryTest {
         val preferences = context.getSharedPreferences("wake_protection", Context.MODE_PRIVATE)
         check(preferences.edit().putBoolean("previous_root_grant", true).putLong("last_diagnostic", 42).putBoolean("rules_pending", false).commit())
 
-        val upgraded = WakeRepository(context, history, index, collector, detection, channel)
+        val upgraded = LocalWakeRepository(context, history, index, collector, detection, channel, database)
 
         assertThat(preferences.contains("previous_root_grant")).isFalse()
         assertThat(upgraded.lastDiagnostic).isEqualTo(42)
@@ -192,7 +234,7 @@ class WakeRepositoryTest {
         val work = owner.copy(id = "work", component = "app/.Work", attributes = """{"user":"10"}""")
         whenever(detection.observeSpecialBindings(targets)).thenReturn(flowOf(listOf(owner, work)))
 
-        assertThat(repository.observeSpecialBindings(targets).first()).containsExactly(owner)
+        assertThat(repository.observeSpecialBindings(targets).first()).containsExactly(owner.asModel())
     }
 
     @Test fun givenWorkAndUnscopedWidgetRows_whenObservingOwnerBindings_thenOnlyTheOwnerWidgetIsShown() = runTest {
@@ -202,7 +244,7 @@ class WakeRepositoryTest {
         val unscoped = work.copy(id = "unscoped", component = "app/.Unknown", attributes = "{}")
         whenever(detection.observeSpecialBindings(targets)).thenReturn(flowOf(listOf(work, owner, unscoped)))
 
-        assertThat(repository.observeSpecialBindings(targets).first()).containsExactly(owner)
+        assertThat(repository.observeSpecialBindings(targets).first()).containsExactly(owner.asModel())
     }
 
     @Test fun givenMultipleProfiles_whenCollecting_thenOnlySuccessfulSecondaryPackageReadsAllowIfw() = runTest {

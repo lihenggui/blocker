@@ -24,6 +24,12 @@ import javax.inject.Inject
 class BlockerAppPropertiesDataStore @Inject constructor(
     private val appProperties: DataStore<AppProperties>,
 ) {
+    val lastCatalogSyncedEpochMs: Flow<Long> = appProperties.data.map { it.lastCatalogSyncedEpochMs }
+
+    suspend fun setLastCatalogSyncedEpochMs(epochMs: Long) {
+        appProperties.updateData { it.copy { lastCatalogSyncedEpochMs = epochMs } }
+    }
+
     /**
      * Whether su last started a root process for Blocker, kept across process starts. Starting su
      * again shows no prompt while the root manager keeps that grant.

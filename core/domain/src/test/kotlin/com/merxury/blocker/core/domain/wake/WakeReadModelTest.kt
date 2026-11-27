@@ -4,8 +4,6 @@
 package com.merxury.blocker.core.domain.wake
 
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.database.wake.WakeFindingDay
-import com.merxury.blocker.core.database.wake.WakeVerdictDay
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.wake.AppWakeActivity
 import com.merxury.blocker.core.model.wake.AppWakeSummary
@@ -17,8 +15,10 @@ import com.merxury.blocker.core.model.wake.OwnWakeKind
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
+import com.merxury.blocker.core.model.wake.WakeFindingDay
 import com.merxury.blocker.core.model.wake.WakeHeadline
 import com.merxury.blocker.core.model.wake.WakeVerdict
+import com.merxury.blocker.core.model.wake.WakeVerdictDay
 import com.merxury.blocker.core.model.wake.wakePathKey
 import org.junit.Test
 

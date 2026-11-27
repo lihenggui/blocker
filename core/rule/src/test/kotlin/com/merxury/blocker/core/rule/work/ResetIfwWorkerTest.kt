@@ -16,7 +16,7 @@ import androidx.work.testing.WorkManagerTestInitHelper
 import androidx.work.workDataOf
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
-import com.merxury.blocker.core.data.wake.FirewallResetRepository
+import com.merxury.blocker.core.data.wake.LocalFirewallResetRepository
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.testing.controller.FakeIfwFileSystem
@@ -112,7 +112,7 @@ class ResetIfwWorkerTest {
             true
         }
         val store = IntentFirewallStore(files, IfwXmlSerializer(), IfwXmlDeserializer(), context.packageName)
-        val repository = FirewallResetRepository(wake, store)
+        val repository = LocalFirewallResetRepository(wake, store)
         val dispatcher = StandardTestDispatcher(testScheduler)
         return TestListenableWorkerBuilder<ResetIfwWorker>(context, inputData = ResetIfwWorker.clearIfwWork(packageName).workSpec.input)
             .setWorkerFactory(

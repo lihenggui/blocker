@@ -66,6 +66,7 @@ private fun <T> replaceCorruptFileWithDefault(
 internal fun createAppPropertiesDataStore(
     serializer: AppPropertiesSerializer,
     scope: CoroutineScope,
+    migrations: List<DataMigration<AppProperties>> = emptyList(),
     produceFile: () -> File,
 ): DataStore<AppProperties> = DataStoreFactory.create(
     serializer = serializer,
@@ -73,7 +74,7 @@ internal fun createAppPropertiesDataStore(
         storeName = "app properties",
         replacement = serializer.defaultValue,
     ),
-    migrations = listOf(RemoveObsoleteAppProperties),
+    migrations = listOf(RemoveObsoleteAppProperties) + migrations,
     scope = scope,
     produceFile = produceFile,
 )

@@ -19,7 +19,6 @@ package com.merxury.blocker.core.database.util
 import androidx.room.TypeConverter
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.time.Instant
 
 internal class ListConverter {
     @TypeConverter
@@ -27,12 +26,4 @@ internal class ListConverter {
 
     @TypeConverter
     fun fromArrayList(list: List<String>): String = Json.encodeToString(list)
-}
-
-internal class InstantConverter {
-    @TypeConverter
-    fun longToInstant(value: Long?): Instant? = value?.let(Instant::fromEpochMilliseconds)
-
-    @TypeConverter
-    fun instantToLong(instant: Instant?): Long? = instant?.toEpochMilliseconds()
 }

@@ -25,6 +25,7 @@ android {
         testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
     }
     namespace = "com.merxury.blocker.sync"
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 dependencies {
     ksp(libs.hilt.ext.compiler)
@@ -34,15 +35,14 @@ dependencies {
     implementation(libs.hilt.ext.work)
     implementation(projects.core.analytics)
     implementation(projects.core.data)
+    implementation(projects.core.datastore)
     implementation(projects.core.domain)
 
     testImplementation(libs.androidx.work.testing)
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.truth)
     testImplementation(projects.core.componentController)
     testImplementation(projects.core.datastoreTest)
     testImplementation(projects.core.testing)
-
 }

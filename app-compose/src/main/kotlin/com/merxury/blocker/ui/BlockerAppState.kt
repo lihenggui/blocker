@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.navigation.NavigationState
@@ -31,13 +30,11 @@ import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.TimeZone
 
 @Composable
 fun rememberBlockerAppState(
-    networkMonitor: NetworkMonitor,
     permissionMonitor: PermissionMonitor,
     timeZoneMonitor: TimeZoneMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
@@ -50,14 +47,12 @@ fun rememberBlockerAppState(
     return remember(
         navigationState,
         coroutineScope,
-        networkMonitor,
         permissionMonitor,
         timeZoneMonitor,
     ) {
         BlockerAppState(
             navigationState = navigationState,
             coroutineScope = coroutineScope,
-            networkMonitor = networkMonitor,
             permissionMonitor = permissionMonitor,
             timeZoneMonitor = timeZoneMonitor,
         )
@@ -68,18 +63,9 @@ fun rememberBlockerAppState(
 class BlockerAppState(
     val navigationState: NavigationState,
     coroutineScope: CoroutineScope,
-    networkMonitor: NetworkMonitor,
     permissionMonitor: PermissionMonitor,
     timeZoneMonitor: TimeZoneMonitor,
 ) {
-    val isOffline = networkMonitor.isOnline
-        .map(Boolean::not)
-        .stateIn(
-            scope = coroutineScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false,
-        )
-
     val currentPermission = permissionMonitor.permissionStatus
         .stateIn(
             scope = coroutineScope,

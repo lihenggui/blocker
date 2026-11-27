@@ -405,13 +405,13 @@ class ComponentProviderContractTest {
     }
 
     @Test
-    fun givenDuplicateClassWithDifferentFlags_whenBlocks_thenLastFlagDecidesItsRequest() = runTest {
-        val component = status("A")
-        seed(component)
+    fun givenDuplicateEntriesWithExtraFields_whenBlocks_thenTheLastFlagDecides() = runTest {
+        seed(status("A"))
         val input = input("A" to false, "A" to true)
+        val payload = checkNotNull(input.getString("cmp_list")).replace("\"block\":", "\"extension\":1,\"block\":")
+        input.putString("cmp_list", payload.replaceFirst("{", "{\"version\":2,"))
 
         assertThat(call("blocks", PACKAGE_NAME, input)).isSameInstanceAs(input)
-
         assertThat(repository.requests.single().goal).isEqualTo(ControlGoal.BLOCK)
         assertThat(analytics.loggedEvents).hasSize(2)
     }
@@ -706,12 +706,7 @@ class ComponentProviderContractTest {
 
     @Test
     fun givenMalformedOrNonconformingJson_whenBlocks_thenReturnsNullWithoutWork() = runTest {
-        val invalidJson = listOf(
-            "not json",
-            """{"pkg":"p","components":[],"extra":1}""",
-            """{"pkg":"p","components":[{"type":"t","name":"X"}]}""",
-        )
-        for (json in invalidJson) {
+        for (json in listOf("not json", """{"pkg":"p","components":[{"type":"t","name":"X"}]}""")) {
             assertThat(call("blocks", PACKAGE_NAME, Bundle().apply { putString("cmp_list", json) })).isNull()
         }
         assertThat(repository.refreshedApps).isEmpty()

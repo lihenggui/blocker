@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.database.cache
 
 import com.google.common.truth.Truth.assertThat
+import com.merxury.blocker.core.database.util.escapeLikeWildcards
 import org.json.JSONObject
 import org.junit.Test
 import org.junit.runner.RunWith

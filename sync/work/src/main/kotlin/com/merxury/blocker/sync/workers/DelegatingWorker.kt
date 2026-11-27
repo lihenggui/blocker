@@ -38,6 +38,8 @@ interface HiltWorkerFactoryEntryPoint {
     fun hiltWorkerFactory(): HiltWorkerFactory
 }
 
+internal const val MAX_RETRY_ATTEMPTS = 3
+
 private const val WORKER_CLASS_NAME = "RouterWorkerDelegateClassName"
 
 /**

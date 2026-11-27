@@ -48,6 +48,17 @@ class CatalogDaoTest {
     }
 
     @Test
+    fun givenRuleNamesWithSqlWildcards_whenSearching_thenOnlyLiteralMatchesAreReturned() = runTest {
+        val names = listOf("100% Real", "100X Real", "A_B", "AXB", "C\\D")
+        dao.insertRules(names.indices.map { CatalogRuleEntity(it.toLong(), null, null, emptyList(), null, emptyList()) })
+        dao.insertRuleTexts(names.mapIndexed { id, name -> CatalogRuleTextEntity(id.toLong(), "en", name, null, null, null) })
+
+        assertThat(dao.searchRules("en", "%").map { it.rule.id }).containsExactly(0L)
+        assertThat(dao.searchRules("en", "_").map { it.rule.id }).containsExactly(2L)
+        assertThat(dao.searchRules("en", "\\").map { it.rule.id }).containsExactly(4L)
+    }
+
+    @Test
     fun givenLocalizedRulesAndComponents_whenReadingThem_thenEveryLanguageAndKeywordOrderArePreserved() = runTest {
         val rule = CatalogRuleEntity(1, null, null, listOf("second", "first"), null, listOf("author"))
         val ruleTexts = listOf(

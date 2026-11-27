@@ -39,7 +39,6 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.device.DeviceUserMonitor
 import com.merxury.blocker.core.data.device.PackageChangeMonitor
-import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -64,9 +63,6 @@ class MainActivity : ComponentActivity() {
      */
     @Inject
     lateinit var lazyStats: dagger.Lazy<JankStats>
-
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
 
     @Inject
     lateinit var permissionMonitor: PermissionMonitor
@@ -153,7 +149,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val appState = rememberBlockerAppState(
-                networkMonitor = networkMonitor,
                 permissionMonitor = permissionMonitor,
                 timeZoneMonitor = timeZoneMonitor,
             )

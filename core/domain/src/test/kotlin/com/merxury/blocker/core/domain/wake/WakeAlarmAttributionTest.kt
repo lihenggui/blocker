@@ -5,12 +5,12 @@ package com.merxury.blocker.core.domain.wake
 
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
-import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.wake.Justification
 import com.merxury.blocker.core.model.wake.OwnWakeKind
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
+import com.merxury.blocker.core.model.wake.WakeRecord
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner

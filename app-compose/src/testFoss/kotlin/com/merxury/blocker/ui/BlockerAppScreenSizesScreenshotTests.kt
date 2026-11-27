@@ -46,7 +46,6 @@ import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.R
-import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -98,9 +97,6 @@ class BlockerAppScreenSizesScreenshotTests {
     val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
 
     @Inject
-    lateinit var networkMonitor: NetworkMonitor
-
-    @Inject
     lateinit var timeZoneMonitor: TimeZoneMonitor
 
     @Inject
@@ -138,7 +134,6 @@ class BlockerAppScreenSizesScreenshotTests {
                 ) {
                     BlockerTheme {
                         val appState = rememberBlockerAppState(
-                            networkMonitor = networkMonitor,
                             permissionMonitor = permissionMonitor,
                             timeZoneMonitor = timeZoneMonitor,
                         )
@@ -169,7 +164,7 @@ class BlockerAppScreenSizesScreenshotTests {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 BlockerTheme {
-                    val appState = rememberBlockerAppState(networkMonitor, permissionMonitor, timeZoneMonitor)
+                    val appState = rememberBlockerAppState(permissionMonitor, timeZoneMonitor)
                     BlockerApp(
                         appState = appState,
                         windowAdaptiveInfo = WindowAdaptiveInfo(

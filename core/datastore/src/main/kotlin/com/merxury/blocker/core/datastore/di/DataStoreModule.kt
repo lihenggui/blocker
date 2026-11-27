@@ -19,10 +19,12 @@ package com.merxury.blocker.core.datastore.di
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.dataStoreFile
+import androidx.datastore.migrations.SharedPreferencesMigration
 import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.AppPropertiesSerializer
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
+import com.merxury.blocker.core.datastore.copy
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -63,7 +65,22 @@ object DataStoreModule {
     ): DataStore<AppProperties> = createAppPropertiesDataStore(
         serializer = appPropertiesSerializer,
         scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+        migrations = listOf(catalogSyncMigration(context)),
     ) {
         context.dataStoreFile("app_properties.pb")
+    }
+}
+
+private const val LEGACY_SYNC_TIMESTAMP = "last_synced_time"
+
+private fun catalogSyncMigration(context: Context) = SharedPreferencesMigration<AppProperties>(
+    context = context,
+    sharedPreferencesName = "sync_rule",
+    keysToMigrate = setOf(LEGACY_SYNC_TIMESTAMP),
+) { preferences, current ->
+    if (current.lastCatalogSyncedEpochMs != 0L) {
+        current
+    } else {
+        current.copy { lastCatalogSyncedEpochMs = preferences.getLong(LEGACY_SYNC_TIMESTAMP, 0) }
     }
 }

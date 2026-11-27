@@ -7,10 +7,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.edit
-import com.merxury.blocker.core.database.wake.WakeIdentity
-import com.merxury.blocker.core.database.wake.WakeProtection
-import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.component.userOfUid
+import com.merxury.blocker.core.model.wake.WakeIdentity
+import com.merxury.blocker.core.model.wake.WakeProtection
+import com.merxury.blocker.core.model.wake.WakeRecord
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.json.JSONArray

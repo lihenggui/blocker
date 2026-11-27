@@ -7,11 +7,11 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.wake.WakeAuthorizationRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
-import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.wake.WakeAvailability
+import com.merxury.blocker.core.model.wake.WakeSourceStatus
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import com.merxury.blocker.core.testing.util.TestWakeRunRequester
 import kotlinx.coroutines.flow.MutableStateFlow

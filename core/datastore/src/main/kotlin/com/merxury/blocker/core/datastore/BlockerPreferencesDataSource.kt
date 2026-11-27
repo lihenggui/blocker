@@ -35,8 +35,6 @@ import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.model.preference.TopAppType
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
-import java.io.IOException
 import javax.inject.Inject
 
 class BlockerPreferencesDataSource @Inject constructor(

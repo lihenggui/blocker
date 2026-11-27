@@ -17,13 +17,19 @@
 package com.merxury.blocker.sync.workers
 
 import android.content.Context
-import androidx.core.content.edit
 import androidx.test.core.app.ApplicationProvider
+import androidx.work.ListenableWorker
 import androidx.work.ListenableWorker.Result
+import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
+import androidx.work.testing.TestListenableWorkerBuilder
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.repository.catalog.CatalogUpdateResult
 import com.merxury.blocker.core.data.repository.catalog.CatalogUpdateResult.Reason
+import com.merxury.blocker.core.datastore.AppProperties
+import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
+import com.merxury.blocker.core.datastore.appProperties
+import com.merxury.blocker.core.datastore.test.InMemoryDataStore
 import com.merxury.blocker.core.model.CatalogState
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
@@ -32,36 +38,34 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.utils.AppDebugChecker
-import com.merxury.blocker.sync.status.ISyncSubscriber
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.time.Clock
+import kotlin.time.Instant
 
-private const val LAST_SYNCED_TIME = "last_synced_time"
 private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class SyncWorkerTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
-    private val preferences = context.getSharedPreferences("sync_rule", Context.MODE_PRIVATE)
     private val userData = TestUserDataRepository()
     private val catalog = TestCatalogRepository()
     private val analytics = TestAnalyticsHelper()
-    private var subscriptions = 0
-    private val staleTime = System.currentTimeMillis() - DAY_MILLIS - 1
+    private val now = Instant.parse("2026-11-27T12:00:00Z")
+    private val staleTime = now.toEpochMilliseconds() - DAY_MILLIS - 1
+    private val store = InMemoryDataStore<AppProperties>(appProperties { lastCatalogSyncedEpochMs = staleTime })
+    private val propertiesDataStore = BlockerAppPropertiesDataStore(store)
 
     @Before
     fun setUp() {
         userData.sendUserData(defaultUserData)
-        preferences.edit { putLong(LAST_SYNCED_TIME, staleTime) }
     }
 
     @Test
@@ -70,17 +74,17 @@ class SyncWorkerTest {
 
         assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).containsExactly(GITHUB)
-        assertThat(lastSyncedTime()).isGreaterThan(staleTime)
-        assertThat(subscriptions).isEqualTo(1)
+        assertThat(lastSyncedTime()).isEqualTo(now.toEpochMilliseconds())
         assertThat(analytics.loggedEvents.map { it.type })
-            .containsExactly("network_sync_started", "network_sync_successful").inOrder()
+            .containsExactly("network_sync_started", "network_sync_successful")
+            .inOrder()
     }
 
     @Test
     fun givenTheCatalogIsCurrent_whenSyncing_thenItSucceedsAndRecordsTheSyncTime() = runTest {
         assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).containsExactly(GITHUB)
-        assertThat(lastSyncedTime()).isGreaterThan(staleTime)
+        assertThat(lastSyncedTime()).isEqualTo(now.toEpochMilliseconds())
     }
 
     @Test
@@ -90,7 +94,8 @@ class SyncWorkerTest {
         assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.retry())
         assertThat(lastSyncedTime()).isEqualTo(staleTime)
         assertThat(analytics.loggedEvents.map { it.type })
-            .containsExactly("network_sync_started", "network_sync_failed").inOrder()
+            .containsExactly("network_sync_started", "network_sync_failed")
+            .inOrder()
     }
 
     @Test
@@ -103,8 +108,8 @@ class SyncWorkerTest {
 
     @Test
     fun givenASyncWithinTheDay_whenStartingNormally_thenNoCheckIsMade() = runTest {
-        val recent = System.currentTimeMillis() - DAY_MILLIS + 1_000L
-        preferences.edit { putLong(LAST_SYNCED_TIME, recent) }
+        val recent = now.toEpochMilliseconds() - DAY_MILLIS + 1_000L
+        propertiesDataStore.setLastCatalogSyncedEpochMs(recent)
 
         assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).isEmpty()
@@ -114,7 +119,7 @@ class SyncWorkerTest {
 
     @Test
     fun givenARecentSync_whenStartingInDebugMode_thenItChecksAgain() = runTest {
-        preferences.edit { putLong(LAST_SYNCED_TIME, System.currentTimeMillis()) }
+        propertiesDataStore.setLastCatalogSyncedEpochMs(now.toEpochMilliseconds())
 
         assertThat(worker(StandardTestDispatcher(testScheduler), debug = true).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).containsExactly(GITHUB)
@@ -130,26 +135,70 @@ class SyncWorkerTest {
         assertThat(catalog.updateRequests).containsExactly(GITHUB, GITLAB).inOrder()
     }
 
-    private fun lastSyncedTime() = preferences.getLong(LAST_SYNCED_TIME, 0)
+    @Test
+    fun givenClockRollback_whenStartingNormally_thenSyncReplacesTheFutureTimestamp() = runTest {
+        propertiesDataStore.setLastCatalogSyncedEpochMs(now.toEpochMilliseconds() + DAY_MILLIS)
 
-    private fun worker(dispatcher: CoroutineDispatcher, debug: Boolean = false, forceCheck: Boolean = false): SyncWorker {
-        val work = SyncWorker.startUpSyncWork(forceCheck)
-        val params = mock<WorkerParameters> { on { inputData } doReturn work.workSpec.input }
-        return SyncWorker(
-            appContext = context,
-            workerParams = params,
-            userDataRepository = userData,
-            catalogRepository = catalog,
-            ioDispatcher = dispatcher,
-            analyticsHelper = analytics,
-            syncSubscriber = object : ISyncSubscriber {
-                override suspend fun subscribe() {
-                    subscriptions++
-                }
-            },
-            appDebugChecker = object : AppDebugChecker {
-                override fun isDebugMode() = debug
-            },
-        )
+        assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
+        assertThat(catalog.updateRequests).containsExactly(GITHUB)
+        assertThat(lastSyncedTime()).isEqualTo(now.toEpochMilliseconds())
+    }
+
+    @Test
+    fun givenRetryLimit_whenStartingAgain_thenNoCatalogRequestIsMade() = runTest {
+        catalog.updateResult = CatalogUpdateResult.Failed(Reason.NETWORK, "Connection dropped")
+        val dispatcher = StandardTestDispatcher(testScheduler)
+
+        assertThat(worker(dispatcher, attempt = MAX_RETRY_ATTEMPTS - 1).doWork()).isEqualTo(Result.retry())
+        assertThat(worker(dispatcher, attempt = MAX_RETRY_ATTEMPTS).doWork()).isEqualTo(Result.failure())
+        assertThat(catalog.updateRequests).containsExactly(GITHUB)
+        assertThat(lastSyncedTime()).isEqualTo(staleTime)
+    }
+
+    @Test
+    fun whenGettingForegroundInfo_thenNotificationIdIsNonZero() = runTest {
+        val info = worker(StandardTestDispatcher(testScheduler)).getForegroundInfo()
+
+        assertThat(info.notificationId).isEqualTo(1001)
+    }
+
+    private fun lastSyncedTime() = store.data.value.lastCatalogSyncedEpochMs
+
+    private fun worker(
+        dispatcher: CoroutineDispatcher,
+        debug: Boolean = false,
+        forceCheck: Boolean = false,
+        attempt: Int = 0,
+    ): SyncWorker {
+        val factory =
+            object : WorkerFactory() {
+                override fun createWorker(
+                    appContext: Context,
+                    workerClassName: String,
+                    workerParameters: WorkerParameters,
+                ): ListenableWorker = SyncWorker(
+                    appContext = appContext,
+                    workerParams = workerParameters,
+                    userDataRepository = userData,
+                    catalogRepository = catalog,
+                    ioDispatcher = dispatcher,
+                    analyticsHelper = analytics,
+                    appProperties = propertiesDataStore,
+                    clock =
+                    object : Clock {
+                        override fun now() = this@SyncWorkerTest.now
+                    },
+                    appDebugChecker =
+                    object : AppDebugChecker {
+                        override fun isDebugMode() = debug
+                    },
+                )
+            }
+        return TestListenableWorkerBuilder
+            .from(context, SyncWorker::class.java)
+            .setInputData(SyncWorker.startUpSyncWork(forceCheck).workSpec.input)
+            .setRunAttemptCount(attempt)
+            .setWorkerFactory(factory)
+            .build()
     }
 }

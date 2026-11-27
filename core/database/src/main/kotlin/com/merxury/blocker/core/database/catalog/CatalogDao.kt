@@ -7,6 +7,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import com.merxury.blocker.core.database.util.escapeLikeWildcards
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -25,17 +26,19 @@ abstract class CatalogDao {
     @Query("SELECT * FROM catalog_rule WHERE id = :id")
     abstract suspend fun readRule(id: Long): CatalogRuleWithText?
 
+    suspend fun searchRules(language: String, keyword: String): List<CatalogRuleWithText> = querySearchRules(language, keyword.escapeLikeWildcards())
+
     @Transaction
     @Query(
         """
         SELECT rule.* FROM catalog_rule AS rule
         LEFT JOIN catalog_rule_text AS localized ON localized.rule_id = rule.id AND localized.language = :language
         JOIN catalog_rule_text AS english ON english.rule_id = rule.id AND english.language = 'en'
-        WHERE COALESCE(localized.name, english.name) LIKE '%' || :keyword || '%'
+        WHERE COALESCE(localized.name, english.name) LIKE '%' || :keyword || '%' ESCAPE '\'
         ORDER BY rule.id
         """,
     )
-    abstract suspend fun searchRules(language: String, keyword: String): List<CatalogRuleWithText>
+    protected abstract suspend fun querySearchRules(language: String, keyword: String): List<CatalogRuleWithText>
 
     /** Reads rule rows with the sequence that owns their icon files. */
     @Transaction

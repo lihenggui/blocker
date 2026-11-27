@@ -48,16 +48,21 @@ class AppRestrictionRepositoryTest {
 
     private fun TestScope.repository() = LocalAppRestrictionRepository(channel, control, RuntimeEnvironment.getApplication(), StandardTestDispatcher(testScheduler))
 
-    @Test fun givenTwoObservers_whenWriting_thenOnlyTheirAppChanges() = runTest {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenTwoObservers_whenWriting_thenOnlyTheirAppChanges() = runTest {
         val repository = repository()
         repository.observe(app).test firstObserver@{
+            assertThat(awaitItem()).isNull()
             assertThat(awaitItem()).isEqualTo(defaults.setting())
             repository.observe(app).test {
                 assertThat(awaitItem()).isEqualTo(defaults.setting())
+                runCurrent()
                 assertThat(channel.quietConnectCount).isEqualTo(2)
                 assertThat(channel.connectCount).isEqualTo(0)
 
                 repository.observe(otherUser).test {
+                    assertThat(awaitItem()).isNull()
                     assertThat(awaitItem()).isEqualTo(defaults.setting())
                     assertThat(repository.setDeepRestricted(app, true)).isEqualTo(AppRestrictionResult.Success(restriction.setting()))
                     expectNoEvents()
@@ -72,9 +77,13 @@ class AppRestrictionRepositoryTest {
     @Test
     fun givenCachedSettings_whenResubscribingAndReconnecting_thenObserversSeeFreshValuesWithoutPrompting() = runTest {
         val repository = repository()
-        repository.observe(app).test { assertThat(awaitItem()).isEqualTo(defaults.setting()) }
+        assertThat(repository.read(app)).isEqualTo(AppRestrictionResult.Success(defaults.setting()))
         control.states[app] = restriction
+        val refresh = CompletableDeferred<Unit>()
+        control.beforeRead = { refresh.await() }
         repository.observe(app).test {
+            assertThat(awaitItem()).isEqualTo(defaults.setting())
+            refresh.complete(Unit)
             assertThat(awaitItem()).isEqualTo(restriction.setting())
             channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
             runCurrent()
@@ -89,6 +98,7 @@ class AppRestrictionRepositoryTest {
     @Test fun givenRecentlyAllowlistedApp_whenWriting_thenRefusalAndUpdatedProtectedStateAreReported() = runTest {
         val repository = repository()
         repository.observe(app).test {
+            assertThat(awaitItem()).isNull()
             assertThat(awaitItem()?.changeable).isTrue()
             control.protected = true
 
@@ -124,6 +134,7 @@ class AppRestrictionRepositoryTest {
     @Test fun givenFailedWriteAndMissingApp_whenReadingBack_thenCacheClearsAndWriteFailureSurfaces() = runTest {
         val repository = repository()
         repository.observe(app).test {
+            assertThat(awaitItem()).isNull()
             assertThat(awaitItem()).isEqualTo(defaults.setting())
             control.writeFailure = CallFailure.SystemError("AppOps write failed")
             control.beforeWrite = { control.readFailure = CallFailure.TargetNotFound(null) }
@@ -268,6 +279,7 @@ class AppRestrictionRepositoryTest {
         val reads = mutableListOf<AppKey>()
         var writeFailure: CallFailure? = null
         var readFailure: CallFailure? = null
+        var beforeRead: suspend () -> Unit = {}
         var beforeWrite: suspend () -> Unit = {}
         var afterWrite: () -> CallFailure? = { null }
         var protected = false
@@ -275,6 +287,7 @@ class AppRestrictionRepositoryTest {
 
         override suspend fun read(app: AppKey): CallResult<AppRestrictionReading> {
             reads += app
+            beforeRead()
             return readFailure?.let { CallResult.Failure(it) } ?: CallResult.Success(reading(app))
         }
 

@@ -57,11 +57,17 @@ import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneBroadcastMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository
+import com.merxury.blocker.core.data.wake.FirewallResetRepository
 import com.merxury.blocker.core.data.wake.LocalAutomaticWakeBlockRepository
+import com.merxury.blocker.core.data.wake.LocalFirewallResetRepository
 import com.merxury.blocker.core.data.wake.LocalWakeBlockRepository
+import com.merxury.blocker.core.data.wake.LocalWakeProtectionRepository
+import com.merxury.blocker.core.data.wake.LocalWakeRepository
 import com.merxury.blocker.core.data.wake.PackageManagerWakeReceiverResolver
 import com.merxury.blocker.core.data.wake.WakeBlockRepository
+import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeReceiverResolver
+import com.merxury.blocker.core.data.wake.WakeRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -70,6 +76,20 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
+    // The test data module replaces the other repository bindings.
+    @Module
+    @InstallIn(SingletonComponent::class)
+    internal interface WakeRepositories {
+        @Binds
+        fun bindWakeRepository(repository: LocalWakeRepository): WakeRepository
+
+        @Binds
+        fun bindWakeProtectionRepository(repository: LocalWakeProtectionRepository): WakeProtectionRepository
+
+        @Binds
+        fun bindFirewallResetRepository(repository: LocalFirewallResetRepository): FirewallResetRepository
+    }
+
     @Binds
     internal abstract fun bindCatalogRepository(repository: LocalCatalogRepository): CatalogRepository
 

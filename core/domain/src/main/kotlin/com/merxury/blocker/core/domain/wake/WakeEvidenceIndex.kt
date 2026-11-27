@@ -4,13 +4,13 @@
 package com.merxury.blocker.core.domain.wake
 
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
-import com.merxury.blocker.core.database.wake.WakeRecord
 import com.merxury.blocker.core.model.component.appIdOfUid
 import com.merxury.blocker.core.model.component.isRegularAppUid
 import com.merxury.blocker.core.model.component.userOfUid
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
+import com.merxury.blocker.core.model.wake.WakeRecord
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import com.merxury.blocker.core.privileged.wake.WAKE_AUDIO_PLAYBACK
 import com.merxury.blocker.core.privileged.wake.WAKE_DEVICE_ADMIN

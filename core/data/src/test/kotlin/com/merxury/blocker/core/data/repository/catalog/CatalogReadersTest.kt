@@ -106,12 +106,14 @@ class CatalogReadersTest {
     }
 
     @Test
-    fun givenLocalizedRules_whenSearching_thenOnlyResolvedNamesUseSqlLike() = runTest {
+    fun givenLocalizedRules_whenSearching_thenMatchesResolvedNamesLiterally() = runTest {
         install()
         userData.setLibDisplayLanguage("zh-CN")
 
-        assertThat(rules.searchGeneralRule("示例 s_k").first().map { it.id }).containsExactly(1)
-        assertThat(rules.searchGeneralRule("sec%SDK").first().map { it.id }).containsExactly(2)
+        assertThat(rules.searchGeneralRule("示例 sdk").first().map { it.id }).containsExactly(1)
+        assertThat(rules.searchGeneralRule("second").first().map { it.id }).containsExactly(2)
+        assertThat(rules.searchGeneralRule("示例 s_k").first()).isEmpty()
+        assertThat(rules.searchGeneralRule("sec%SDK").first()).isEmpty()
         assertThat(rules.searchGeneralRule("Example").first()).isEmpty()
         assertThat(rules.searchGeneralRule("Company").first()).isEmpty()
         assertThat(rules.searchGeneralRule("first").first()).isEmpty()

@@ -33,7 +33,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
-import org.json.JSONObject
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,7 +49,6 @@ private val DATA = declaration("Data", ComponentType.PROVIDER)
 class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
     private val own = currentUserId()
     private val legacyDb = applicationContext.getDatabasePath("installed_app")
-    private val schemas = File("../database/schemas/com.merxury.blocker.core.database.app.InstalledAppDatabase")
 
     private fun ComponentDeclaration.key() = ComponentKey(id, own)
 
@@ -337,18 +335,9 @@ class PmBlockRecordSeederTest : DeviceRepositoryTestBase() {
     }
 
     private fun createDatabase(version: Int, vararg rows: Pair<ComponentDeclaration, Boolean>) {
-        val schema = JSONObject(schemas.resolve("$version.json").readText()).getJSONObject("database")
+        val schema = requireNotNull(javaClass.getResourceAsStream("/legacy-installed-app/v$version.sql"))
         SQLiteDatabase.openOrCreateDatabase(legacyDb, null).use { database ->
-            val entities = schema.getJSONArray("entities")
-            for (i in 0 until entities.length()) {
-                val entity = entities.getJSONObject(i)
-                fun execute(sql: String) = database.execSQL(sql.replace("\${TABLE_NAME}", entity.getString("tableName")))
-                execute(entity.getString("createSql"))
-                val indices = entity.getJSONArray("indices")
-                for (j in 0 until indices.length()) execute(indices.getJSONObject(j).getString("createSql"))
-            }
-            val setup = schema.getJSONArray("setupQueries")
-            for (i in 0 until setup.length()) database.execSQL(setup.getString(i))
+            schema.bufferedReader().useLines { statements -> statements.forEach(database::execSQL) }
             database.version = version
             for ((component, blocked) in rows) {
                 database.execSQL(

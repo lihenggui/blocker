@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.timber)
 
     testImplementation(projects.core.dataTest)
+    testImplementation(projects.core.datastore)
     testImplementation(projects.core.datastoreTest)
     testImplementation(projects.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)

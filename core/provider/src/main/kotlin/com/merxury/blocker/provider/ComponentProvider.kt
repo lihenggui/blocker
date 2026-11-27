@@ -94,6 +94,8 @@ class ComponentProvider internal constructor(
         fun ioDispatcher(): CoroutineDispatcher
     }
 
+    private val ipcJson = Json { ignoreUnknownKeys = true }
+
     private val callerVerifier: ProviderCallerVerifier by lazy {
         ProviderCallerVerifier(
             ownUid = Process.myUid(),
@@ -186,7 +188,7 @@ class ComponentProvider internal constructor(
                 null
             }
         }
-        return bundleOf("cmp_list" to Json.encodeToString(ShareCmpInfo(packageName, blocked)))
+        return bundleOf("cmp_list" to ipcJson.encodeToString(ShareCmpInfo(packageName, blocked)))
     }
 
     private suspend fun ProviderEntryPoint.cachedComponents(app: AppKey): List<ComponentStatus> = componentStatuses().components(app).first()
@@ -211,7 +213,7 @@ class ComponentProvider internal constructor(
 
     private suspend fun ProviderEntryPoint.controlComponents(packageName: String, data: Bundle): Bundle? {
         val rawString = data.getString("cmp_list") ?: return null
-        val entries = Json.decodeFromString<ShareCmpInfo>(rawString).components
+        val entries = ipcJson.decodeFromString<ShareCmpInfo>(rawString).components
         if (entries.isEmpty()) return data
         // A repeated class ends in the state asked for by its last entry.
         val changes = entries.associate { it.name to it.block }

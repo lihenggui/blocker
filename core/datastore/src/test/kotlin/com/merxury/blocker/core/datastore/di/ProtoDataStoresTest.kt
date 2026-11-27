@@ -168,6 +168,7 @@ class ProtoDataStoresTest {
         val current = appProperties {
             rootGrantRemembered = true
             pmBlockRecordsSeeded = true
+            lastCatalogSyncedEpochMs = 1_795_335_233_000L
         }
         val old = current.copy {
             componentDatabaseInitialized = true

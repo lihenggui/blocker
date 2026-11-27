@@ -32,9 +32,7 @@ android {
 }
 
 dependencies {
-    api(libs.kotlinx.datetime)
     api(projects.core.common)
-    api(projects.core.model)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp.logging)

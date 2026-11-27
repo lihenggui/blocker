@@ -18,7 +18,6 @@
 package com.merxury.blocker.sync.workers
 
 import android.content.Context
-import androidx.core.content.edit
 import androidx.hilt.work.HiltWorker
 import androidx.tracing.traceAsync
 import androidx.work.CoroutineWorker
@@ -32,24 +31,26 @@ import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
 import com.merxury.blocker.core.data.repository.catalog.CatalogUpdateResult
 import com.merxury.blocker.core.data.repository.catalog.CatalogUpdateResult.Reason
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
+import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.SyncConstraints
 import com.merxury.blocker.sync.initializers.syncForegroundInfo
-import com.merxury.blocker.sync.status.ISyncSubscriber
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import kotlin.time.Instant
+import java.io.IOException
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 
 private const val FORCE_CHECK = "force_catalog_check"
-private const val PREF_SYNC_RULE = "sync_rule"
-private const val PREF_LAST_SYNCED_TIME = "last_synced_time"
+private val SYNC_INTERVAL = 1.days
 
 /**
  * Syncs the data layer by delegating to the appropriate repository instances with
@@ -64,69 +65,54 @@ internal class SyncWorker @AssistedInject constructor(
     private val catalogRepository: CatalogRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
-    private val syncSubscriber: ISyncSubscriber,
+    private val appProperties: BlockerAppPropertiesDataStore,
+    private val clock: Clock,
     private val appDebugChecker: AppDebugChecker,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo = appContext.syncForegroundInfo()
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        if (!inputData.getBoolean(FORCE_CHECK, false) && !shouldRunTask()) {
-            Timber.v("No need to sync rule")
-            return@withContext Result.success()
+        if (runAttemptCount >= MAX_RETRY_ATTEMPTS) return@withContext Result.failure()
+        try {
+            if (!inputData.getBoolean(FORCE_CHECK, false) && !shouldRunTask()) {
+                Timber.v("No need to sync rule")
+                return@withContext Result.success()
+            }
+            syncCatalog()
+        } catch (e: IOException) {
+            Timber.w(e, "Cannot read or persist catalog sync state")
+            Result.retry()
         }
-        traceAsync("Sync", 0) {
-            analyticsHelper.logSyncStarted()
+    }
 
-            syncSubscriber.subscribe()
+    private suspend fun syncCatalog(): Result = traceAsync("Sync", 0) {
+        analyticsHelper.logSyncStarted()
+        val provider = userDataRepository.userData.first().ruleServerProvider
+        val result = catalogRepository.update(provider)
+        currentCoroutineContext().ensureActive()
+        analyticsHelper.logSyncFinished(result !is CatalogUpdateResult.Failed)
 
-            val provider = userDataRepository.userData.first().ruleServerProvider
-            val result = catalogRepository.update(provider)
-            ensureActive()
-            analyticsHelper.logSyncFinished(result !is CatalogUpdateResult.Failed)
+        when (result) {
+            is CatalogUpdateResult.Updated, CatalogUpdateResult.UpToDate -> {
+                appProperties.setLastCatalogSyncedEpochMs(clock.now().toEpochMilliseconds())
+                Result.success()
+            }
 
-            when (result) {
-                is CatalogUpdateResult.Updated, CatalogUpdateResult.UpToDate -> {
-                    markLastRunTime()
-                    Result.success()
-                }
-
-                is CatalogUpdateResult.Failed -> when (result.reason) {
-                    Reason.NETWORK -> Result.retry()
-                    Reason.INVALID_DATA, Reason.LOCAL_STORAGE -> Result.failure()
-                }
+            is CatalogUpdateResult.Failed -> when (result.reason) {
+                Reason.NETWORK -> Result.retry()
+                Reason.INVALID_DATA, Reason.LOCAL_STORAGE -> Result.failure()
             }
         }
     }
 
-    // Only run this worker in the first run in a day
-    private fun shouldRunTask(): Boolean {
-        if (appDebugChecker.isDebugMode()) {
-            Timber.d("Should run sync task in debug mode each time when app launches")
-            return true
-        }
-        val lastRunTime = getLastRunTime()
-        val currentTime = System.currentTimeMillis()
-        val shouldRunTask = (currentTime - lastRunTime) > 24 * 60 * 60 * 1000
-        Timber.d(
-            "Last rule sync time: ${Instant.fromEpochMilliseconds(lastRunTime)}, " +
-                "Should run sync task: $shouldRunTask",
-        )
-        return shouldRunTask
-    }
-
-    private fun getLastRunTime(): Long {
-        val sharedPreferences =
-            appContext.getSharedPreferences(PREF_SYNC_RULE, Context.MODE_PRIVATE)
-        return sharedPreferences.getLong(PREF_LAST_SYNCED_TIME, 0)
-    }
-
-    private fun markLastRunTime() {
-        val sharedPreferences =
-            appContext.getSharedPreferences(PREF_SYNC_RULE, Context.MODE_PRIVATE)
-        val currentTime = System.currentTimeMillis()
-        sharedPreferences.edit { putLong(PREF_LAST_SYNCED_TIME, currentTime) }
-        Timber.d("Mark rule sync time: ${Instant.fromEpochMilliseconds(currentTime)}")
+    private suspend fun shouldRunTask(): Boolean {
+        if (appDebugChecker.isDebugMode()) return true
+        val lastSyncedEpochMs = appProperties.lastCatalogSyncedEpochMs.first()
+        val currentEpochMs = clock.now().toEpochMilliseconds()
+        // Check again after a clock rollback so a future timestamp cannot suppress new checks.
+        return lastSyncedEpochMs == 0L || currentEpochMs < lastSyncedEpochMs ||
+            currentEpochMs - lastSyncedEpochMs >= SYNC_INTERVAL.inWholeMilliseconds
     }
 
     companion object {

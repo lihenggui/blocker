@@ -4,9 +4,9 @@
 package com.merxury.blocker.core.data.wake
 
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
-import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.wake.WakeProtection
 import com.merxury.blocker.core.privileged.wake.WakeCallRefusedException
 import com.merxury.blocker.core.privileged.wake.WakeComponentJournal
 import com.merxury.blocker.core.privileged.wake.WakeJournalUnreadableException
@@ -36,7 +36,7 @@ class WakeComponentOwnership @Inject constructor(
     /** Blocks already made by wake protection that the user can take over under the package lock. */
     internal suspend fun claimedBlocks(user: UserId, candidates: Set<ComponentId>, catalog: ReviewedWakePaths): List<ComponentId> {
         if (user != UserId.SYSTEM || candidates.isEmpty()) return emptyList()
-        return history.readProtections()
+        return history.readProtections().map { it.asModel() }
             .filter { it.method == "PM" && it.configured }
             .mapNotNull { path ->
                 candidates.firstOrNull { it.packageName == path.target && it.className == path.component }
@@ -45,7 +45,7 @@ class WakeComponentOwnership @Inject constructor(
     }
 
     suspend fun recover() {
-        val local = history.readProtections().filter { it.method == "PM" }.associateBy { it.pathId }
+        val local = history.readProtections().map { it.asModel() }.filter { it.method == "PM" }.associateBy { it.pathId }
         val stored = journal.read()
         if (stored == null) {
             // Migrate an existing local journal before making further PackageManager changes.
@@ -72,13 +72,13 @@ class WakeComponentOwnership @Inject constructor(
         }
         val released = local.values.filter { it.pathId !in durable && (it.configured || it.componentWritePending) }
             .map { it.copy(configured = false, pendingChange = false) }
-        history.putProtections(released + recovered.filter { it != local[it.pathId] })
+        history.putProtections((released + recovered.filter { it != local[it.pathId] }).map { it.asEntity() })
     }
 
     suspend fun save(path: WakeProtection) {
-        val owned = history.readProtections().filter { it.needsComponentJournal() && it.pathId != path.pathId }
+        val owned = history.readProtections().map { it.asModel() }.filter { it.needsComponentJournal() && it.pathId != path.pathId }
         val next = if (path.needsComponentJournal()) owned + path else owned
         journal.write(Json.encodeToString(next))
-        history.putProtections(listOf(path))
+        history.putProtections(listOf(path.asEntity()))
     }
 }
