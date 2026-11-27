@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">Operation history</string>
+    <string name="feature_history_impl_empty">No component operations recorded yet.</string>
+    <string name="feature_history_impl_undo_since">Undo everything since this day</string>
+    <string name="feature_history_impl_undo">Undo</string>
+    <string name="feature_history_impl_cancel">Cancel</string>
+    <string name="feature_history_impl_confirm_title">Undo component changes?</string>
+    <string name="feature_history_impl_undoing">Restoring components…</string>
+    <string name="feature_history_impl_undone">Undone</string>
+    <string name="feature_history_impl_expand">Show component changes</string>
+    <string name="feature_history_impl_collapse">Hide component changes</string>
+    <string name="feature_history_impl_source_app_detail">App detail</string>
+    <string name="feature_history_impl_source_search">Search</string>
+    <string name="feature_history_impl_source_general_rule">General rule</string>
+    <string name="feature_history_impl_source_rule_detail">Rule detail</string>
+    <string name="feature_history_impl_source_debloater">Debloater</string>
+    <string name="feature_history_impl_source_provider">External provider</string>
+    <string name="feature_history_impl_source_import_blocker">Import Blocker rules</string>
+    <string name="feature_history_impl_source_import_mat">Import MyAndroidTools rules</string>
+    <string name="feature_history_impl_no_snapshots">No component changes available.</string>
+    <string name="feature_history_impl_confirm_since">Restore component states to how they were before the changes recorded on or after %1$s?</string>
+    <string name="feature_history_impl_undo_result">Restored: %1$d · Already at the earlier state: %2$d · Skipped: %3$d · Failed: %4$d</string>
+    <string name="feature_history_impl_load_failed">Could not load operation history.</string>
+    <string name="feature_history_impl_entries_failed">Could not load component changes.</string>
+    <string name="feature_history_impl_undo_failed">Could not undo component changes.</string>
+    <string name="feature_history_impl_on">On</string>
+    <string name="feature_history_impl_off">Off</string>
+    <string name="feature_history_impl_source_reset_pm">Restore PM modifications</string>
+    <string name="feature_history_impl_state_change">%1$s → %2$s</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="one">%d component</item>
+        <item quantity="other">%d components</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="one">Restore %d component to its state before this operation?</item>
+        <item quantity="other">Restore %d components to their state before this operation?</item>
+    </plurals>
+</resources>

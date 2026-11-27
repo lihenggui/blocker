@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">操作历史</string>
+    <string name="feature_history_impl_empty">尚无组件操作记录。</string>
+    <string name="feature_history_impl_undo_since">撤销自此日起的所有操作</string>
+    <string name="feature_history_impl_undo">撤销</string>
+    <string name="feature_history_impl_cancel">取消</string>
+    <string name="feature_history_impl_confirm_title">撤销组件更改？</string>
+    <string name="feature_history_impl_undoing">正在恢复组件…</string>
+    <string name="feature_history_impl_undone">已撤销</string>
+    <string name="feature_history_impl_expand">显示组件更改</string>
+    <string name="feature_history_impl_collapse">隐藏组件更改</string>
+    <string name="feature_history_impl_source_app_detail">应用详情</string>
+    <string name="feature_history_impl_source_search">搜索</string>
+    <string name="feature_history_impl_source_general_rule">通用规则</string>
+    <string name="feature_history_impl_source_rule_detail">规则详情</string>
+    <string name="feature_history_impl_source_debloater">应用精简</string>
+    <string name="feature_history_impl_source_provider">外部提供程序</string>
+    <string name="feature_history_impl_source_import_blocker">导入 Blocker 规则</string>
+    <string name="feature_history_impl_source_import_mat">导入 MyAndroidTools 规则</string>
+    <string name="feature_history_impl_no_snapshots">暂无可用的组件更改记录。</string>
+    <string name="feature_history_impl_confirm_since">将组件恢复到 %1$s 及之后的更改发生前的状态？</string>
+    <string name="feature_history_impl_undo_result">已恢复：%1$d · 已处于先前状态：%2$d · 已跳过：%3$d · 失败：%4$d</string>
+    <string name="feature_history_impl_load_failed">无法加载操作历史。</string>
+    <string name="feature_history_impl_entries_failed">无法加载组件更改记录。</string>
+    <string name="feature_history_impl_undo_failed">无法撤销组件更改。</string>
+    <string name="feature_history_impl_on">开启</string>
+    <string name="feature_history_impl_off">关闭</string>
+    <string name="feature_history_impl_source_reset_pm">恢复 PM 修改</string>
+    <string name="feature_history_impl_state_change">%1$s → %2$s</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="other">%d 个组件</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="other">将 %d 个组件恢复到此次操作前的状态？</item>
+    </plurals>
+</resources>

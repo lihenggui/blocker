@@ -19,6 +19,7 @@ package com.merxury.blocker.navigation
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
 import com.merxury.blocker.feature.applist.api.navigation.AppListNavKey
+import com.merxury.blocker.feature.history.api.navigation.HistoryNavKey
 import kotlinx.serialization.json.Json
 import org.junit.Test
 
@@ -40,6 +41,13 @@ class NavKeySerializationTest {
         val restored = Json.decodeFromString<AppDetailNavKey>(Json.encodeToString(key))
 
         assertThat(restored).isEqualTo(key)
+    }
+
+    @Test
+    fun givenHistoryKey_whenSavedAndRestored_thenSameKey() {
+        val restored = Json.decodeFromString<HistoryNavKey>(Json.encodeToString(HistoryNavKey))
+
+        assertThat(restored).isSameInstanceAs(HistoryNavKey)
     }
 
     @Test

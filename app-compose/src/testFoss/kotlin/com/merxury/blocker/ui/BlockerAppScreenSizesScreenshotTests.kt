@@ -35,6 +35,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -70,6 +71,7 @@ import com.merxury.blocker.core.designsystem.R.string as designString
 import com.merxury.blocker.core.ui.R.string as uiString
 import com.merxury.blocker.feature.applist.api.R.string as appsString
 import com.merxury.blocker.feature.globalifwrule.impl.R.string as firewallString
+import com.merxury.blocker.feature.settings.api.R.string as settingsString
 import com.merxury.blocker.feature.wake.api.R.string as wakeString
 
 /**
@@ -165,7 +167,7 @@ class BlockerAppScreenSizesScreenshotTests {
             )
     }
 
-    private fun showCompactApp() {
+    private fun showApp(widthDp: Float = 412f) {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 BlockerTheme {
@@ -173,7 +175,7 @@ class BlockerAppScreenSizesScreenshotTests {
                     BlockerApp(
                         appState = appState,
                         windowAdaptiveInfo = WindowAdaptiveInfo(
-                            windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(widthDp = 412f, heightDp = 880f),
+                            windowSizeClass = BREAKPOINTS_V1.computeWindowSizeClass(widthDp = widthDp, heightDp = 880f),
                             windowPosture = Posture(),
                         ),
                     )
@@ -188,7 +190,7 @@ class BlockerAppScreenSizesScreenshotTests {
 
     @Test
     fun givenBackgroundTab_whenPredictiveBackCancelsThenCommits_thenNavigationShowsThePreviewedTab() {
-        showCompactApp()
+        showApp()
         val appTab = destination(R.string.apps)
         val backgroundTab = destination(R.string.background)
         val searchTab = destination(R.string.search)
@@ -226,7 +228,7 @@ class BlockerAppScreenSizesScreenshotTests {
 
     @Test
     fun whenOpeningRules_thenOnlyTheGeneralRulesScreenAppears() {
-        showCompactApp()
+        showApp()
 
         destination(R.string.rules).performClick()
 
@@ -236,7 +238,7 @@ class BlockerAppScreenSizesScreenshotTests {
 
     @Test
     fun givenAppsMenu_whenOpeningFirewallAndGoingBack_thenTheAppsListReturns() {
-        showCompactApp()
+        showApp()
         val moreMenu = composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_more_menu))
         moreMenu.performClick()
 
@@ -247,6 +249,36 @@ class BlockerAppScreenSizesScreenshotTests {
         composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back)).performClick()
         moreMenu.assertExists()
         composeTestRule.onNodeWithText(text(firewallString.feature_globalifwrule_impl_title)).assertDoesNotExist()
+    }
+
+    @Test
+    fun givenCompactLayout_whenOpeningHistoryAndGoingBack_thenSettingsReturns() {
+        assertHistoryReturnsToSettings(widthDp = 412f, useSystemBack = true)
+    }
+
+    @Test
+    fun givenExpandedLayout_whenOpeningHistoryAndGoingBack_thenSettingsReturns() {
+        assertHistoryReturnsToSettings(widthDp = 900f, useSystemBack = false)
+    }
+
+    private fun assertHistoryReturnsToSettings(widthDp: Float, useSystemBack: Boolean) {
+        showApp(widthDp)
+        composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_more_menu)).performClick()
+        composeTestRule.onNodeWithText(text(appsString.feature_applist_api_settings)).performClick()
+        val history = composeTestRule.onNodeWithText(text(settingsString.feature_settings_api_operation_history))
+        history.performScrollTo().performClick()
+
+        val settingsContent = composeTestRule.onNode(hasTestTag("settings:content"))
+        settingsContent.assertDoesNotExist()
+        history.assertIsDisplayed()
+
+        if (useSystemBack) {
+            composeTestRule.runOnUiThread { composeTestRule.activity.onBackPressedDispatcher.onBackPressed() }
+        } else {
+            composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back)).performClick()
+        }
+        settingsContent.assertIsDisplayed()
+        composeTestRule.onNodeWithText(text(settingsString.feature_settings_api_settings)).assertIsDisplayed()
     }
 
     @Test

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">Historial de operaciones</string>
+    <string name="feature_history_impl_empty">Aún no se han registrado operaciones de componentes.</string>
+    <string name="feature_history_impl_undo_since">Deshacer todo desde este día</string>
+    <string name="feature_history_impl_undo">Deshacer</string>
+    <string name="feature_history_impl_cancel">Cancelar</string>
+    <string name="feature_history_impl_confirm_title">¿Deshacer los cambios de los componentes?</string>
+    <string name="feature_history_impl_undoing">Restaurando componentes…</string>
+    <string name="feature_history_impl_undone">Deshecho</string>
+    <string name="feature_history_impl_expand">Mostrar cambios de componentes</string>
+    <string name="feature_history_impl_collapse">Ocultar cambios de componentes</string>
+    <string name="feature_history_impl_source_app_detail">Detalles de la aplicación</string>
+    <string name="feature_history_impl_source_search">Buscar</string>
+    <string name="feature_history_impl_source_general_rule">Regla general</string>
+    <string name="feature_history_impl_source_rule_detail">Detalles de la regla</string>
+    <string name="feature_history_impl_source_debloater">Simplificación de aplicaciones</string>
+    <string name="feature_history_impl_source_provider">Proveedor externo</string>
+    <string name="feature_history_impl_source_import_blocker">Importar reglas de Blocker</string>
+    <string name="feature_history_impl_source_import_mat">Importar reglas de MyAndroidTools</string>
+    <string name="feature_history_impl_no_snapshots">No hay cambios de componentes disponibles.</string>
+    <string name="feature_history_impl_confirm_since">¿Restaurar los componentes al estado anterior a los cambios registrados desde el %1$s?</string>
+    <string name="feature_history_impl_undo_result">Restaurados: %1$d · Ya en el estado anterior: %2$d · Omitidos: %3$d · Fallidos: %4$d</string>
+    <string name="feature_history_impl_load_failed">No se pudo cargar el historial de operaciones.</string>
+    <string name="feature_history_impl_entries_failed">No se pudieron cargar los cambios de componentes.</string>
+    <string name="feature_history_impl_undo_failed">No se pudieron deshacer los cambios de componentes.</string>
+    <string name="feature_history_impl_on">Activado</string>
+    <string name="feature_history_impl_off">Desactivado</string>
+    <string name="feature_history_impl_source_reset_pm">Restaurar modificaciones de PM</string>
+    <string name="feature_history_impl_state_change">%1$s → %2$s</string>
+    <plurals name="feature_history_impl_component_count">
+        <item quantity="one">%d componente</item>
+        <item quantity="many">%d componentes</item>
+        <item quantity="other">%d componentes</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_operation">
+        <item quantity="one">¿Restaurar %d componente a su estado anterior a esta operación?</item>
+        <item quantity="many">¿Restaurar %d componentes a su estado anterior a esta operación?</item>
+        <item quantity="other">¿Restaurar %d componentes a su estado anterior a esta operación?</item>
+    </plurals>
+</resources>
