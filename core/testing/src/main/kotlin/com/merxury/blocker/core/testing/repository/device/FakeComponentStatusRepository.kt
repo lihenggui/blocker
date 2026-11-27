@@ -20,6 +20,8 @@ import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DisabledComponents
 import com.merxury.blocker.core.data.device.FirewallRead
 import com.merxury.blocker.core.data.device.RefreshProgress
+import com.merxury.blocker.core.data.history.OperationRecorder
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
@@ -48,6 +50,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
+import kotlin.time.Clock
 
 /**
  * In-memory [ComponentStatusRepository]. Tests set the cached components with [sendComponents].
@@ -137,11 +140,11 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
 
     override fun isProtectedFromBlocking(app: AppKey): Boolean = app == protectedApp
 
-    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?): Flow<ControlEvent> = control(request, writeObserver) {
+    override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?, operation: OperationScope): Flow<ControlEvent> = control(request, writeObserver) {
         it.layersFor(request.layers, request.goal)
     }
 
-    override fun restore(request: ControlRequest): Flow<ControlEvent> = control(request, writeObserver = null) {
+    override fun restore(request: ControlRequest, operation: OperationScope): Flow<ControlEvent> = control(request, writeObserver = null) {
         it.supportedLayers(request.layers)
     }
 
@@ -198,7 +201,7 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         emit(ControlEvent.Finished(achieved = outcomes.size, partial = 0, failed = 0))
     }
 
-    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent> = control(ControlRequest(user, components, ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER))).onEach { event ->
+    override fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>, operation: OperationScope): Flow<ControlEvent> = control(ControlRequest(user, components, ControlGoal.UNBLOCK, setOf(ControlLayer.PACKAGE_MANAGER)), operation).onEach { event ->
         if (event is ControlEvent.PackageDone) {
             event.outcomes.forEach { outcome ->
                 val failure = outcome.failures[ControlLayer.PACKAGE_MANAGER]
@@ -272,3 +275,6 @@ class FakeComponentStatusRepository @Inject constructor() : ComponentStatusRepos
         val KEY_ORDER: Comparator<ComponentKey> = compareBy({ it.id.packageName }, { it.id.className })
     }
 }
+
+/** A recorder for tests that use fake repositories and never persist component history. */
+fun fakeOperationRecorder() = OperationRecorder({ error("Unexpected operation history write") }, Clock.System)

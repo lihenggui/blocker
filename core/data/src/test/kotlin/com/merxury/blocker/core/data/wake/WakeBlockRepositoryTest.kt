@@ -16,6 +16,7 @@ import com.merxury.blocker.core.data.device.DeviceRepositoryTestBase
 import com.merxury.blocker.core.data.device.PmBlockClaimObserver
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.device.installedApp
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.database.wake.WakeBlockDao
 import com.merxury.blocker.core.database.wake.WakeBlockEntity
 import com.merxury.blocker.core.database.wake.WakeProtection
@@ -369,7 +370,7 @@ class WakeBlockRepositoryTest {
         val provider = declaration(PROVIDER, ComponentType.PROVIDER)
         val pmWrites = if (acknowledgeBeforeReadBack) emptySet() else setOf(provider.id)
         val observed = object : ComponentStatusRepository by components {
-            override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?) = components.control(request, keepKnownState, writeObserver).onStart {
+            override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?, operation: OperationScope) = components.control(request, keepKnownState, writeObserver, operation).onStart {
                 if (acknowledgeBeforeReadBack && request.goal == ControlGoal.BLOCK) writeObserver?.onWrite(listOf(provider.id))
             }
         }
@@ -662,8 +663,8 @@ class WakeBlockRepositoryTest {
             assertThat(batchClaims).contains(prior)
 
             val block = ControlRequest(UserId.SYSTEM, listOf(first, second), ControlGoal.BLOCK, setOf(ControlLayer.PACKAGE_MANAGER))
-            status.control(block.copy(goal = ControlGoal.UNBLOCK), keepKnownState = false, writeObserver = null).first()
-            status.control(block, keepKnownState = false, writeObserver = null).first()
+            status.control(block.copy(goal = ControlGoal.UNBLOCK), keepKnownState = false, writeObserver = null, operation = OperationScope.Unrecorded).first()
+            status.control(block, keepKnownState = false, writeObserver = null, operation = OperationScope.Unrecorded).first()
             val replacements = device.pmBlocks.recordsFor(app)
             assertThat(replacements).hasSize(2)
             assertThat(replacements).containsNoneIn(batchClaims)
@@ -1104,13 +1105,13 @@ class WakeBlockRepositoryTest {
     }
 
     private fun journaledComponents(records: PmBlockRecords) = object : ComponentStatusRepository by components {
-        override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?) = flow {
+        override fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver?, operation: OperationScope) = flow {
             val app = AppKey(TARGET, request.user)
             val toClaim = if (request.goal == ControlGoal.BLOCK) request.components.filter { pm(it) != PmSetting.DISABLED } else emptyList()
             val observer = writeObserver as? PmBlockClaimObserver
             observer?.onPmClaimsBefore(records.recordsFor(app).filter { row -> toClaim.any { it.id.className == row.className } })
             val added = records.recordNew(toClaim.map { it.key })
-            components.control(request, keepKnownState, writeObserver).collect { event ->
+            components.control(request, keepKnownState, writeObserver, operation).collect { event ->
                 if (event is ControlEvent.PackageDone && request.expectedPm == null) {
                     records.afterControl(event, forgetRefusedPmBlocks = false)
                     observer?.onPmClaimsAdded(added)

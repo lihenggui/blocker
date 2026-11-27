@@ -20,6 +20,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.PackageControlActivity
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -36,6 +37,7 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -60,7 +62,7 @@ class ComponentBatchRunnerTest {
 
     @Test
     fun givenBatchesOfTwoScreens_whenRunning_thenEveryComponentOfBothIsInFlightForItsUser() = runTest {
-        val runner = ComponentBatchRunner(FakeComponentStatusRepository(), backgroundScope, PackageControlActivity())
+        val runner = ComponentBatchRunner(FakeComponentStatusRepository(), backgroundScope, PackageControlActivity(), fakeOperationRecorder())
 
         runner.inFlight.test {
             assertThat(awaitItem()).isEmpty()
@@ -89,7 +91,7 @@ class ComponentBatchRunnerTest {
         val chunkSizes = mutableListOf<Int>()
         val chunksFinishedAtIdle = CompletableDeferred<Int>()
         val repository = object : ComponentStatusRepository by FakeComponentStatusRepository() {
-            override fun control(request: ControlRequest) = flow {
+            override fun control(request: ControlRequest, operation: OperationScope) = flow {
                 if (chunkSizes.isEmpty()) {
                     // Observe an idle transition before the next chunk can mark the package active again.
                     backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -101,7 +103,7 @@ class ComponentBatchRunnerTest {
                 chunkSizes += request.components.size
             }
         }
-        val runner = ComponentBatchRunner(repository, backgroundScope, activity)
+        val runner = ComponentBatchRunner(repository, backgroundScope, activity, fakeOperationRecorder())
         val run = runner.reserve(BatchKey.Search(owner), ControlGoal.BLOCK, components.map { it.id })!!
         runner.start(run, components, setOf(ControlLayer.PACKAGE_MANAGER))
         run.outcomes.await()
@@ -114,7 +116,7 @@ class ComponentBatchRunnerTest {
     @Test
     fun givenReservedBatch_whenPreparationCompletes_thenSendPreparedComponentsAndReturnTheirOutcomes() = runTest {
         val repository = FakeComponentStatusRepository()
-        val runner = ComponentBatchRunner(repository, backgroundScope, PackageControlActivity())
+        val runner = ComponentBatchRunner(repository, backgroundScope, PackageControlActivity(), fakeOperationRecorder())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver, service))!!
         val prepared = CompletableDeferred<ControlRequest>()
@@ -136,7 +138,7 @@ class ComponentBatchRunnerTest {
     @Test
     fun givenReservedBatch_whenPreparationThrows_thenOutcomesFailAndReservationIsReleased() = runTest {
         val repository = FakeComponentStatusRepository()
-        val runner = ComponentBatchRunner(repository, backgroundScope, PackageControlActivity())
+        val runner = ComponentBatchRunner(repository, backgroundScope, PackageControlActivity(), fakeOperationRecorder())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver))!!
         val failure = IllegalStateException("Cannot prepare batch")
@@ -153,7 +155,7 @@ class ComponentBatchRunnerTest {
     fun givenBatchHasNotStarted_whenItsScopeIsCancelled_thenOutcomesAreCancelledWithoutAnEmptyList() = runTest {
         val job = Job()
         val scope = CoroutineScope(job + StandardTestDispatcher(testScheduler))
-        val runner = ComponentBatchRunner(FakeComponentStatusRepository(), scope, PackageControlActivity())
+        val runner = ComponentBatchRunner(FakeComponentStatusRepository(), scope, PackageControlActivity(), fakeOperationRecorder())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver))!!
         val preparing = CompletableDeferred<Unit>()
@@ -175,7 +177,7 @@ class ComponentBatchRunnerTest {
         val job = Job()
         val scope = CoroutineScope(job + StandardTestDispatcher(testScheduler))
         val repository = FakeComponentStatusRepository()
-        val runner = ComponentBatchRunner(repository, scope, PackageControlActivity())
+        val runner = ComponentBatchRunner(repository, scope, PackageControlActivity(), fakeOperationRecorder())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver))!!
         val preparing = CompletableDeferred<Unit>()
@@ -200,7 +202,7 @@ class ComponentBatchRunnerTest {
         val scope = CoroutineScope(job + StandardTestDispatcher(testScheduler))
         val reported = CompletableDeferred<Unit>()
         val repository = object : ComponentStatusRepository by FakeComponentStatusRepository() {
-            override fun control(request: ControlRequest) = flow {
+            override fun control(request: ControlRequest, operation: OperationScope) = flow {
                 val outcome = ComponentOutcome(
                     ComponentKey(receiver, owner),
                     ControlState(PmSetting.DISABLED, IfwBlock.NOT_BLOCKED),
@@ -212,7 +214,7 @@ class ComponentBatchRunnerTest {
                 awaitCancellation()
             }
         }
-        val runner = ComponentBatchRunner(repository, scope, PackageControlActivity())
+        val runner = ComponentBatchRunner(repository, scope, PackageControlActivity(), fakeOperationRecorder())
         val key = BatchKey.Search(owner)
         val run = runner.reserve(key, ControlGoal.BLOCK, listOf(receiver))!!
         runner.start(run) { request() }

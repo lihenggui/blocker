@@ -21,6 +21,7 @@ import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.DebloaterApk
 import com.merxury.blocker.core.data.device.DebloaterMetadataRepository
 import com.merxury.blocker.core.data.device.PackageControlActivity
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.PermissionStatus
 import com.merxury.blocker.core.domain.control.ComponentBatchRunner
@@ -54,6 +55,7 @@ import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
@@ -84,10 +86,10 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
     var preparationFailure: Exception? = null
     val started = mutableListOf<ControlRequest>()
     val repository = object : ComponentStatusRepository by components {
-        override fun control(request: ControlRequest) = flow {
+        override fun control(request: ControlRequest, operation: OperationScope) = flow {
             started += request
             controlGate.await()
-            emitAll(components.control(request))
+            emitAll(components.control(request, operation))
         }
 
         override fun components(app: AppKey) = flow {
@@ -96,7 +98,7 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
             emitAll(components.components(app))
         }
     }
-    val batches = ComponentBatchRunner(repository, appScope, PackageControlActivity())
+    val batches = ComponentBatchRunner(repository, appScope, PackageControlActivity(), fakeOperationRecorder())
     val index = ComponentIndex(repository, channel, appScope)
     private val layers = GetControlLayersUseCase(preferences)
     val viewModel = DebloaterViewModel(
@@ -105,7 +107,7 @@ internal class DebloaterFixture(appScope: CoroutineScope, dispatcher: CoroutineD
         componentIndex = index,
         componentStatuses = repository,
         batches = batches,
-        controlComponent = ControlComponentUseCase(repository, layers),
+        controlComponent = ControlComponentUseCase(repository, layers, fakeOperationRecorder()),
         layersFor = layers,
         channel = channel,
         permissionMonitor = object : PermissionMonitor {

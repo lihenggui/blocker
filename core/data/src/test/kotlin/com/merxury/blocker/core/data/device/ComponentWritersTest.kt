@@ -85,7 +85,7 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
         val controller = ShellRefusingComponentControl.create(channel, system, store, packageLocks)
         val repository = components(backgroundScope, control = controller)
 
-        val events = repository.control(blockRequest(MAIN)).toList()
+        val events = repository.control(blockRequest(MAIN), operation = operation()).toList()
 
         val outcome = events.filterIsInstance<ControlEvent.PackageDone>().single().outcomes.single()
         assertThat(outcome.result).isEqualTo(ControlResult.FAILED)
@@ -106,7 +106,7 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
             val seenAtEvent = mutableListOf<ComponentStatus>()
 
             val events = mutableListOf<ControlEvent>()
-            repository.control(blockRequest(MAIN)).collect { event ->
+            repository.control(blockRequest(MAIN), operation = operation()).collect { event ->
                 events += event
                 if (event is ControlEvent.PackageDone) seenAtEvent += repository.components(OWNER_APP).first()
             }
@@ -131,7 +131,7 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
         repository.components(OWNER_APP).test {
             assertThat(awaitItem()).containsExactly(status(MAIN, PmSetting.DEFAULT, IfwBlock.NOT_BLOCKED))
 
-            repository.control(ControlRequest(OWNER, listOf(MAIN), ControlGoal.BLOCK, ControlLayer.entries.toSet())).toList()
+            repository.control(ControlRequest(OWNER, listOf(MAIN), ControlGoal.BLOCK, ControlLayer.entries.toSet()), operation = operation()).toList()
 
             assertThat(awaitItem()).containsExactly(status(MAIN, PmSetting.DISABLED, IfwBlock.BLOCKED))
         }
@@ -146,7 +146,7 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
             flow { emit(ControlEvent.PackageDone(PKG, listOf(ComponentOutcome(ComponentKey(MAIN.id, OWNER), ControlState.UNKNOWN, ControlResult.FAILED, mapOf(ControlLayer.PACKAGE_MANAGER to ControlFailure.ChannelUnavailable))))) }
         }
 
-        repository.control(blockRequest(MAIN)).toList()
+        repository.control(blockRequest(MAIN), operation = operation()).toList()
 
         assertThat(repository.components(OWNER_APP).first()).containsExactly(status(MAIN, PmSetting.UNKNOWN, IfwBlock.UNKNOWN))
     }
@@ -185,10 +185,10 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
         }
 
         val request = blockRequest(MAIN)
-        repository.control(request).toList()
+        repository.control(request, operation = operation()).toList()
         assertThat(repository.components(OWNER_APP).first().single().state.pm).isEqualTo(PmSetting.DISABLED)
         assertThat(pmBlocks.of(OWNER)).containsExactly(ComponentKey(MAIN.id, OWNER))
-        repository.control(request.copy(goal = ControlGoal.UNBLOCK)).toList()
+        repository.control(request.copy(goal = ControlGoal.UNBLOCK), operation = operation()).toList()
         assertThat(repository.components(OWNER_APP).first().single().state.pm).isEqualTo(PmSetting.DEFAULT)
         assertThat(pmBlocks.of(OWNER)).isEmpty()
     }
@@ -230,7 +230,7 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
         val refresh = async { repository.refresh(OWNER_APP) }
         reading.await()
         system.afterPmRead = {}
-        val control = async { repository.control(blockRequest(MAIN)).toList() }
+        val control = async { repository.control(blockRequest(MAIN), operation = operation()).toList() }
         runCurrent()
 
         // The control's result waits for the refresh, which read DEFAULT before the change.
@@ -248,7 +248,7 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
         repository.refresh(OWNER_APP)
         controlDisablesMain()
 
-        repository.control(blockRequest(MAIN)).toList()
+        repository.control(blockRequest(MAIN), operation = operation()).toList()
         repository.refresh(OWNER_APP)
 
         assertThat(repository.components(OWNER_APP).first()).containsExactly(status(MAIN, PmSetting.DISABLED, IfwBlock.NOT_BLOCKED))

@@ -38,6 +38,7 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakePmBlockRecordSeeder
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -47,8 +48,8 @@ class MatAndResetTest {
     private val components = FakeComponentStatusRepository()
     private val userData = TestUserDataRepository()
     private val channel = FakePrivilegedChannel()
-    private val mat = MatRuleImporter(installedApps, components, channel, userData)
-    private val reset = PackageManagerReset(components, channel, FakePmBlockRecordSeeder())
+    private val mat = MatRuleImporter(installedApps, components, channel, userData, fakeOperationRecorder())
+    private val reset = PackageManagerReset(components, channel, FakePmBlockRecordSeeder(), fakeOperationRecorder())
 
     @Test
     fun givenProtectedComponent_whenImportingMat_thenItCountsAsSkippedAndWorkSucceeds() = runTest {

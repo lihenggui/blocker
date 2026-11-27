@@ -18,6 +18,8 @@ package com.merxury.blocker.core.domain.control
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.PackageControlActivity
+import com.merxury.blocker.core.data.history.OperationRecorder
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -35,6 +37,7 @@ import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.ControlResult
 import com.merxury.blocker.core.model.control.layersFor
+import com.merxury.blocker.core.model.history.OperationSource
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -100,6 +103,7 @@ class ComponentBatchRunner @Inject constructor(
     private val componentStatuses: ComponentStatusRepository,
     @ApplicationScope private val scope: CoroutineScope,
     private val controlActivity: PackageControlActivity,
+    private val operationRecorder: OperationRecorder,
 ) {
     private val runs = MutableStateFlow<Map<BatchKey, BatchRun>>(emptyMap())
 
@@ -180,9 +184,12 @@ class ComponentBatchRunner @Inject constructor(
         scope.launch {
             val outcomes = mutableListOf<ComponentOutcome>()
             try {
-                val request = prepare()
-                val packages = request.components.mapTo(mutableSetOf()) { it.id.packageName }
-                controlActivity.duringControl(packages) { send(run, request.components, request.layers, outcomes) }
+                val (source, ref) = run.key.historyOrigin()
+                operationRecorder.withOperation(source, ref) { operation ->
+                    val request = prepare()
+                    val packages = request.components.mapTo(mutableSetOf()) { it.id.packageName }
+                    controlActivity.duringControl(packages) { send(run, request, outcomes, operation) }
+                }
                 run.result.complete(outcomes)
             } catch (e: CancellationException) {
                 run.result.cancel(e)
@@ -201,10 +208,15 @@ class ComponentBatchRunner @Inject constructor(
         }
     }
 
-    private suspend fun send(run: BatchRun, components: List<ComponentDeclaration>, layers: Set<ControlLayer>, outcomes: MutableList<ComponentOutcome>) {
-        components.chunked(BATCH_LIMIT).forEachIndexed { index, step ->
+    private suspend fun send(
+        run: BatchRun,
+        request: ControlRequest,
+        outcomes: MutableList<ComponentOutcome>,
+        operation: OperationScope,
+    ) {
+        request.components.chunked(BATCH_LIMIT).forEachIndexed { index, step ->
             try {
-                componentStatuses.control(ControlRequest(run.key.user, step, run.goal, layers)).collect { event ->
+                componentStatuses.control(ControlRequest(run.key.user, step, run.goal, request.layers), operation).collect { event ->
                     if (event is ControlEvent.PackageDone) outcomes += event.outcomes
                 }
             } catch (e: CancellationException) {
@@ -212,12 +224,20 @@ class ComponentBatchRunner @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "Batch ${run.goal} of ${run.key} failed in request ${index + 1} of ${step.size} components")
                 val done = outcomes.mapTo(mutableSetOf()) { it.key.id }
-                outcomes += components.filterNot { it.id in done }.map { it.failedWith(run, layers, e) }
+                outcomes += request.components.filterNot { it.id in done }.map { it.failedWith(run, request.layers, e) }
                 return
             }
             val sent = step.mapTo(mutableSetOf()) { it.id }
             run.progress.update { it.copy(done = it.done + step.size, pending = it.pending - sent) }
         }
+    }
+
+    private fun BatchKey.historyOrigin(): Pair<OperationSource, String?> = when (this) {
+        is BatchKey.App -> OperationSource.APP_DETAIL to app.packageName
+        is BatchKey.Search -> OperationSource.SEARCH to null
+        is BatchKey.GeneralRules -> OperationSource.GENERAL_RULE to null
+        is BatchKey.Rule -> OperationSource.RULE_DETAIL to ruleId.toString()
+        is BatchKey.Debloater -> OperationSource.DEBLOATER to app.packageName
     }
 
     private fun ComponentDeclaration.failedWith(run: BatchRun, layers: Set<ControlLayer>, e: Exception) = ComponentOutcome(

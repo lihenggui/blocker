@@ -38,6 +38,7 @@ import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.privileged.ChannelState
 import com.merxury.blocker.core.privileged.PrivilegedChannel
@@ -219,7 +220,7 @@ class RuleDetailViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
-                controlComponent(component, goal).toMessage(component.id, goal)?.let { tell(it, component.id) }
+                controlComponent(component, goal, OperationSource.RULE_DETAIL, id.toString()).toMessage(component.id, goal)?.let { tell(it, component.id) }
             } finally {
                 singles.update { it - component }
             }

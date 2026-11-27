@@ -18,6 +18,8 @@ package com.merxury.blocker.core.rule.backup
 
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.device.InstalledAppRepository
+import com.merxury.blocker.core.data.history.OperationRecorder
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ControlLayer
@@ -25,6 +27,7 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.control.ControlRequest
 import com.merxury.blocker.core.model.control.blockLayers
+import com.merxury.blocker.core.model.history.OperationSource
 import com.merxury.blocker.core.model.system.InstalledApp
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.model.system.ReadResult
@@ -44,6 +47,7 @@ class MatRuleImporter @Inject constructor(
     private val components: ComponentStatusRepository,
     private val channel: PrivilegedChannel,
     private val userData: UserDataRepository,
+    private val operationRecorder: OperationRecorder,
 ) {
     /**
      * Blocks the components [lines] name in [target]'s apps, third-party apps only unless
@@ -55,12 +59,12 @@ class MatRuleImporter @Inject constructor(
         target: UserId,
         includeSystemApps: Boolean = false,
         onProgress: RuleRunProgress = { _, _, _ -> },
-    ): RuleRunResult {
-        if (!channel.connectAllowing()) return RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
+    ): RuleRunResult = operationRecorder.withOperation(OperationSource.IMPORT_MAT_RULE) { operation ->
+        if (!channel.connectAllowing()) return@withOperation RuleRunResult.Failed(FailureReason.NO_PRIVILEGE)
         val layers = userData.userData.first().controllerType.blockLayers
         val apps = when (val read = installedApps.installedApps(target)) {
             is ReadResult.Success -> read.value
-            is ReadResult.Failure -> return RuleRunResult.Failed(read.reason.reason)
+            is ReadResult.Failure -> return@withOperation RuleRunResult.Failed(read.reason.reason)
         }
         val parsed = parseMatLines(lines)
         val summary = SummaryBuilder()
@@ -72,13 +76,13 @@ class MatRuleImporter @Inject constructor(
             when {
                 app == null -> summary.skip(SkipReason.APP_NOT_INSTALLED, ids.size)
                 app.isSystem && !includeSystemApps -> summary.skip(SkipReason.SYSTEM_APP, ids.size)
-                else -> block(app, ids, layers, summary)
+                else -> block(app, ids, layers, summary, operation)
             }
         }
-        return RuleRunResult.Completed(summary.build())
+        RuleRunResult.Completed(summary.build())
     }
 
-    private suspend fun block(app: InstalledApp, ids: List<ComponentId>, layers: Set<ControlLayer>, summary: SummaryBuilder) {
+    private suspend fun block(app: InstalledApp, ids: List<ComponentId>, layers: Set<ControlLayer>, summary: SummaryBuilder, operation: OperationScope) {
         val statuses = when (val read = components.freshComponents(app.key)) {
             is ReadResult.Success -> read.value
 
@@ -93,6 +97,6 @@ class MatRuleImporter @Inject constructor(
         if (known.isEmpty()) return
         val request = ControlRequest(app.key.userId, known.map { declared.getValue(it).declaration }, ControlGoal.BLOCK, layers)
         val states = statuses.associate { it.declaration.id to it.state }.toMutableMap()
-        if (components.control(request).countControlOutcomes(request.goal, states, summary) > 0) summary.apps++
+        if (components.control(request, operation).countControlOutcomes(request.goal, states, summary) > 0) summary.apps++
     }
 }

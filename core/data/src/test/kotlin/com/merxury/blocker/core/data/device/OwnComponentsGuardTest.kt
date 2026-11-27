@@ -73,7 +73,7 @@ class OwnComponentsGuardTest : DeviceRepositoryTestBase() {
         controlAchieves()
 
         val request = ControlRequest(OWNER, listOf(OWN_RECEIVER, OTHER_RECEIVER), ControlGoal.BLOCK, setOf(ControlLayer.INTENT_FIREWALL))
-        val events = repository.control(request).toList()
+        val events = repository.control(request, operation = operation()).toList()
 
         assertThat(sent.single().components).containsExactly(OTHER_RECEIVER)
         val refused = events.filterIsInstance<ControlEvent.PackageDone>().single { it.packageName == SELF_PKG }.outcomes.single()
@@ -89,7 +89,7 @@ class OwnComponentsGuardTest : DeviceRepositoryTestBase() {
         val repository = components(backgroundScope)
         controlAchieves()
 
-        val events = repository.control(request(OWNER, ControlGoal.BLOCK, OWN_RECEIVER)).toList()
+        val events = repository.control(request(OWNER, ControlGoal.BLOCK, OWN_RECEIVER), operation = operation()).toList()
 
         assertThat(sent).isEmpty()
         assertThat(events.last()).isEqualTo(ControlEvent.Finished(achieved = 0, partial = 0, failed = 0, skipped = 1))
@@ -100,7 +100,7 @@ class OwnComponentsGuardTest : DeviceRepositoryTestBase() {
         val repository = components(backgroundScope)
         controlAchieves()
 
-        repository.control(request(OWNER, ControlGoal.UNBLOCK, OWN_RECEIVER)).toList()
+        repository.control(request(OWNER, ControlGoal.UNBLOCK, OWN_RECEIVER), operation = operation()).toList()
 
         assertThat(sent.single().components).containsExactly(OWN_RECEIVER)
     }
@@ -110,7 +110,7 @@ class OwnComponentsGuardTest : DeviceRepositoryTestBase() {
         val repository = components(backgroundScope)
         controlAchieves()
 
-        repository.control(request(WORK, ControlGoal.BLOCK, OWN_RECEIVER)).toList()
+        repository.control(request(WORK, ControlGoal.BLOCK, OWN_RECEIVER), operation = operation()).toList()
 
         assertThat(sent.single().components).containsExactly(OWN_RECEIVER)
     }

@@ -53,6 +53,7 @@ import com.merxury.blocker.core.testing.repository.device.FakeComponentStatusRep
 import com.merxury.blocker.core.testing.repository.device.FakeDeviceUserRepository
 import com.merxury.blocker.core.testing.repository.device.FakeInstalledAppRepository
 import com.merxury.blocker.core.testing.repository.device.FakeSelectedUserRepository
+import com.merxury.blocker.core.testing.repository.device.fakeOperationRecorder
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -139,7 +140,7 @@ internal class AppDetailFixture(
     /** The application's scope, which batches run in; it outlives every view model. */
     val applicationScope = CoroutineScope(SupervisorJob() + dispatcher)
 
-    val batches by lazy { ComponentBatchRunner(controlStatuses ?: components, applicationScope, PackageControlActivity()) }
+    val batches by lazy { ComponentBatchRunner(controlStatuses ?: components, applicationScope, PackageControlActivity(), fakeOperationRecorder()) }
 
     val list by lazy {
         ComponentListViewModel(
@@ -166,7 +167,7 @@ internal class AppDetailFixture(
             selectedUsers = selectedUsers,
             componentStatuses = controlStatuses ?: components,
             batches = batches,
-            controlComponent = ControlComponentUseCase(controlStatuses ?: components, GetControlLayersUseCase(userData)),
+            controlComponent = ControlComponentUseCase(controlStatuses ?: components, GetControlLayersUseCase(userData), fakeOperationRecorder()),
             layersFor = GetControlLayersUseCase(userData),
             analyticsHelper = analytics,
             packageName = PACKAGE,

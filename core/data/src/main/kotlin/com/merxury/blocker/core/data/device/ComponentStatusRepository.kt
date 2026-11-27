@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.device
 
+import com.merxury.blocker.core.data.history.OperationScope
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
 import com.merxury.blocker.core.model.component.ComponentKey
@@ -135,7 +136,8 @@ interface ComponentStatusRepository {
      * [ControlEvent.PackageDone] the state read back for each outcome is stored before the event
      * is emitted, so an observer of [components] sees the system's state without guessing;
      * outcomes of components the cache does not declare are not stored. A package whose event has
-     * arrived is stored even when the collector cancels.
+     * arrived is stored even when the collector cancels. Pass the same [operation] for every
+     * request made by one action.
      *
      * For a [ControlGoal.BLOCK] that will send a [ControlLayer.PACKAGE_MANAGER] disable, Blocker
      * journals the component before the system call. Under the same package lock, read-back
@@ -150,27 +152,27 @@ interface ComponentStatusRepository {
      * In another user the firewall layer is protected too, while PackageManager can still
      * block that user's copy.
      */
-    fun control(request: ControlRequest): Flow<ControlEvent> = control(request, keepKnownState = false)
+    fun control(request: ControlRequest, operation: OperationScope): Flow<ControlEvent> = control(request, keepKnownState = false, operation = operation)
 
     /**
      * Runs [control], optionally keeping the cached value of a layer whose read-back failed.
      * [writeObserver] can decline to start a package's writes and receives acknowledgments as
      * writes complete.
      */
-    fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver? = null): Flow<ControlEvent>
+    fun control(request: ControlRequest, keepKnownState: Boolean, writeObserver: ComponentWriteObserver? = null, operation: OperationScope): Flow<ControlEvent>
 
     /**
      * Restores the layers recorded in a component backup, with PackageManager for providers.
      * Uses the same protection, journaling and read-back as [control].
      */
-    fun restore(request: ControlRequest): Flow<ControlEvent>
+    fun restore(request: ControlRequest, operation: OperationScope): Flow<ControlEvent>
 
     /**
      * Clears PackageManager blocks found by [disabledByBlocker]. Like [control], stores the
      * read-back and updates the records before emitting the result. Also drops records for
      * changes the system refused even under root or the system UID.
      */
-    fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>): Flow<ControlEvent>
+    fun resetPmBlocks(user: UserId, components: List<ComponentDeclaration>, operation: OperationScope): Flow<ControlEvent>
 
     /**
      * The components Blocker disabled through PackageManager for [user] that are still
