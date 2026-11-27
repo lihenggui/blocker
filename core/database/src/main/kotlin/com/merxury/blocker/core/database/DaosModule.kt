@@ -20,6 +20,8 @@ import com.merxury.blocker.core.database.cache.ComponentCacheDao
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
 import com.merxury.blocker.core.database.catalog.CatalogDao
 import com.merxury.blocker.core.database.catalog.CatalogDatabase
+import com.merxury.blocker.core.database.history.OperationHistoryDao
+import com.merxury.blocker.core.database.history.OperationHistoryDatabase
 import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
 import com.merxury.blocker.core.database.record.PmBlockRecordDao
 import dagger.Module
@@ -38,4 +40,7 @@ internal object DaosModule {
 
     @Provides
     fun providePmBlockRecordDao(database: BlockerRecordsDatabase): PmBlockRecordDao = database.pmBlockRecordDao()
+
+    @Provides
+    fun provideOperationHistoryDao(database: OperationHistoryDatabase): OperationHistoryDao = database.operationHistoryDao()
 }

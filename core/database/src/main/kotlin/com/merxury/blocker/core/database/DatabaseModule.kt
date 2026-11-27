@@ -22,6 +22,9 @@ import com.merxury.blocker.core.database.cache.COMPONENT_CACHE_DATABASE_NAME
 import com.merxury.blocker.core.database.cache.ComponentCacheDatabase
 import com.merxury.blocker.core.database.catalog.CATALOG_DATABASE_NAME
 import com.merxury.blocker.core.database.catalog.CatalogDatabase
+import com.merxury.blocker.core.database.history.OPERATION_HISTORY_DATABASE_NAME
+import com.merxury.blocker.core.database.history.OPERATION_HISTORY_MIGRATIONS
+import com.merxury.blocker.core.database.history.OperationHistoryDatabase
 import com.merxury.blocker.core.database.record.BLOCKER_RECORDS_DATABASE_NAME
 import com.merxury.blocker.core.database.record.BLOCKER_RECORDS_MIGRATIONS
 import com.merxury.blocker.core.database.record.BlockerRecordsDatabase
@@ -72,5 +75,17 @@ internal object DatabaseModule {
         // User data that cannot be rebuilt: a schema change without a migration must fail, never
         // drop the records.
         .addMigrations(*BLOCKER_RECORDS_MIGRATIONS)
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideOperationHistoryDatabase(
+        @ApplicationContext context: Context,
+    ): OperationHistoryDatabase = Room.databaseBuilder(
+        context,
+        OperationHistoryDatabase::class.java,
+        OPERATION_HISTORY_DATABASE_NAME,
+    )
+        .addMigrations(*OPERATION_HISTORY_MIGRATIONS)
         .build()
 }
