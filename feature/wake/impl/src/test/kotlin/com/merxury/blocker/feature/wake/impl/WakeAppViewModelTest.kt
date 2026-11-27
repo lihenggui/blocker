@@ -8,7 +8,11 @@ import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.appcontrol.AppControl
 import com.merxury.blocker.core.data.device.AppRestrictionFailure
+import com.merxury.blocker.core.data.device.AppRestrictionRepository
+import com.merxury.blocker.core.data.device.AppRestrictionResult
 import com.merxury.blocker.core.data.device.BackgroundUsageFailure
+import com.merxury.blocker.core.data.device.BackgroundUsageRepository
+import com.merxury.blocker.core.data.device.BackgroundUsageResult
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.wake.WakeBlockRepository
 import com.merxury.blocker.core.domain.wake.ForceStopAppUseCase
@@ -79,6 +83,25 @@ class WakeAppViewModelTest {
     }
     private val background = FakeBackgroundUsageRepository()
     private val restriction = FakeAppRestrictionRepository()
+    private var systemBackground: BackgroundUsage? = null
+    private var systemRestriction: DeepBackgroundRestriction? = null
+    private var finishRefresh: CompletableDeferred<Unit>? = null
+    private val restrictionReads = mutableListOf<AppKey>()
+    private val backgroundWithSystemReadback = object : BackgroundUsageRepository by background {
+        override suspend fun read(app: AppKey): BackgroundUsageResult {
+            finishRefresh?.await()
+            systemBackground?.let { background.sendUsage(app, it) }
+            return background.read(app)
+        }
+    }
+    private val restrictionWithSystemReadback = object : AppRestrictionRepository by restriction {
+        override suspend fun read(app: AppKey): AppRestrictionResult {
+            restrictionReads += app
+            systemRestriction?.let { restriction.sendRestriction(app, it) }
+            return restriction.read(app)
+        }
+    }
+    private val installedApps = FakeInstalledAppRepository()
     private val appControl = FakeAppControl()
     private var beforeForceStop: suspend (AppKey) -> Unit = {}
     private val forceStop = ForceStopAppUseCase(object : AppControl by appControl {
@@ -120,8 +143,8 @@ class WakeAppViewModelTest {
         val availability = mock<ObserveWakeAvailabilityUseCase> { on { invoke() } doReturn flowOf(WakeAvailability.Ready(200)) }
         val details = mock<ComponentDetailRepository> { on { getLocalComponentDetails(any()) } doReturn flowOf(emptyMap()) }
         WakeAppViewModel(
-            DETAIL_PACKAGE, state, availability, FakeInstalledAppRepository(), FakeSelectedUserRepository(), details,
-            background, restriction, scanner, SetWakePathsBlockedUseCase(manualBatch, automatic, background),
+            DETAIL_PACKAGE, state, availability, installedApps, FakeSelectedUserRepository(), details,
+            backgroundWithSystemReadback, restrictionWithSystemReadback, scanner, SetWakePathsBlockedUseCase(manualBatch, automatic, background),
             forceStop, RestoreAppWakeChangesUseCase(activity, manual, automatic, background, restriction),
         )
     }
@@ -129,6 +152,61 @@ class WakeAppViewModelTest {
     @After
     fun clearViewModel() {
         viewModel.viewModelScope.cancel()
+    }
+
+    @Test
+    fun givenExternalChangesAndAnUndoNotice_whenRefreshingRestrictions_thenPublishesReadbackAndKeepsTheNotice() = runTest {
+        observe()
+        viewModel.blockAll(setOf(current.methods.first().key))
+        runCurrent()
+        val notice = requireNotNull(current.notice)
+        val refreshedUsage = BackgroundUsage(allowed = false, changeable = true)
+        val refreshedRestriction = DeepBackgroundRestriction(true, false, true, changeable = true)
+        systemBackground = refreshedUsage
+        systemRestriction = refreshedRestriction
+        val finish = CompletableDeferred<Unit>()
+        finishRefresh = finish
+
+        viewModel.refreshRestrictions()
+        runCurrent()
+
+        assertThat(current.busy).isFalse()
+        assertThat(current.notice).isEqualTo(notice)
+        assertThat(current.background?.allowed).isTrue()
+        assertThat(current.deepRestriction?.anyActive).isFalse()
+
+        finish.complete(Unit)
+        runCurrent()
+
+        assertThat(background.reads).containsExactly(appKey)
+        assertThat(restrictionReads).containsExactly(appKey)
+        assertThat(current.background).isEqualTo(refreshedUsage)
+        assertThat(current.deepRestriction).isEqualTo(refreshedRestriction)
+        assertThat(current.busy).isFalse()
+        assertThat(current.notice).isEqualTo(notice)
+    }
+
+    @Test
+    fun givenAnInstalledApp_whenItsVersionChanges_thenRefreshesBothRestrictions() = runTest {
+        val app = wakeTestApp(DETAIL_PACKAGE)
+        installedApps.sendApps(listOf(app))
+        observe()
+        installedApps.sendApps(listOf(app.copy(label = "New label")))
+        runCurrent()
+        assertThat(background.reads).isEmpty()
+        assertThat(restrictionReads).isEmpty()
+
+        val refreshedUsage = BackgroundUsage(allowed = false, changeable = true)
+        val refreshedRestriction = DeepBackgroundRestriction(true, true, true, changeable = true)
+        systemBackground = refreshedUsage
+        systemRestriction = refreshedRestriction
+        installedApps.sendApps(listOf(app.copy(versionCode = app.versionCode + 1)))
+        runCurrent()
+
+        assertThat(background.reads).containsExactly(appKey)
+        assertThat(restrictionReads).containsExactly(appKey)
+        assertThat(current.background).isEqualTo(refreshedUsage)
+        assertThat(current.deepRestriction).isEqualTo(refreshedRestriction)
     }
 
     @Test

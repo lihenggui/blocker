@@ -9,6 +9,7 @@ import com.merxury.blocker.core.model.manifest.AndroidManifest
 import com.merxury.blocker.core.model.manifest.ManifestActivity
 import com.merxury.blocker.core.model.manifest.ManifestApplication
 import com.merxury.blocker.core.model.manifest.ManifestIntentFilter
+import com.merxury.blocker.core.model.manifest.ManifestPermission
 import com.merxury.blocker.core.model.manifest.ManifestProvider
 import com.merxury.blocker.core.model.manifest.ManifestReceiver
 import com.merxury.blocker.core.model.manifest.ManifestService
@@ -30,6 +31,67 @@ class StaticWakeScannerTest {
         assertThat(StaticWakeScanner.scan(manifest)).isEmpty()
     }
 
+    @Test fun givenModernOrUnknownTargetSdk_whenScanningSystemReceivers_thenOnlyExemptActionsMatch() {
+        val exemptActions = listOf(
+            "android.intent.action.MY_PACKAGE_REPLACED",
+            "android.intent.action.TIME_SET",
+            "android.intent.action.TIMEZONE_CHANGED",
+            "android.intent.action.LOCALE_CHANGED",
+        )
+        val manifest = receiverManifest(
+            exemptActions + listOf(
+                "android.intent.action.USER_PRESENT",
+                "android.intent.action.ACTION_POWER_CONNECTED",
+                "android.intent.action.ACTION_POWER_DISCONNECTED",
+                "android.intent.action.PACKAGE_ADDED",
+                "android.intent.action.PACKAGE_REPLACED",
+                "android.intent.action.PACKAGE_RESTARTED",
+                "android.net.conn.CONNECTIVITY_CHANGE",
+            ),
+        )
+
+        for (targetSdk in listOf(34, 26, null)) {
+            val entries = StaticWakeScanner.scan(manifest.copy(targetSdkVersion = targetSdk))
+            assertThat(entries.map { it.action }).containsExactlyElementsIn(exemptActions)
+            assertThat(entries.map { it.category }.distinct()).containsExactly(PotentialWakeCategory.SYSTEM_BROADCAST)
+        }
+    }
+
+    @Test fun givenTargetSdk25_whenScanningLegacyReceivers_thenPowerAndUserPresentMatch() {
+        val userPresent = "android.intent.action.USER_PRESENT"
+        val powerConnected = "android.intent.action.ACTION_POWER_CONNECTED"
+        val manifest = receiverManifest(listOf(userPresent, powerConnected, "android.net.conn.CONNECTIVITY_CHANGE"))
+            .copy(targetSdkVersion = 25)
+
+        assertThat(StaticWakeScanner.scan(manifest).map { it.action }).containsExactly(userPresent, powerConnected)
+    }
+
+    @Test fun givenStandardBootReceivers_whenScanning_thenOnlyAppsWithBootPermissionMatch() {
+        val actions = listOf("android.intent.action.BOOT_COMPLETED", "android.intent.action.LOCKED_BOOT_COMPLETED")
+        val manifest = receiverManifest(actions).copy(targetSdkVersion = 34)
+
+        assertThat(StaticWakeScanner.scan(manifest)).isEmpty()
+        val unrelatedPermissions = listOf(ManifestPermission("android.permission.INTERNET"))
+        assertThat(StaticWakeScanner.scan(manifest.copy(usesPermissions = unrelatedPermissions))).isEmpty()
+        val entries = StaticWakeScanner.scan(manifest.copy(usesPermissions = unrelatedPermissions + bootPermission))
+        assertThat(entries.map { it.action }).containsExactlyElementsIn(actions)
+        assertThat(entries.map { it.category }.distinct()).containsExactly(PotentialWakeCategory.BOOT_AUTOSTART)
+    }
+
+    @Test fun givenOtherBootActions_whenScanningWithoutBootPermission_thenTheyStillMatch() {
+        val actions = listOf(
+            "android.intent.action.QUICKBOOT_POWERON",
+            "com.htc.intent.action.QUICKBOOT_POWERON",
+            "android.intent.action.REBOOT",
+        )
+        val manifest = receiverManifest(actions).copy(targetSdkVersion = 34)
+
+        val entries = StaticWakeScanner.scan(manifest)
+
+        assertThat(entries.map { it.action }).containsExactlyElementsIn(actions)
+        assertThat(entries.map { it.category }.distinct()).containsExactly(PotentialWakeCategory.BOOT_AUTOSTART)
+    }
+
     @Test fun givenAllFiveCategories_whenScanning_thenQualifiesNamesAndSortsByCategoryAndClass() {
         val manifest = manifest(
             receivers = listOf(
@@ -43,7 +105,7 @@ class StaticWakeScannerTest {
                 ManifestService("vendor.sdk.PushService", intentFilters = filters("com.google.firebase.MESSAGING_EVENT")),
                 ManifestService(".Job", permission = "android.permission.BIND_JOB_SERVICE"),
             ),
-        )
+        ).copy(targetSdkVersion = 25, usesPermissions = listOf(bootPermission))
 
         assertThat(StaticWakeScanner.scan(manifest)).containsExactly(
             StaticWakeDeclaration("pkg", "pkg.BootReceiver", ComponentType.RECEIVER, PotentialWakeCategory.BOOT_AUTOSTART, "android.intent.action.BOOT_COMPLETED", false),
@@ -75,7 +137,7 @@ class StaticWakeScannerTest {
                     intentFilters = filters("android.content.SyncAdapter", "com.google.firebase.MESSAGING_EVENT"),
                 ),
             ),
-        )
+        ).copy(targetSdkVersion = 25, usesPermissions = listOf(bootPermission))
 
         assertThat(StaticWakeScanner.scan(manifest).map { it.component to it.category }).containsExactly(
             "pkg.Boot" to PotentialWakeCategory.BOOT_AUTOSTART,
@@ -147,5 +209,9 @@ class StaticWakeScannerTest {
         services: List<ManifestService> = emptyList(),
     ) = AndroidManifest("pkg", application = ManifestApplication(receivers = receivers, services = services))
 
+    private fun receiverManifest(actions: List<String>) = manifest(receivers = actions.mapIndexed { index, action -> ManifestReceiver(".Receiver$index", intentFilters = filters(action)) })
+
     private fun filters(vararg actions: String) = listOf(ManifestIntentFilter(actions = actions.toList()))
+
+    private val bootPermission = ManifestPermission("android.permission.RECEIVE_BOOT_COMPLETED")
 }

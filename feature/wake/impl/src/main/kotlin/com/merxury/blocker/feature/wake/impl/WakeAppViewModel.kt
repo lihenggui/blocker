@@ -32,11 +32,15 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
@@ -98,7 +102,12 @@ internal class WakeAppViewModel @AssistedInject constructor(
         ::buildWakeAppState,
     )
 
-    val uiState = combine(
+    private val installRevisionChanges = installedApps.app(appKey)
+        .map { it?.let { app -> Triple(app.apkPath, app.versionCode, app.lastUpdateTime) } }
+        .distinctUntilChanged()
+        .drop(1)
+
+    private val state = combine(
         data,
         backgroundUsage.observe(appKey).onStart { emit(null) },
         appRestriction.observe(appKey).onStart { emit(null) },
@@ -106,7 +115,22 @@ internal class WakeAppViewModel @AssistedInject constructor(
         notices,
     ) { state, usage, restriction, busy, notice ->
         state.copy(background = usage, deepRestriction = restriction, busy = busy, notice = notice)
+    }
+
+    val uiState = flow {
+        coroutineScope {
+            launch { installRevisionChanges.collect { refreshRestrictions() } }
+            emitAll(state)
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WakeAppUiState(WakeAppIdentity(packageName)))
+
+    fun refreshRestrictions() {
+        viewModelScope.launch {
+            // The repositories publish the readback to their observers, including unavailable settings.
+            backgroundUsage.read(appKey)
+            appRestriction.read(appKey)
+        }
+    }
 
     fun toggle(key: String, allowed: Boolean) = act {
         val state = uiState.value
