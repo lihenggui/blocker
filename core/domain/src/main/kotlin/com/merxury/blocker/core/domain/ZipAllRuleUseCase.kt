@@ -50,12 +50,12 @@ constructor(
         }
 
         try {
-            val files = baseFolder.listFilesRecursively()
+            val files = baseFolder.listFilesRecursively().filter { it.extension == "json" }
             if (files.isEmpty()) {
                 Timber.e("Folder $baseFolder is empty")
                 return@withContext ZippedRule.EMPTY
             }
-            val zipFile = exportZipArchive(cacheDir, "rules-") { target ->
+            val zipFile = exportZipArchive(cacheDir, "all-rules-") { target ->
                 ZipArchiver.zipFiles(ruleRoot, files, target, ioDispatcher)
             }.getOrThrow()
             ZippedRule(null, zipFile)

@@ -262,7 +262,7 @@ internal class ShizukuUserService(
                     (pending === attempt).also { if (it) attached = current }
                 }
                 if (!keep) {
-                    detach(current.connection, stop = false)
+                    detach(current.connection, stop = true)
                     throw PrivilegedProcessUnavailableException("Shizuku disconnected while its user service was starting")
                 }
                 Result.success(current)

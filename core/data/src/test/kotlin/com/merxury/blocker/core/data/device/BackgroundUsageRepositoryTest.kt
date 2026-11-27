@@ -35,7 +35,6 @@ class BackgroundUsageRepositoryTest {
         val restricted = allowed.copy(allowed = false)
 
         repository.observe(app).test firstObserver@{
-            assertThat(awaitItem()).isNull()
             assertThat(awaitItem()).isEqualTo(allowed)
             repository.observe(app).test {
                 assertThat(awaitItem()).isEqualTo(allowed)
@@ -58,6 +57,25 @@ class BackgroundUsageRepositoryTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenUncachedRestrictedApp_whenObserving_thenWaitsForTheFirstRead() = runTest {
+        val restricted = BackgroundUsage(allowed = false, changeable = true)
+        control.readResult = CallResult.Success(restricted)
+        val firstRead = CompletableDeferred<Unit>()
+        control.beforeRead = { firstRead.await() }
+
+        repository.observe(app).test {
+            runCurrent()
+            assertThat(control.calls).containsExactly("read $app")
+            expectNoEvents()
+
+            firstRead.complete(Unit)
+            assertThat(awaitItem()).isEqualTo(restricted)
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenExternalSettingChange_whenResubscribing_thenEmitsTheCurrentUsage() = runTest {
         val allowed = BackgroundUsage(allowed = true, changeable = true)
@@ -69,6 +87,8 @@ class BackgroundUsageRepositoryTest {
 
         repository.observe(app).test {
             assertThat(awaitItem()).isEqualTo(allowed)
+            runCurrent()
+            assertThat(control.calls).containsExactly("read $app", "read $app")
             refresh.complete(Unit)
             assertThat(awaitItem()).isEqualTo(restricted)
         }
@@ -117,7 +137,6 @@ class BackgroundUsageRepositoryTest {
         control.readResult = CallResult.Success(restricted)
 
         repository.observe(app).test {
-            assertThat(awaitItem()).isNull()
             assertThat(awaitItem()).isEqualTo(restricted)
 
             channel.setState(denied)

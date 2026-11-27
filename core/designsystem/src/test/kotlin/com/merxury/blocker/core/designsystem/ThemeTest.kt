@@ -24,6 +24,8 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -99,6 +101,40 @@ class ThemeTest {
                 assertThat(LocalGradientColors.current).isEqualTo(emptyGradientColors(colorScheme))
                 assertThat(LocalBackgroundTheme.current).isEqualTo(defaultBackgroundTheme(colorScheme))
                 assertThat(LocalTintTheme.current).isEqualTo(TintTheme(colorScheme.primary))
+            }
+        }
+    }
+
+    @Test
+    @Config(sdk = [35])
+    fun givenDynamicColors_whenAddingAndRemovingAnIconSeed_thenAnimatesInBothDirections() {
+        val seed = mutableStateOf<Color?>(null)
+        val seededPrimary = dynamicColorScheme(seedColor = Color.Red, isDark = false).primary
+        val displayedPrimaries = mutableListOf<Color>()
+        composeTestRule.setContent {
+            BlockerTheme(
+                darkTheme = false,
+                useDynamicTheming = true,
+                iconThemingState = IconThemingState(seed.value),
+            ) {
+                val primary = MaterialTheme.colorScheme.primary
+                SideEffect { displayedPrimaries += primary }
+            }
+        }
+        val basePrimary = composeTestRule.runOnIdle { displayedPrimaries.last() }
+        assertThat(basePrimary).isNotEqualTo(seededPrimary)
+
+        for ((targetSeed, targetPrimary) in listOf(Color.Red to seededPrimary, null to basePrimary)) {
+            val startingPrimary = composeTestRule.runOnIdle {
+                val current = displayedPrimaries.last()
+                displayedPrimaries.clear()
+                seed.value = targetSeed
+                current
+            }
+
+            composeTestRule.runOnIdle {
+                assertThat(displayedPrimaries.lastOrNull()).isEqualTo(targetPrimary)
+                assertThat(displayedPrimaries.any { it != startingPrimary && it != targetPrimary }).isTrue()
             }
         }
     }

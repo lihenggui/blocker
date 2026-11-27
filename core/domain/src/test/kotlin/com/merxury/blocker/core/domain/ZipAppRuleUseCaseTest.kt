@@ -30,6 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.util.zip.ZipFile
+import kotlin.time.Duration.Companion.hours
 
 class ZipAppRuleUseCaseTest {
     @get:Rule
@@ -48,18 +49,26 @@ class ZipAppRuleUseCaseTest {
         createRule("com/example.json/Receiver.txt")
         createRule("com/example/OwnerReceiver.json")
         cacheDir.mkdir()
-        val stale = cacheDir.resolve("rules-com.example-old.zip").apply { writeText("stale") }
-        val other = cacheDir.resolve("rules-other-old.zip").apply { writeText("keep") }
+        val now = System.currentTimeMillis()
+        val stale = cacheDir.resolve("app-rules-com.example-old.zip").apply { writeText("stale") }
+        val recent = cacheDir.resolve("app-rules-com.example-recent.zip").apply { writeText("shared") }
+        val other = cacheDir.resolve("app-rules-com.other-old.zip").apply { writeText("keep") }
+        assertThat(stale.setLastModified(now - 25.hours.inWholeMilliseconds)).isTrue()
+        assertThat(recent.setLastModified(now - 23.hours.inWholeMilliseconds)).isTrue()
+        assertThat(other.setLastModified(now - 25.hours.inWholeMilliseconds)).isTrue()
 
         val useCase = createUseCase()
         val result = useCase(app)
 
         assertThat(result.packageName).isEqualTo(app.packageName)
-        ZipFile(checkNotNull(result.zippedFile)).use {
+        val archive = checkNotNull(result.zippedFile)
+        assertThat(archive.name).startsWith("app-rules-com.example-")
+        ZipFile(archive).use {
             assertThat(it.entries().toList().map { entry -> entry.name })
                 .containsExactly("en-US/com/example.json/Receiver.json")
         }
         assertThat(stale.exists()).isFalse()
+        assertThat(recent.readText()).isEqualTo("shared")
         assertThat(other.exists()).isTrue()
     }
 

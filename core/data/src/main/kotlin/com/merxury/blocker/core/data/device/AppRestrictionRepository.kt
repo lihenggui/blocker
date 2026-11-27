@@ -88,12 +88,17 @@ internal class LocalAppRestrictionRepository @Inject constructor(
     private val journal = context.getSharedPreferences("wake_deep_restriction_journal", Context.MODE_PRIVATE)
 
     override fun observe(app: AppKey): Flow<DeepBackgroundRestriction?> = channelFlow {
-        send(settings.value[app])
+        val cached = settings.value[app]
+        if (cached != null) send(cached)
         launch(start = CoroutineStart.UNDISPATCHED) {
             this@LocalAppRestrictionRepository.channel.state.map { it is ChannelState.Ready }
                 .distinctUntilChanged().drop(1).filter { it }.collect { read(app) }
         }
-        launch { read(app) }
+        if (cached == null) {
+            read(app)
+        } else {
+            launch { read(app) }
+        }
         settings.map { it[app] }.collect { send(it) }
     }.distinctUntilChanged()
 

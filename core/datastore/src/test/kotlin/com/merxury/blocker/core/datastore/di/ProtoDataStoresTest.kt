@@ -169,6 +169,7 @@ class ProtoDataStoresTest {
             rootGrantRemembered = true
             pmBlockRecordsSeeded = true
             lastCatalogSyncedEpochMs = 1_795_335_233_000L
+            lastCatalogSyncedProvider = "GITHUB"
         }
         val old = current.copy {
             componentDatabaseInitialized = true

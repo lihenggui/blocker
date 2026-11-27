@@ -125,6 +125,27 @@ class ReleaseTreeTest {
     }
 
     @Test
+    fun givenOversizedLegacyLog_whenWriterStarts_thenKeepsNewestLinesAtAUtf8Boundary() = runTest {
+        val tree = plantTree()
+        logDir.mkdirs()
+        val active = logDir.resolve("2025-05-08.log")
+        val maxSize = 5 * 1024 * 1024
+        val newest = "\nlatest warning: café\nlatest error: failed\n"
+        val padding = "x".repeat(maxSize - newest.encodeToByteArray().size - 1)
+        // The unaligned cutoff lands on the second byte of é.
+        active.writeText("oldest entry\né$padding$newest")
+
+        tree.start()
+        runCurrent()
+
+        assertThat(active.length()).isEqualTo(maxSize - 1L)
+        val content = active.readBytes().decodeToString(throwOnInvalidSequence = true)
+        assertThat(content).endsWith(newest)
+        assertThat(content).doesNotContain("oldest entry")
+        assertThat(logDir.list().orEmpty().asList()).containsExactly(active.name)
+    }
+
+    @Test
     fun givenFullLogFile_whenWritten_thenReplacesPreviousRotationAndBoundsBothFiles() = runTest {
         val tree = plantTree()
         logDir.mkdirs()

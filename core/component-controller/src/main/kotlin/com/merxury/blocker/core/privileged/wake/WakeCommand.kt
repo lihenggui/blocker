@@ -178,7 +178,7 @@ internal fun runBounded(
         if (timedOut.get()) throw IOException("$name did not finish within ${limitMillis / 1000.0} s")
         if (status != 0) throw IOException("$name exited with status $status")
     } catch (e: InterruptedException) {
-        if (timedOut.get()) throw IOException("$name did not exit after it was killed", e)
+        if (synchronized(interruptLock) { interruptedByTimer }) throw IOException("$name did not exit after it was killed", e)
         interruptedExternally = true
         throw e
     } finally {

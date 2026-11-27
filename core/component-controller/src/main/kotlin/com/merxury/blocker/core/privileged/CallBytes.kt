@@ -25,9 +25,9 @@ import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.Semaphore
+import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
@@ -89,13 +89,13 @@ internal class CallBytes private constructor(
         private const val MAX_PENDING_PIPE_WRITES = 20
         private val pipeWriterSlots = Semaphore(MAX_PENDING_PIPE_WRITES)
         private val pipeWriters: ExecutorService = ThreadPoolExecutor(
-            4,
-            4,
+            0,
+            MAX_PENDING_PIPE_WRITES,
             30,
             TimeUnit.SECONDS,
-            LinkedBlockingQueue(MAX_PENDING_PIPE_WRITES),
+            SynchronousQueue(),
             { task -> Thread(task, "CallBytes").apply { isDaemon = true } },
-        ).apply { allowCoreThreadTimeOut(true) }
+        )
 
         /** Robolectric pipes are files, so JVM tests wait for pending writes before reading. */
         internal fun hasPendingPipeWrites(): Boolean = pipeWriterSlots.availablePermits() != MAX_PENDING_PIPE_WRITES
@@ -128,7 +128,7 @@ internal class CallBytes private constructor(
         }
 
         private fun pipeOf(bytes: ByteArray): ParcelFileDescriptor {
-            // Bound the total queued and running work before allocating pipe descriptors.
+            // Bound the number of active writers before allocating pipe descriptors.
             if (!pipeWriterSlots.tryAcquire()) throw IOException("Too many pending privileged pipes")
             var scheduled = false
             try {

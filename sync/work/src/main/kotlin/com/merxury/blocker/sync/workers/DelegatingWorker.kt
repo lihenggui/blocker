@@ -22,6 +22,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ForegroundInfo
+import androidx.work.ListenableWorker.Result
 import androidx.work.WorkerParameters
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -39,6 +40,12 @@ interface HiltWorkerFactoryEntryPoint {
 }
 
 internal const val MAX_RETRY_ATTEMPTS = 3
+
+internal fun CoroutineWorker.retryOrFail(): Result = if (runAttemptCount + 1 >= MAX_RETRY_ATTEMPTS) {
+    Result.failure()
+} else {
+    Result.retry()
+}
 
 private const val WORKER_CLASS_NAME = "RouterWorkerDelegateClassName"
 

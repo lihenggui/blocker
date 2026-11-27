@@ -191,16 +191,22 @@ class ZipArchiverTest {
     }
 
     @Test
-    fun givenMixedCacheFiles_whenPruned_thenRemovesOnlyMatchingFilesExceptKeep() {
-        folder.newFile("rules-old.zip")
-        val keep = folder.newFile("rules-current.zip")
-        folder.newFile("rules-preview.txt")
-        folder.newFile("other.zip")
+    fun givenMixedCacheFiles_whenPruned_thenRemovesOnlyStaleMatchingFilesExceptKeep() {
+        val cutoff = 1_700_000_000_000L
+        val stale = cutoff - 60_000
+        val recent = cutoff + 60_000
+        assertThat(folder.newFile("rules-old.zip").setLastModified(stale)).isTrue()
+        assertThat(folder.newFile("rules-recent.zip").setLastModified(recent)).isTrue()
+        assertThat(folder.newFile("rules-at-cutoff.zip").setLastModified(cutoff)).isTrue()
+        val keep = folder.newFile("rules-keep.zip")
+        assertThat(keep.setLastModified(stale)).isTrue()
+        assertThat(folder.newFile("rules-preview.txt").setLastModified(stale)).isTrue()
+        assertThat(folder.newFile("other.zip").setLastModified(stale)).isTrue()
         folder.newFolder("rules-directory.zip")
 
-        ZipArchiver.pruneMatchingFiles(folder.root, "rules-", ".zip", keep)
+        ZipArchiver.pruneMatchingFiles(folder.root, "rules-", ".zip", cutoff, keep)
 
         assertThat(folder.root.list().orEmpty().asList())
-            .containsExactly("rules-current.zip", "rules-preview.txt", "other.zip", "rules-directory.zip")
+            .containsExactly("rules-recent.zip", "rules-at-cutoff.zip", "rules-keep.zip", "rules-preview.txt", "other.zip", "rules-directory.zip")
     }
 }

@@ -27,6 +27,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.util.zip.ZipFile
+import kotlin.time.Duration.Companion.hours
 
 class ZipAllRuleUseCaseTest {
     @get:Rule
@@ -47,14 +48,12 @@ class ZipAllRuleUseCaseTest {
     }
 
     @Test
-    fun givenRulesInTwoLanguages_whenExported_thenArchivesOnlySelectedLanguageAndPrunesStaleZip() = runTest {
+    fun givenRulesInTwoLanguagesAndStagedFiles_whenExported_thenArchivesOnlySelectedLanguageJson() = runTest {
         userData.setLibDisplayLanguage("zh")
         createRule("zh/root.json")
         createRule("zh/nested/child.json")
+        createRule("zh/nested/component-pending.tmp")
         createRule("en-US/other.json")
-        cacheDir.mkdir()
-        val old = cacheDir.resolve("rules-old.zip").apply { writeText("stale") }
-        val unrelated = cacheDir.resolve("other.zip").apply { writeText("keep") }
 
         val useCase = createUseCase()
         val result = useCase()
@@ -64,8 +63,26 @@ class ZipAllRuleUseCaseTest {
             assertThat(it.entries().toList().map { entry -> entry.name })
                 .containsExactly("zh/root.json", "zh/nested/child.json")
         }
-        assertThat(old.exists()).isFalse()
-        assertThat(unrelated.exists()).isTrue()
+    }
+
+    @Test
+    fun givenRecentAndStaleRuleArchives_whenExportingAllRules_thenPrunesOnlyStaleAllRuleArchives() = runTest {
+        createRule("en-US/rule.json")
+        cacheDir.mkdir()
+        val now = System.currentTimeMillis()
+        val stale = cacheDir.resolve("all-rules-old.zip").apply { writeText("stale") }
+        val recent = cacheDir.resolve("all-rules-recent.zip").apply { writeText("shared") }
+        val appArchive = cacheDir.resolve("app-rules-com.example-old.zip").apply { writeText("app rules") }
+        assertThat(stale.setLastModified(now - 25.hours.inWholeMilliseconds)).isTrue()
+        assertThat(recent.setLastModified(now - 23.hours.inWholeMilliseconds)).isTrue()
+        assertThat(appArchive.setLastModified(now - 25.hours.inWholeMilliseconds)).isTrue()
+
+        val archive = checkNotNull(createUseCase()().zippedFile)
+
+        assertThat(archive.name).startsWith("all-rules-")
+        assertThat(stale.exists()).isFalse()
+        assertThat(recent.readText()).isEqualTo("shared")
+        assertThat(appArchive.readText()).isEqualTo("app rules")
     }
 
     @Test

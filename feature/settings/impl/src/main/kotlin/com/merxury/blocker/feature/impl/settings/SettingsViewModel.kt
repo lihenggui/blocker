@@ -26,7 +26,6 @@ import android.os.LocaleList
 import android.system.Os
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.edit
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
@@ -195,17 +194,8 @@ class SettingsViewModel @Inject constructor(
             val currentProvider = userDataRepository.userData.first().ruleServerProvider
             if (currentProvider == provider) return@launch
             userDataRepository.setRuleServerProvider(provider)
-            withContext(ioDispatcher) {
-                clearLastSyncTime()
-            }
             syncManager.requestSyncImmediately()
         }
-    }
-
-    private fun clearLastSyncTime() {
-        getApplication<Application>()
-            .getSharedPreferences("sync_rule", Context.MODE_PRIVATE)
-            .edit { remove("last_synced_time") }
     }
 
     fun updateAppDisplayLanguage(language: String) {

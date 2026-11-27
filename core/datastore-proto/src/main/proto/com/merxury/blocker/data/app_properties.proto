@@ -32,4 +32,6 @@ message AppProperties {
   bool pm_block_records_seeded = 6;
   // Wall-clock time of the last successful catalog check, in epoch milliseconds.
   int64 last_catalog_synced_epoch_ms = 7;
+  // Rule server provider used for the last successful catalog check.
+  string last_catalog_synced_provider = 8;
 }

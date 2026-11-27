@@ -44,7 +44,7 @@ class WakeHistoryWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         if (runAttemptCount >= MAX_RETRY_ATTEMPTS) return Result.failure()
-        return if (protection.reconcile()) Result.success() else Result.retry()
+        return if (protection.reconcile()) Result.success() else retryOrFail()
     }
 }
 

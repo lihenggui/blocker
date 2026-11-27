@@ -34,6 +34,7 @@ import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.utils.AppDebugChecker
 import com.merxury.blocker.sync.initializers.SyncConstraints
 import com.merxury.blocker.sync.initializers.syncForegroundInfo
@@ -75,43 +76,43 @@ internal class SyncWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         if (runAttemptCount >= MAX_RETRY_ATTEMPTS) return@withContext Result.failure()
         try {
-            if (!inputData.getBoolean(FORCE_CHECK, false) && !shouldRunTask()) {
+            val provider = userDataRepository.userData.first().ruleServerProvider
+            if (!inputData.getBoolean(FORCE_CHECK, false) && !shouldRunTask(provider)) {
                 Timber.v("No need to sync rule")
                 return@withContext Result.success()
             }
-            syncCatalog()
+            syncCatalog(provider)
         } catch (e: IOException) {
             Timber.w(e, "Cannot read or persist catalog sync state")
-            Result.retry()
+            retryOrFail()
         }
     }
 
-    private suspend fun syncCatalog(): Result = traceAsync("Sync", 0) {
+    private suspend fun syncCatalog(provider: RuleServerProvider): Result = traceAsync("Sync", 0) {
         analyticsHelper.logSyncStarted()
-        val provider = userDataRepository.userData.first().ruleServerProvider
         val result = catalogRepository.update(provider)
         currentCoroutineContext().ensureActive()
         analyticsHelper.logSyncFinished(result !is CatalogUpdateResult.Failed)
 
         when (result) {
             is CatalogUpdateResult.Updated, CatalogUpdateResult.UpToDate -> {
-                appProperties.setLastCatalogSyncedEpochMs(clock.now().toEpochMilliseconds())
+                appProperties.setLastCatalogSynced(clock.now().toEpochMilliseconds(), provider.name)
                 Result.success()
             }
 
             is CatalogUpdateResult.Failed -> when (result.reason) {
-                Reason.NETWORK -> Result.retry()
+                Reason.NETWORK -> retryOrFail()
                 Reason.INVALID_DATA, Reason.LOCAL_STORAGE -> Result.failure()
             }
         }
     }
 
-    private suspend fun shouldRunTask(): Boolean {
+    private suspend fun shouldRunTask(provider: RuleServerProvider): Boolean {
         if (appDebugChecker.isDebugMode()) return true
-        val lastSyncedEpochMs = appProperties.lastCatalogSyncedEpochMs.first()
+        val (lastSyncedEpochMs, lastSyncedProvider) = appProperties.lastCatalogSync.first()
         val currentEpochMs = clock.now().toEpochMilliseconds()
         // Check again after a clock rollback so a future timestamp cannot suppress new checks.
-        return lastSyncedEpochMs == 0L || currentEpochMs < lastSyncedEpochMs ||
+        return lastSyncedEpochMs == 0L || lastSyncedProvider != provider.name || currentEpochMs < lastSyncedEpochMs ||
             currentEpochMs - lastSyncedEpochMs >= SYNC_INTERVAL.inWholeMilliseconds
     }
 

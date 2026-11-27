@@ -21,8 +21,10 @@ import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.logging.LOG_DIR
+import com.merxury.blocker.core.logging.LogFileLock
 import com.merxury.blocker.core.utils.ZipArchiver
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -42,7 +44,9 @@ constructor(
             return@withContext null
         }
         exportZipArchive(cacheDir, "Blocker-log-") { target ->
-            ZipArchiver.zipDirectory(logFolder, target, ioDispatcher)
+            LogFileLock.mutex.withLock {
+                ZipArchiver.zipDirectory(logFolder, target, ioDispatcher)
+            }
         }.getOrElse {
             Timber.e(it, "Failed to zip logs in $logFolder")
             null

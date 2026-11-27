@@ -21,13 +21,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+data class CatalogSyncRecord(val epochMs: Long, val provider: String)
+
 class BlockerAppPropertiesDataStore @Inject constructor(
     private val appProperties: DataStore<AppProperties>,
 ) {
-    val lastCatalogSyncedEpochMs: Flow<Long> = appProperties.data.map { it.lastCatalogSyncedEpochMs }
+    val lastCatalogSync: Flow<CatalogSyncRecord> = appProperties.data.map {
+        CatalogSyncRecord(it.lastCatalogSyncedEpochMs, it.lastCatalogSyncedProvider)
+    }
 
-    suspend fun setLastCatalogSyncedEpochMs(epochMs: Long) {
-        appProperties.updateData { it.copy { lastCatalogSyncedEpochMs = epochMs } }
+    suspend fun setLastCatalogSynced(epochMs: Long, provider: String) {
+        appProperties.updateData {
+            it.copy {
+                lastCatalogSyncedEpochMs = epochMs
+                lastCatalogSyncedProvider = provider
+            }
+        }
     }
 
     /**

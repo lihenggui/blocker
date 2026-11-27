@@ -63,7 +63,8 @@ class DocumentTreeBackupStorage private constructor(
         val name = path.substringAfterLast('/')
         val parent = folderOf(folder)
         val entries = children(parent)
-        val file = entries[name] ?: createFile(parent, name)?.also { entries.addDocument(it) }
+        val file = entries[name] ?: parent.findFile(name)?.also { entries[name] = it }
+            ?: createFile(parent, name)?.also { entries.addDocument(it) }
             ?: throw BackupStorageException("Cannot create $path")
         // "rwt" truncates, so a shorter backup leaves no tail of the old one.
         context.contentResolver.openOutputStream(file.uri, "rwt")?.use { it.write(content.toByteArray()) }
@@ -85,8 +86,9 @@ class DocumentTreeBackupStorage private constructor(
     /** The folder at [path], created with its missing parents. */
     private fun folderOf(path: String): DocumentFile = path.split('/').filter { it.isNotEmpty() }.fold(root) { dir, name ->
         val entries = children(dir)
-        entries[name]?.takeIf { it.isDirectory } ?: dir.createDirectory(name)?.also { entries.addDocument(it) }
-            ?: throw BackupStorageException("Cannot create the folder $name")
+        val folder = entries[name] ?: dir.findFile(name)?.also { entries[name] = it }
+            ?: dir.createDirectory(name)?.also { entries.addDocument(it) }
+        folder?.takeIf { it.isDirectory } ?: throw BackupStorageException("Cannot create the folder $name")
     }
 
     private fun children(directory: DocumentFile): MutableMap<String, DocumentFile> = childrenByDirectory.getOrPut(directory.uri) {

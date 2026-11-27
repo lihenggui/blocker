@@ -62,11 +62,13 @@ object ZipArchiver {
         directory: File,
         prefix: String,
         suffix: String,
+        olderThanEpochMillis: Long,
         keep: File? = null,
     ) {
         val keepPath = keep?.absoluteFile?.normalize()
         for (file in directory.listFiles().orEmpty()) {
             if (file.isFile && file.name.startsWith(prefix) && file.name.endsWith(suffix) &&
+                file.lastModified() < olderThanEpochMillis &&
                 file.absoluteFile.normalize() != keepPath && !file.delete() && file.exists()
             ) {
                 Timber.w("Cannot delete old archive %s", file)

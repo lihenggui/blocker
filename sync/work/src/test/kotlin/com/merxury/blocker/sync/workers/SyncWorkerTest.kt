@@ -60,7 +60,12 @@ class SyncWorkerTest {
     private val analytics = TestAnalyticsHelper()
     private val now = Instant.parse("2026-11-27T12:00:00Z")
     private val staleTime = now.toEpochMilliseconds() - DAY_MILLIS - 1
-    private val store = InMemoryDataStore<AppProperties>(appProperties { lastCatalogSyncedEpochMs = staleTime })
+    private val store = InMemoryDataStore<AppProperties>(
+        appProperties {
+            lastCatalogSyncedEpochMs = staleTime
+            lastCatalogSyncedProvider = GITHUB.name
+        },
+    )
     private val propertiesDataStore = BlockerAppPropertiesDataStore(store)
 
     @Before
@@ -69,22 +74,24 @@ class SyncWorkerTest {
     }
 
     @Test
-    fun givenANewerCatalog_whenSyncing_thenItSucceedsAndRecordsTheSyncTime() = runTest {
+    fun givenANewerCatalog_whenSyncing_thenItSucceedsAndRecordsTheTimeAndProvider() = runTest {
         catalog.updateResult = CatalogUpdateResult.Updated(CatalogState(2, 2, "fixture", "2026-01-01T00:00:00Z"))
 
         assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).containsExactly(GITHUB)
         assertThat(lastSyncedTime()).isEqualTo(now.toEpochMilliseconds())
+        assertThat(store.data.value.lastCatalogSyncedProvider).isEqualTo(GITHUB.name)
         assertThat(analytics.loggedEvents.map { it.type })
             .containsExactly("network_sync_started", "network_sync_successful")
             .inOrder()
     }
 
     @Test
-    fun givenTheCatalogIsCurrent_whenSyncing_thenItSucceedsAndRecordsTheSyncTime() = runTest {
+    fun givenTheCatalogIsCurrent_whenSyncing_thenItSucceedsAndRecordsTheTimeAndProvider() = runTest {
         assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).containsExactly(GITHUB)
         assertThat(lastSyncedTime()).isEqualTo(now.toEpochMilliseconds())
+        assertThat(store.data.value.lastCatalogSyncedProvider).isEqualTo(GITHUB.name)
     }
 
     @Test
@@ -109,7 +116,7 @@ class SyncWorkerTest {
     @Test
     fun givenASyncWithinTheDay_whenStartingNormally_thenNoCheckIsMade() = runTest {
         val recent = now.toEpochMilliseconds() - DAY_MILLIS + 1_000L
-        propertiesDataStore.setLastCatalogSyncedEpochMs(recent)
+        propertiesDataStore.setLastCatalogSynced(recent, GITHUB.name)
 
         assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).isEmpty()
@@ -119,25 +126,45 @@ class SyncWorkerTest {
 
     @Test
     fun givenARecentSync_whenStartingInDebugMode_thenItChecksAgain() = runTest {
-        propertiesDataStore.setLastCatalogSyncedEpochMs(now.toEpochMilliseconds())
+        propertiesDataStore.setLastCatalogSynced(now.toEpochMilliseconds(), GITHUB.name)
 
         assertThat(worker(StandardTestDispatcher(testScheduler), debug = true).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).containsExactly(GITHUB)
     }
 
     @Test
-    fun givenGitHubWasJustChecked_whenSwitchingProviders_thenTheImmediateWorkChecksGitLab() = runTest {
+    fun givenARecentSync_whenForced_thenItChecksAgain() = runTest {
+        propertiesDataStore.setLastCatalogSynced(now.toEpochMilliseconds(), GITHUB.name)
+
+        assertThat(worker(StandardTestDispatcher(testScheduler), forceCheck = true).doWork()).isEqualTo(Result.success())
+        assertThat(catalog.updateRequests).containsExactly(GITHUB)
+    }
+
+    @Test
+    fun givenGitHubWasJustChecked_whenSwitchingProviders_thenNormalWorkChecksGitLab() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         assertThat(worker(dispatcher).doWork()).isEqualTo(Result.success())
         userData.setRuleServerProvider(GITLAB)
 
-        assertThat(worker(dispatcher, forceCheck = true).doWork()).isEqualTo(Result.success())
+        assertThat(worker(dispatcher).doWork()).isEqualTo(Result.success())
+        assertThat(store.data.value.lastCatalogSyncedProvider).isEqualTo(GITLAB.name)
+        assertThat(lastSyncedTime()).isEqualTo(now.toEpochMilliseconds())
+        assertThat(worker(dispatcher).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).containsExactly(GITHUB, GITLAB).inOrder()
     }
 
     @Test
+    fun givenARecentLegacySyncWithoutAProvider_whenStartingNormally_thenChecksTheSelectedProvider() = runTest {
+        propertiesDataStore.setLastCatalogSynced(now.toEpochMilliseconds(), "")
+
+        assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
+        assertThat(catalog.updateRequests).containsExactly(GITHUB)
+        assertThat(store.data.value.lastCatalogSyncedProvider).isEqualTo(GITHUB.name)
+    }
+
+    @Test
     fun givenClockRollback_whenStartingNormally_thenSyncReplacesTheFutureTimestamp() = runTest {
-        propertiesDataStore.setLastCatalogSyncedEpochMs(now.toEpochMilliseconds() + DAY_MILLIS)
+        propertiesDataStore.setLastCatalogSynced(now.toEpochMilliseconds() + DAY_MILLIS, GITHUB.name)
 
         assertThat(worker(StandardTestDispatcher(testScheduler)).doWork()).isEqualTo(Result.success())
         assertThat(catalog.updateRequests).containsExactly(GITHUB)
@@ -145,13 +172,14 @@ class SyncWorkerTest {
     }
 
     @Test
-    fun givenRetryLimit_whenStartingAgain_thenNoCatalogRequestIsMade() = runTest {
+    fun givenNetworkFailure_whenApproachingTheRetryLimit_thenOnlyThePenultimateAttemptRetries() = runTest {
         catalog.updateResult = CatalogUpdateResult.Failed(Reason.NETWORK, "Connection dropped")
         val dispatcher = StandardTestDispatcher(testScheduler)
 
-        assertThat(worker(dispatcher, attempt = MAX_RETRY_ATTEMPTS - 1).doWork()).isEqualTo(Result.retry())
+        assertThat(worker(dispatcher, attempt = MAX_RETRY_ATTEMPTS - 2).doWork()).isEqualTo(Result.retry())
+        assertThat(worker(dispatcher, attempt = MAX_RETRY_ATTEMPTS - 1).doWork()).isEqualTo(Result.failure())
         assertThat(worker(dispatcher, attempt = MAX_RETRY_ATTEMPTS).doWork()).isEqualTo(Result.failure())
-        assertThat(catalog.updateRequests).containsExactly(GITHUB)
+        assertThat(catalog.updateRequests).containsExactly(GITHUB, GITHUB)
         assertThat(lastSyncedTime()).isEqualTo(staleTime)
     }
 

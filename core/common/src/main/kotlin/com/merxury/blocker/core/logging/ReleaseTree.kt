@@ -28,6 +28,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -46,6 +48,10 @@ const val LOG_DIR = "logs"
 private const val MAX_FILE_SIZE = 5 * 1024 * 1024
 private const val RETENTION_DAYS = 7
 private val logFilePattern = Regex("""(\d{4}-\d{2}-\d{2})\.log(?:\.1)?""")
+
+object LogFileLock {
+    val mutex = Mutex()
+}
 
 class ReleaseTree internal constructor(
     filesDir: File,
@@ -68,13 +74,17 @@ class ReleaseTree internal constructor(
         if (!started.compareAndSet(false, true)) return
         coroutineScope.launch(ioDispatcher) {
             val startupDate = clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-            var cleanupDate = startupDate.takeIf { tryLogIo { clearOldLogs(it) } }
+            var cleanupDate = startupDate.takeIf {
+                LogFileLock.mutex.withLock { tryLogIo { clearOldLogs(it) } }
+            }
             for (entry in entries) {
                 val date = entry.timestamp.toLocalDateTime(TimeZone.currentSystemDefault()).date
-                if (date != cleanupDate && tryLogIo { clearOldLogs(date) }) {
-                    cleanupDate = date
+                LogFileLock.mutex.withLock {
+                    if (date != cleanupDate && tryLogIo { clearOldLogs(date) }) {
+                        cleanupDate = date
+                    }
+                    tryLogIo { writeEntry(entry, date) }
                 }
-                tryLogIo { writeEntry(entry, date) }
             }
         }
     }
@@ -122,7 +132,33 @@ class ReleaseTree internal constructor(
             if (dateText < cutoff) {
                 if (!file.delete()) throw IOException("Cannot delete old log $file")
             } else if (file.length() > MAX_FILE_SIZE) {
-                RandomAccessFile(file, "rw").use { it.setLength(MAX_FILE_SIZE.toLong()) }
+                keepNewestLogBytes(file)
+            }
+        }
+    }
+
+    private fun keepNewestLogBytes(file: File) {
+        val temp = File.createTempFile("log-tail-", ".tmp", logDir)
+        try {
+            RandomAccessFile(file, "r").use { input ->
+                input.seek(input.length() - MAX_FILE_SIZE)
+                // Skip continuation bytes if the cutoff falls inside a UTF-8 character.
+                var firstByte = input.read()
+                while ((firstByte and 0xC0) == 0x80) firstByte = input.read()
+                temp.outputStream().buffered().use { output ->
+                    if (firstByte != -1) output.write(firstByte)
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count == -1) break
+                        output.write(buffer, 0, count)
+                    }
+                }
+            }
+            if (!temp.renameTo(file)) throw IOException("Cannot replace oversized log $file")
+        } finally {
+            tryLogIo {
+                if (!temp.delete() && temp.exists()) throw IOException("Cannot delete temporary log $temp")
             }
         }
     }

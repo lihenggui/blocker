@@ -43,7 +43,7 @@ class CatalogSeedWorker @AssistedInject constructor(
                 Result.failure()
             }
         }
-        return if (legacyRuleCacheCleanup.run()) seedResult else Result.retry()
+        return if (legacyRuleCacheCleanup.run()) seedResult else retryOrFail()
     }
 
     internal companion object {

@@ -21,7 +21,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 
+private val archiveRetention = 24.hours
 private val exportMutex = Mutex()
 
 internal suspend fun exportZipArchive(
@@ -30,8 +32,20 @@ internal suspend fun exportZipArchive(
     writeArchive: suspend (File) -> Result<File>,
 ): Result<File> = exportMutex.withLock {
     val time = Clock.System.now().toString().replace(":", "-").replace(".", "-")
-    val target = cacheDir.resolve("$prefix$time.zip")
+    var target = cacheDir.resolve("$prefix$time.zip")
+    var suffix = 0
+    // A repeated timestamp must not replace a file already shared with another app.
+    while (target.exists()) {
+        suffix++
+        target = cacheDir.resolve("$prefix$time-$suffix.zip")
+    }
     writeArchive(target).onSuccess {
-        ZipArchiver.pruneMatchingFiles(cacheDir, prefix, suffix = ".zip", keep = it)
+        ZipArchiver.pruneMatchingFiles(
+            directory = cacheDir,
+            prefix = prefix,
+            suffix = ".zip",
+            olderThanEpochMillis = (Clock.System.now() - archiveRetention).toEpochMilliseconds(),
+            keep = it,
+        )
     }
 }

@@ -18,13 +18,19 @@ package com.merxury.blocker.core.domain
 
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.logging.LOG_DIR
+import com.merxury.blocker.core.logging.LogFileLock
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.util.zip.ZipFile
+import kotlin.time.Duration.Companion.hours
 
 class ZipLogFileUseCaseTest {
     @get:Rule
@@ -40,8 +46,13 @@ class ZipLogFileUseCaseTest {
         logs.resolve("2025-05-08.log").writeText("active")
         logs.resolve("2025-05-08.log.1").writeText("rotated")
         cacheDir.mkdir()
+        val now = System.currentTimeMillis()
         val stale = cacheDir.resolve("Blocker-log-old.zip").apply { writeText("stale") }
-        val ruleZip = cacheDir.resolve("rules-old.zip").apply { writeText("keep") }
+        val recent = cacheDir.resolve("Blocker-log-recent.zip").apply { writeText("shared") }
+        val ruleZip = cacheDir.resolve("all-rules-old.zip").apply { writeText("keep") }
+        assertThat(stale.setLastModified(now - 25.hours.inWholeMilliseconds)).isTrue()
+        assertThat(recent.setLastModified(now - 23.hours.inWholeMilliseconds)).isTrue()
+        assertThat(ruleZip.setLastModified(now - 25.hours.inWholeMilliseconds)).isTrue()
 
         val useCase = createUseCase()
         val result = checkNotNull(useCase())
@@ -51,7 +62,33 @@ class ZipLogFileUseCaseTest {
                 .containsExactly("2025-05-08.log", "2025-05-08.log.1")
         }
         assertThat(stale.exists()).isFalse()
+        assertThat(recent.readText()).isEqualTo("shared")
         assertThat(ruleZip.exists()).isTrue()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenLogRotationInProgress_whenExported_thenWaitsForTheCompletedRotation() = runTest {
+        logs.mkdirs()
+        val active = logs.resolve("2025-05-08.log").apply { writeText("old entry") }
+        val rotated = logs.resolve("2025-05-08.log.1")
+        val useCase = createUseCase()
+
+        val export = LogFileLock.mutex.withLock {
+            val pending = async { useCase() }
+            runCurrent()
+            assertThat(pending.isCompleted).isFalse()
+            assertThat(active.renameTo(rotated)).isTrue()
+            active.writeText("new entry")
+            pending
+        }
+
+        ZipFile(checkNotNull(export.await())).use { archive ->
+            val contents = archive.entries().toList().associate { entry ->
+                entry.name to archive.getInputStream(entry).bufferedReader().use { it.readText() }
+            }
+            assertThat(contents).containsExactly(active.name, "new entry", rotated.name, "old entry")
+        }
     }
 
     @Test

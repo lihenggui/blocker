@@ -80,7 +80,7 @@ constructor(
             return@withContext ZippedRule.EMPTY
         }
 
-        exportZipArchive(cacheDir, "rules-${app.packageName}-") { target ->
+        exportZipArchive(cacheDir, "app-rules-${app.packageName}-") { target ->
             ZipArchiver.zipFiles(ruleRoot, matchedFiles, target, ioDispatcher)
         }.fold(
             onSuccess = { ZippedRule(app.packageName, it) },
