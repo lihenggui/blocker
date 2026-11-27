@@ -35,7 +35,7 @@ abstract class ScrollFlagState(heightRange: IntRange) : ToolbarState {
         get() = (maxHeight - scrollOffset).coerceIn(minHeight.toFloat(), maxHeight.toFloat())
 
     final override val progress: Float
-        get() = 1 - (maxHeight - height) / rangeDifference
+        get() = if (rangeDifference == 0) 0f else 1 - (maxHeight - height) / rangeDifference
 
     final override val consumed: Float
         get() = internalConsumed

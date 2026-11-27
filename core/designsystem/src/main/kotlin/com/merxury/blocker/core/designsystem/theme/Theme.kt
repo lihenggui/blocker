@@ -31,6 +31,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.materialkolor.ktx.animateColorScheme
+import com.materialkolor.rememberDynamicColorScheme
 
 /**
  * Light Blocker theme color scheme
@@ -140,20 +142,26 @@ val DarkBlockerBackgroundTheme = BackgroundTheme(color = Color.Black)
  * Blocker theme.
  *
  * @param darkTheme Whether the theme should use a dark color scheme (follows system by default).
- * @param blockerTheme Whether the theme should use the Blocker theme color scheme instead of the
- *        default theme.
- * @param useDynamicTheming If `true`, enable the use of dynamic theming, even when it is
- *        supported.
+ * @param blockerTheme Whether to use the fixed Blocker gradient and background.
+ * @param useDynamicTheming Whether to use colors from an icon seed or the system wallpaper.
+ * @param iconThemingState The icon seed, if available, for dynamic colors.
  */
 @Composable
 fun BlockerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     blockerTheme: Boolean = false,
     useDynamicTheming: Boolean = false,
+    iconThemingState: IconThemingState = IconThemingState(),
     content: @Composable () -> Unit,
 ) {
-    // Color scheme
+    val seedColor = iconThemingState.seedColor
+    val useDynamicColors = useDynamicTheming && (seedColor != null || supportsDynamicTheming())
     val colorScheme = when {
+        useDynamicTheming && seedColor != null -> {
+            val seededColorScheme = rememberDynamicColorScheme(seedColor = seedColor, isDark = darkTheme)
+            animateColorScheme(seededColorScheme)
+        }
+
         useDynamicTheming && supportsDynamicTheming() -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -170,7 +178,7 @@ fun BlockerTheme(
     )
     val gradientColors = when {
         blockerTheme -> if (darkTheme) DarkBlockerGradientColors else LightBlockerGradientColors
-        useDynamicTheming && supportsDynamicTheming() -> emptyGradientColors
+        useDynamicColors -> emptyGradientColors
         else -> defaultGradientColors
     }
     // Background theme
@@ -183,7 +191,7 @@ fun BlockerTheme(
         else -> defaultBackgroundTheme
     }
     val tintTheme = when {
-        useDynamicTheming && supportsDynamicTheming() -> TintTheme(colorScheme.primary)
+        useDynamicColors -> TintTheme(colorScheme.primary)
         else -> TintTheme()
     }
     // Composition locals

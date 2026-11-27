@@ -20,6 +20,7 @@ package com.merxury.blocker.core.designsystem.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -59,8 +60,8 @@ fun DynamicAsyncImage(
     placeholder: Painter = painterResource(R.drawable.core_designsystem_ic_android),
 ) {
     val iconTint = LocalTintTheme.current.iconTint
-    var isLoading by remember { mutableStateOf(true) }
-    var isError by remember { mutableStateOf(false) }
+    var isLoading by remember(imageUrl) { mutableStateOf(true) }
+    var isError by remember(imageUrl) { mutableStateOf(false) }
     val sizeResolver = rememberConstraintsSizeResolver()
     val imageLoader = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current)
@@ -81,9 +82,7 @@ fun DynamicAsyncImage(
         if (isLoading && !isLocalInspection) {
             // Display a progress bar while loading
             CircularProgressIndicator(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(80.dp),
+                modifier = Modifier.sizeIn(maxWidth = 48.dp, maxHeight = 48.dp),
                 color = MaterialTheme.colorScheme.tertiary,
             )
         }

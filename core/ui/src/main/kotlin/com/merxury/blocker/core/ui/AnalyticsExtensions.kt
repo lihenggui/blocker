@@ -46,7 +46,7 @@ fun AnalyticsHelper.logScreenView(screenName: String) {
 fun TrackScreenViewEvent(
     screenName: String,
     analyticsHelper: AnalyticsHelper = LocalAnalyticsHelper.current,
-) = DisposableEffect(Unit) {
+) = DisposableEffect(screenName, analyticsHelper) {
     analyticsHelper.logScreenView(screenName)
     onDispose {}
 }

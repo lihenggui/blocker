@@ -24,15 +24,20 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.unit.dp
+import com.google.common.truth.Truth.assertThat
+import com.materialkolor.dynamicColorScheme
 import com.merxury.blocker.core.designsystem.theme.BackgroundTheme
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.designsystem.theme.BlockerTypography
 import com.merxury.blocker.core.designsystem.theme.DarkBlockerBackgroundTheme
 import com.merxury.blocker.core.designsystem.theme.DarkBlockerColorScheme
 import com.merxury.blocker.core.designsystem.theme.DarkBlockerGradientColors
 import com.merxury.blocker.core.designsystem.theme.GradientColors
+import com.merxury.blocker.core.designsystem.theme.IconThemingState
 import com.merxury.blocker.core.designsystem.theme.LightBlockerBackgroundTheme
 import com.merxury.blocker.core.designsystem.theme.LightBlockerColorScheme
 import com.merxury.blocker.core.designsystem.theme.LightBlockerGradientColors
@@ -44,11 +49,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
 
 /**
- * Tests [BlockerTheme] using different combinations of the theme mode parameters:
- * darkTheme, disableDynamicTheming, and blockerTheme.
+ * Tests [BlockerTheme] using different theme modes and an icon seed.
  *
  * It verifies that the various composition locals — [MaterialTheme], [LocalGradientColors] and
  * [LocalBackgroundTheme] — have the expected values for a given theme mode, as specified by the
@@ -59,6 +64,44 @@ class ThemeTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    @Test
+    fun givenIconSeed_whenDynamicColorsAreDisabled_thenUsesBlockerColorsAndTypography() {
+        composeTestRule.setContent {
+            BlockerTheme(
+                darkTheme = false,
+                useDynamicTheming = false,
+                iconThemingState = IconThemingState(Color.Red),
+            ) {
+                assertThat(MaterialTheme.colorScheme).isSameInstanceAs(LightBlockerColorScheme)
+                assertThat(MaterialTheme.typography).isEqualTo(BlockerTypography)
+                assertThat(LocalGradientColors.current).isEqualTo(defaultGradientColors(LightBlockerColorScheme))
+                assertThat(LocalBackgroundTheme.current).isEqualTo(defaultBackgroundTheme(LightBlockerColorScheme))
+                assertThat(LocalTintTheme.current).isEqualTo(defaultTintTheme())
+            }
+        }
+    }
+
+    @Test
+    @Config(sdk = [24])
+    fun givenIconSeedOnAndroid24_whenDynamicColorsAreEnabled_thenUsesSeededColorsAndTypography() {
+        val seedColor = Color.Red
+        val expectedColorScheme = dynamicColorScheme(seedColor = seedColor, isDark = true)
+        composeTestRule.setContent {
+            BlockerTheme(
+                darkTheme = true,
+                useDynamicTheming = true,
+                iconThemingState = IconThemingState(seedColor),
+            ) {
+                val colorScheme = MaterialTheme.colorScheme
+                assertThat(colorScheme.primary).isEqualTo(expectedColorScheme.primary)
+                assertThat(MaterialTheme.typography).isEqualTo(BlockerTypography)
+                assertThat(LocalGradientColors.current).isEqualTo(emptyGradientColors(colorScheme))
+                assertThat(LocalBackgroundTheme.current).isEqualTo(defaultBackgroundTheme(colorScheme))
+                assertThat(LocalTintTheme.current).isEqualTo(TintTheme(colorScheme.primary))
+            }
+        }
+    }
 
     @Test
     fun darkThemeFalse_dynamicColorTrue_blockerThemeFalse() {

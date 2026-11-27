@@ -67,6 +67,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.ServiceCounts
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.TouchPointHolder
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -91,7 +92,8 @@ fun AppListItem(
     isSelected: Boolean = false,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
+    val touchPoint = remember { TouchPointHolder() }
+    var menuOffset by remember { mutableStateOf(DpOffset.Zero) }
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
     val animatedColor = animateColorAsState(
@@ -109,13 +111,14 @@ fun AppListItem(
             .combinedClickable(
                 onClick = { onClick(packageName) },
                 onLongClick = {
+                    menuOffset = touchPoint.menuOffset(density)
                     expanded = true
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
             )
             .pointerInteropFilter {
                 if (it.action == MotionEvent.ACTION_DOWN) {
-                    touchPoint = Offset(it.x, it.y)
+                    touchPoint.position = Offset(it.x, it.y)
                 }
                 false
             }
@@ -134,12 +137,9 @@ fun AppListItem(
             isAppRunning = isAppRunning,
             serviceCounts = serviceCounts,
         )
-        val offset = with(density) {
-            DpOffset(touchPoint.x.toDp(), -touchPoint.y.toDp())
-        }
         AppListItemMenuList(
             expanded = expanded,
-            offset = offset,
+            offset = menuOffset,
             isAppRunning = isAppRunning,
             isAppEnabled = isAppEnabled,
             onClearCacheClick = { onClearCacheClick(packageName) },

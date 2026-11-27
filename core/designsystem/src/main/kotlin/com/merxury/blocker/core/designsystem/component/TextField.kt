@@ -32,14 +32,20 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -67,6 +73,7 @@ fun BlockerSearchTextField(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
+    var isFieldFocused by remember { mutableStateOf(false) }
 
     val onSearchExplicitlyTriggered = {
         keyboardController?.hide()
@@ -113,9 +120,11 @@ fun BlockerSearchTextField(
         modifier = modifier
             .padding(horizontal = 16.dp, vertical = 2.dp)
             .focusRequester(focusRequester)
-            .onKeyEvent {
-                if (it.key == Key.Enter) {
-                    onSearchExplicitlyTriggered()
+            .onFocusChanged { isFieldFocused = it.isFocused }
+            .onPreviewKeyEvent { event ->
+                if (isFieldFocused && event.key == Key.Enter) {
+                    // Consume KeyDown before the text field can handle it as an IME action.
+                    if (event.type == KeyEventType.KeyUp) onSearchExplicitlyTriggered()
                     true
                 } else {
                     false
@@ -127,9 +136,8 @@ fun BlockerSearchTextField(
         singleLine = true,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(
-            onDone = {
-                keyboardController?.hide()
-            },
+            onDone = { onSearchExplicitlyTriggered() },
+            onSearch = { onSearchExplicitlyTriggered() },
         ),
         shape = RoundedCornerShape(56.dp),
     )
