@@ -23,17 +23,19 @@ import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -65,7 +67,10 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.history.Operation
 import com.merxury.blocker.core.model.history.OperationEntry
 import com.merxury.blocker.core.model.history.OperationSource
+import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
+import com.merxury.blocker.feature.history.api.navigation.navigateToHistoryOperation
+import com.merxury.blocker.feature.settings.api.navigation.navigateToSettings
 import com.merxury.blocker.navigation.TOP_LEVEL_NAV_ITEMS
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -186,12 +191,15 @@ class BlockerAppScreenSizesScreenshotTests {
             )
     }
 
-    private fun showApp(widthDp: Float = 412f) {
+    private fun showApp(widthDp: Float = 412f, startNavigation: (Navigator) -> Unit = {}) {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 DeviceConfigurationOverride(DeviceConfigurationOverride.ForcedSize(DpSize(widthDp.dp, 880.dp))) {
                     BlockerTheme {
                         val appState = rememberBlockerAppState(networkMonitor, permissionMonitor, timeZoneMonitor)
+                        LaunchedEffect(appState) {
+                            startNavigation(Navigator(appState.navigationState))
+                        }
                         BlockerApp(
                             appState = appState,
                             windowAdaptiveInfo = WindowAdaptiveInfo(
@@ -280,7 +288,7 @@ class BlockerAppScreenSizesScreenshotTests {
         historyTitle().assertDoesNotExist()
         composeTestRule.onNodeWithText("SyncService").assertIsDisplayed()
 
-        systemBack()
+        operationBackButton().assertIsDisplayed().performClick()
         historyTitle().assertIsDisplayed()
         composeTestRule.onNodeWithText("SyncService").assertDoesNotExist()
         systemBack()
@@ -295,20 +303,33 @@ class BlockerAppScreenSizesScreenshotTests {
         historyTitle().assertIsDisplayed()
         historyRow().assertIsDisplayed().assertIsSelected()
         composeTestRule.onNodeWithText("SyncService").assertIsDisplayed()
+        operationBackButton().assertDoesNotExist()
+        val listBackButton = composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back))
+        listBackButton.assertIsDisplayed()
         composeTestRule.onRoot().captureRoboImage(
             "src/testFoss/screenshots/HistoryExpandedTwoPane.png",
             roborazziOptions = DefaultRoborazziOptions,
         )
 
-        composeTestRule.onAllNodesWithContentDescription(text(designString.core_designsystem_back))[1].performClick()
+        listBackButton.performClick()
         historyTitle().assertIsDisplayed()
         historyRow().assertIsNotSelected()
         composeTestRule.onNodeWithText("SyncService").assertDoesNotExist()
-        composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back)).performClick()
+        listBackButton.performClick()
         assertSettingsDisplayed()
     }
 
     private fun openHistory(widthDp: Float) {
+        seedHistoryOperation()
+        showApp(widthDp)
+        composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_more_menu)).performClick()
+        composeTestRule.onNodeWithText(text(appsString.feature_applist_api_settings)).performClick()
+        composeTestRule.onNodeWithText(text(settingsString.feature_settings_api_operation_history)).performScrollTo().performClick()
+        composeTestRule.onNode(hasTestTag("settings:content")).assertDoesNotExist()
+        historyTitle().assertIsDisplayed()
+    }
+
+    private fun seedHistoryOperation(): Long {
         val operation = Operation(
             id = 1,
             timestamp = Instant.parse("2025-12-10T14:35:00Z"),
@@ -327,13 +348,12 @@ class BlockerAppScreenSizesScreenshotTests {
             ),
         )
         operationHistory.operations.value = listOf(operation)
-        showApp(widthDp)
-        composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_more_menu)).performClick()
-        composeTestRule.onNodeWithText(text(appsString.feature_applist_api_settings)).performClick()
-        composeTestRule.onNodeWithText(text(settingsString.feature_settings_api_operation_history)).performScrollTo().performClick()
-        composeTestRule.onNode(hasTestTag("settings:content")).assertDoesNotExist()
-        historyTitle().assertIsDisplayed()
+        return operation.id
     }
+
+    private fun operationBackButton() = composeTestRule.onNode(
+        hasContentDescription(text(designString.core_designsystem_back)) and hasAnyAncestor(hasTestTag("history:operation")),
+    )
 
     private fun systemBack() = composeTestRule.runOnUiThread { composeTestRule.activity.onBackPressedDispatcher.onBackPressed() }
 

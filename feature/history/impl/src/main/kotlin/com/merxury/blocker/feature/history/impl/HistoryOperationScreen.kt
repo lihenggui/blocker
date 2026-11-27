@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -54,7 +55,11 @@ import java.time.LocalDate
 import com.merxury.blocker.core.ui.R.string as UiStrings
 
 @Composable
-internal fun HistoryOperationRoute(viewModel: HistoryOperationViewModel, navigateBack: () -> Unit) {
+internal fun HistoryOperationRoute(
+    viewModel: HistoryOperationViewModel,
+    navigateBack: () -> Unit,
+    showBackButton: Boolean,
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     state.message?.let { message ->
@@ -68,6 +73,7 @@ internal fun HistoryOperationRoute(viewModel: HistoryOperationViewModel, navigat
         state = state,
         snackbarHostState = snackbarHostState,
         navigateBack = navigateBack,
+        showBackButton = showBackButton,
         onUndo = viewModel::undo,
         onRequestUndoLater = viewModel::requestUndoLater,
         onConfirm = viewModel::confirmUndoLater,
@@ -81,6 +87,7 @@ internal fun HistoryOperationScreen(
     state: HistoryOperationUiState,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     navigateBack: () -> Unit = {},
+    showBackButton: Boolean = true,
     onUndo: () -> Unit = {},
     onRequestUndoLater: () -> Unit = {},
     onConfirm: () -> Unit = {},
@@ -88,7 +95,8 @@ internal fun HistoryOperationScreen(
     today: LocalDate = LocalDate.now(state.zone),
 ) {
     Scaffold(
-        topBar = { BlockerTopAppBar(title = {}, hasNavigationIcon = true, onNavigationClick = navigateBack) },
+        modifier = Modifier.testTag("history:operation"),
+        topBar = { BlockerTopAppBar(title = {}, hasNavigationIcon = showBackButton, onNavigationClick = navigateBack) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         val modifier = Modifier.padding(padding).consumeWindowInsets(padding)

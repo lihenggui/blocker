@@ -17,7 +17,10 @@
 package com.merxury.blocker.feature.history.impl.navigation
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -45,9 +48,13 @@ fun EntryProviderScope<NavKey>.historyEntry(navigator: Navigator) {
         )
     }
     entry<HistoryOperationNavKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
+        // The operation is only reached from the history list, so an expanded list pane is that list.
+        val scaffoldValue = LocalListDetailSceneScope.current?.scaffoldTransitionScope?.scaffoldStateTransition?.targetState
+        val listIsVisible = scaffoldValue?.get(ListDetailPaneScaffoldRole.List) == PaneAdaptedValue.Expanded
         HistoryOperationRoute(
             viewModel = hiltViewModel<HistoryOperationViewModel, HistoryOperationViewModel.Factory> { it.create(key.id) },
             navigateBack = navigator::goBack,
+            showBackButton = !listIsVisible,
         )
     }
 }
