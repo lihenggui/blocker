@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import android.os.Build.VERSION_CODES
 import androidx.lifecycle.viewModelScope
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.appcontrol.AppControl
@@ -54,14 +55,19 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [VERSION_CODES.P], manifest = Config.NONE)
 class WakeAppViewModelTest {
     @get:Rule val main = MainDispatcherRule(StandardTestDispatcher())
 
@@ -448,6 +454,22 @@ class WakeAppViewModelTest {
         assertThat(current.status).isEqualTo(WakeAppStatus.KeepAlive)
         assertThat(background.writes).containsExactly(appKey to false, appKey to true).inOrder()
         assertThat(background.reads).isEmpty()
+    }
+
+    @Test
+    fun givenBackgroundReadbackIsUnavailable_whenToggling_thenTheWriteStillReachesTheRepository() = runTest {
+        methods = listOf(timed)
+        observe()
+        background.sendUsage(appKey, null)
+        background.writeFailure = BackgroundUsageFailure.NO_ACCESS
+        runCurrent()
+        assertThat(current.background).isNull()
+
+        viewModel.toggle(current.methods.single().key, allowed = false)
+        runCurrent()
+
+        assertThat(background.writes).containsExactly(appKey to false)
+        assertThat(current.notice?.text).isEqualTo(blockFailureText(WakeBlockFailure.NoAccess, 0, 1))
     }
 
     @Test

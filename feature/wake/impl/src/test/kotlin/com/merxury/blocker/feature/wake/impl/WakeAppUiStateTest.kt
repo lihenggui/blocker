@@ -4,6 +4,7 @@
 package com.merxury.blocker.feature.wake.impl
 
 import android.content.Intent
+import android.os.Build.VERSION_CODES
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -25,8 +26,13 @@ import com.merxury.blocker.core.model.wake.WakeVerdict
 import com.merxury.blocker.feature.wake.api.R.plurals
 import com.merxury.blocker.feature.wake.api.R.string
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import com.merxury.blocker.feature.appdetail.api.R.string as appString
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [VERSION_CODES.P], manifest = Config.NONE)
 class WakeAppUiStateTest {
     @Test
     fun givenUnsortedRelations_whenMapping_thenGroupsByDirectionAndSortsEachByCount() {
@@ -384,6 +390,18 @@ class WakeAppUiStateTest {
     }
 
     @Test
+    fun givenSupportedApiWithNoBackgroundReadback_whenCheckingControls_thenTheBackgroundOnlyRowCanRequestAccess() {
+        val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
+        val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer)))
+        val ui = buildWakeAppState(state, null, emptyList(), emptyMap())
+        val row = ui.methods.single()
+
+        assertThat(row.canToggle(ui.background)).isTrue()
+        assertThat(ui.choices.map { it.key }).containsExactly(row.key, FORCE_STOP_CHOICE).inOrder()
+    }
+
+    @Test
+    @Config(sdk = [VERSION_CODES.O])
     fun givenApi26BackgroundUsageState_whenCheckingControls_thenTheBackgroundOnlyRowOffersNoAction() {
         val timer = detailPath("timer", method = WakeBlockMethod.BACKGROUND_RESTRICTION, component = null)
         val state = detailState(own = listOf(detailMethod(OwnWakeKind.TIMED, timer)))

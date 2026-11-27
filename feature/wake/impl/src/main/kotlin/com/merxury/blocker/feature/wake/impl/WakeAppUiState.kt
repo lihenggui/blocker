@@ -3,6 +3,7 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import android.os.Build
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.system.BackgroundUsage
@@ -105,8 +106,10 @@ internal data class WakeDetailRow(
     val hasSwitch get() = paths.isNotEmpty() || automatic != null
     val blocked get() = automatic?.active ?: (paths.isNotEmpty() && paths.all { it.block != WakePathBlock.NONE })
 
-    fun canToggle(background: BackgroundUsage?) = hasSwitch &&
-        (background?.changeable == true || automatic != null || paths.any { it.path.blockMethod != WakeBlockMethod.BACKGROUND_RESTRICTION })
+    fun canToggle(background: BackgroundUsage?) = hasSwitch && (
+        automatic != null || paths.any { it.path.blockMethod != WakeBlockMethod.BACKGROUND_RESTRICTION } ||
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && background?.changeable != false)
+        )
 }
 
 internal fun WakePathState.canRestrictBackground(packageName: String) = block == WakePathBlock.NONE && path.blockMethod == WakeBlockMethod.BACKGROUND_RESTRICTION && path.target == packageName
