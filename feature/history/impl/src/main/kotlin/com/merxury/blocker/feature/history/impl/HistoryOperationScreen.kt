@@ -133,12 +133,12 @@ private fun OperationHeader(row: HistoryOperation, dates: HistoryDates) {
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.semantics { heading() },
         )
+        val headline = row.headline.text()
+        val source = stringResource(row.operation.source.label())
+        val time = dates.dateTime(row.operation.timestamp)
         Text(
-            text = stringResource(
-                R.string.feature_history_impl_source_time,
-                stringResource(row.operation.source.label()),
-                dates.dateTime(row.operation.timestamp),
-            ),
+            // A multi-app source is already the headline; repeating it adds nothing.
+            text = if (source == headline) time else stringResource(R.string.feature_history_impl_source_time, source, time),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
