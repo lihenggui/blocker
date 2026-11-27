@@ -10,10 +10,10 @@ import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
-import com.merxury.blocker.core.database.wake.WakeIdentity
 import com.merxury.blocker.core.extension.MATCH_ALL_DIRECT_BOOT_COMPONENTS
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getVersionCode
+import com.merxury.blocker.core.model.wake.WakeIdentity
 import com.merxury.blocker.core.privileged.wake.WakePackageUid
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -43,7 +43,7 @@ class WakeIdentityIndex @Inject constructor(
     @Suppress("DEPRECATION")
     internal suspend fun refresh(local: List<PackageInfo>, remote: List<WakePackageUid>, now: Long): List<WakeIdentity> {
         val pm = context.packageManager
-        val known = dao.identities(now - WAKE_HISTORY_RETENTION_MILLIS).associateBy { Triple(it.uid, it.packageName, it.revision) }
+        val known = dao.identities(now - WAKE_HISTORY_RETENTION_MILLIS).map { it.asModel() }.associateBy { Triple(it.uid, it.packageName, it.revision) }
         val signaturesFlag = wakeSigningFlags
         val flags = signaturesFlag or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or
             PackageManager.GET_PROVIDERS or PackageManager.GET_RECEIVERS or PackageManager.MATCH_DISABLED_COMPONENTS or MATCH_ALL_DIRECT_BOOT_COMPONENTS
@@ -54,7 +54,7 @@ class WakeIdentityIndex @Inject constructor(
             result.add(identity.copy(components = ""))
             pending.add(identity)
             if (pending.size == 20) {
-                dao.index(pending)
+                dao.index(pending.map { it.asEntity() })
                 pending.clear()
             }
         }
@@ -108,7 +108,7 @@ class WakeIdentityIndex @Inject constructor(
                 ),
             )
         }
-        if (pending.isNotEmpty()) dao.index(pending)
+        if (pending.isNotEmpty()) dao.index(pending.map { it.asEntity() })
         return result
     }
 

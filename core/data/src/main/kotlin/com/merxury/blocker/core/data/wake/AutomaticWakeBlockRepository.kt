@@ -6,13 +6,13 @@ package com.merxury.blocker.core.data.wake
 import com.merxury.blocker.core.data.device.PmBlockRecords
 import com.merxury.blocker.core.data.wake.AutomaticWakeBlockRepository.ChangeResult
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
-import com.merxury.blocker.core.database.wake.WakeProtection
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.wake.AutomaticWakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockFailure
 import com.merxury.blocker.core.model.wake.WakeBlockOutcome
+import com.merxury.blocker.core.model.wake.WakeProtection
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
@@ -63,7 +63,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
     }.distinctUntilChanged()
 
     override val ownedComponents = combine(history.protections(), userBlocks.observe(UserId.SYSTEM)) { rows, user ->
-        rows.asSequence()
+        rows.asSequence().map { it.asModel() }
             .filter { it.method == "PM" && (it.configured || it.componentWritePending) }
             .map { ComponentId(it.target, it.component) }
             .filterNot { ComponentKey(it, UserId.SYSTEM) in user }
@@ -86,7 +86,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
         var changedIds = emptySet<String>()
         val failure = try {
             lock.withLock {
-                val selected = history.readProtections().filter(select)
+                val selected = history.readProtections().map { it.asModel() }.filter(select)
                 if (selected.isNotEmpty() && protection.writeAccess() != WakeWrites.Enforce) return@withLock WakeBlockFailure.NoAccess
                 val peers = selected.filter { blocked && it.requiresPeerFilter }
                 val unsupported = if (peers.isNotEmpty() && !protection.supportsPeerFilter()) peers else emptyList()
@@ -100,7 +100,7 @@ internal class LocalAutomaticWakeBlockRepository @Inject constructor(
                 }
                 currentCoroutineContext().ensureActive()
                 withContext(NonCancellable) {
-                    if (changed.isNotEmpty()) history.putProtections(changed)
+                    if (changed.isNotEmpty()) history.putProtections(changed.map { it.asEntity() })
                     changedIds = changed.mapTo(mutableSetOf()) { it.pathId }
                     done = rows.mapTo(mutableSetOf()) { it.pathId }
                     if (done.isNotEmpty()) runs.requestRun()

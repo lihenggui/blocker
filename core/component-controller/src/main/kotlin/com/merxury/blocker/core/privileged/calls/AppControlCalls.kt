@@ -68,6 +68,8 @@ internal data class ClearAppData(
     val user: UserId,
     val timeoutMillis: Long = SYSTEM_REPLY_TIMEOUT_MILLIS,
 ) : PrivilegedAction {
+    override val retryable: Boolean get() = false
+
     override fun run(system: SystemServices) {
         requireInstalled(system, packageName, user)
         val reply = SystemReply<Boolean>("Clearing the data of $packageName for user ${user.value}")
@@ -103,6 +105,8 @@ internal data class ClearAppCache(
     val user: UserId,
     val timeoutMillis: Long = SYSTEM_REPLY_TIMEOUT_MILLIS,
 ) : PrivilegedAction {
+    override val retryable: Boolean get() = false
+
     override fun run(system: SystemServices) {
         requireInstalled(system, packageName, user)
         val reply = SystemReply<Boolean>("Clearing the cache of $packageName for user ${user.value}")
@@ -134,6 +138,8 @@ internal data class UninstallApp(
     val user: UserId,
     val timeoutMillis: Long = SYSTEM_REPLY_TIMEOUT_MILLIS,
 ) : PrivilegedAction {
+    override val retryable: Boolean get() = false
+
     override fun run(system: SystemServices) {
         val info = requireInstalled(system, packageName, user)
         val isSystem = info.applicationInfo?.let { it.flags and ApplicationInfo.FLAG_SYSTEM != 0 } ?: false
@@ -244,6 +250,8 @@ internal data class StartService(
     val component: ComponentName,
     val user: UserId,
 ) : PrivilegedAction {
+    override val retryable: Boolean get() = false
+
     override fun run(system: SystemServices) {
         requireService(system, component, user)
         val intent = Intent().setComponent(component)

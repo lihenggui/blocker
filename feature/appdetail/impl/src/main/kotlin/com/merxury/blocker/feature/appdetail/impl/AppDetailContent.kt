@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail.impl
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -55,7 +56,6 @@ import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.model.component.ComponentId
 import com.merxury.blocker.core.model.control.ControlGoal
 import com.merxury.blocker.core.model.system.ReadFailure
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.ProcessingProgress
 import com.merxury.blocker.core.ui.ProcessingProgressSnackbar
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -64,6 +64,7 @@ import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.api.R.string
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.impl.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.impl.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.impl.ui.AppDetailTopBar
@@ -141,7 +142,7 @@ internal fun AppDetailContent(
                 // nothing could be read, perhaps because the app is not installed for the user.
                 AppNotShown(list = list, onGrantAccess = actions.onGrantAccess, modifier = contentModifier)
             } else {
-                AppDetailTabs(
+                AppDetailTabContent(
                     app = app,
                     header = header,
                     list = list,
@@ -194,8 +195,19 @@ private fun AppNotShown(list: ComponentListUiState, onGrantAccess: () -> Unit, m
     }
 }
 
+@get:StringRes
+private val AppDetailTabs.titleRes: Int
+    get() = when (this) {
+        AppDetailTabs.Info -> uiString.core_ui_app_info
+        AppDetailTabs.Receiver -> uiString.core_ui_receiver_with_count
+        AppDetailTabs.Service -> uiString.core_ui_service_with_count
+        AppDetailTabs.Activity -> uiString.core_ui_activity_with_count
+        AppDetailTabs.Provider -> uiString.core_ui_provider_with_count
+        AppDetailTabs.Sdk -> uiString.core_ui_sdk
+    }
+
 @Composable
-private fun AppDetailTabs(
+private fun AppDetailTabContent(
     app: HeaderApp,
     header: AppHeaderUiState,
     list: ComponentListUiState,
@@ -224,7 +236,7 @@ private fun AppDetailTabs(
                         actions.onSelectTab(tab)
                         scope.launch { pagerState.animateScrollToPage(index) }
                     },
-                    text = { Text(text = stringResource(id = tab.title, tabState.itemCount[tab] ?: 0)) },
+                    text = { Text(text = stringResource(id = tab.titleRes, tabState.itemCount[tab] ?: 0)) },
                 )
             }
         }

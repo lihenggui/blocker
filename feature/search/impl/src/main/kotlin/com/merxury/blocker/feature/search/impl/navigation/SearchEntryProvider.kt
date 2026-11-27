@@ -44,5 +44,5 @@ fun EntryProviderScope<NavKey>.searchEntry(navigator: Navigator) {
 
 /** Opens the detail screen of an app on a tab, with the components filtered by the keyword. */
 internal fun Navigator.openAppDetail(): OpenAppDetail = { packageName, userId, tab, keyword ->
-    navigateToAppDetail(packageName, tab = tab.name, searchKeyword = keyword, userId = userId)
+    navigateToAppDetail(packageName, tab = tab.routeName, searchKeyword = keyword, userId = userId)
 }

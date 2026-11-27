@@ -169,11 +169,11 @@ class AppHeaderViewModel @AssistedInject constructor(
     }
 
     fun shareAppRules() = viewModelScope.launch {
-        sharedRules.value = zipAppRule(app).first()
+        sharedRules.value = zipAppRule(app)
     }
 
     fun shareAllRules() = viewModelScope.launch {
-        sharedRules.value = zipAllRule().first()
+        sharedRules.value = zipAllRule()
     }
 
     fun onShareHandled() {

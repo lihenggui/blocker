@@ -1,6 +1,5 @@
 /*
- * Copyright 2025 Blocker
- * Copyright 2023 The Android Open Source Project
+ * Copyright 2026 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +14,16 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.sync.status
+package com.merxury.blocker.core.ui.state.toolbar
 
-/**
- * Subscribes to backend requested synchronization
- */
-interface ISyncSubscriber {
-    suspend fun subscribe()
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
+
+class ScrollFlagStateTest {
+    @Test
+    fun givenEqualMinAndMaxHeight_whenReadingProgress_thenReturnsZero() {
+        val state = ExitUntilCollapsedState(heightRange = 64..64)
+
+        assertThat(state.progress).isEqualTo(0f)
+    }
 }

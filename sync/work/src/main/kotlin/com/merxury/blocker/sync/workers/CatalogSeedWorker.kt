@@ -23,6 +23,7 @@ class CatalogSeedWorker @AssistedInject constructor(
     private val legacyRuleCacheCleanup: LegacyRuleCacheCleanup,
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
+        if (runAttemptCount >= MAX_RETRY_ATTEMPTS) return Result.failure()
         val start = Monotonic.markNow()
         val result = repository.installBundled()
         val duration = start.elapsedNow()
@@ -42,7 +43,7 @@ class CatalogSeedWorker @AssistedInject constructor(
                 Result.failure()
             }
         }
-        return if (legacyRuleCacheCleanup.run()) seedResult else Result.retry()
+        return if (legacyRuleCacheCleanup.run()) seedResult else retryOrFail()
     }
 
     internal companion object {

@@ -29,6 +29,7 @@ import com.merxury.blocker.core.model.privileged.PrivilegedIdentity
 import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -69,7 +70,7 @@ class WakeWorkTest {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun TestScope.initializeWork(): WorkManager {
+    private fun TestScope.initializeWork(requester: WakeWork = wakeWork()): WorkManager {
         val factory = object : WorkerFactory() {
             override fun createWorker(appContext: Context, workerClassName: String, workerParameters: WorkerParameters): ListenableWorker = object : ListenableWorker(appContext, workerParameters) {
                 override fun startWork(): ListenableFuture<Result> {
@@ -87,7 +88,7 @@ class WakeWorkTest {
             context,
             Configuration.Builder().setExecutor(SynchronousExecutor()).setWorkerFactory(factory).build(),
         )
-        wakeWork().initialize()
+        requester.initialize()
         runCurrent()
         return WorkManager.getInstance(context)
     }
@@ -95,6 +96,28 @@ class WakeWorkTest {
     private fun TestScope.wakeWork() = WakeWork(context, WakeAuthorizationRepository(channel), backgroundScope)
 
     private fun WorkManager.pending(name: String): WorkInfo = getWorkInfosForUniqueWork(name).get().single { !it.state.isFinished }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenInitializedWakeWork_whenInitializingAgain_thenTheReceiverAndCollectorAreRegisteredOnce() = runTest {
+        fun wakeReceiverCount() = shadowOf(context).registeredReceivers.count { it.broadcastReceiver is WakePackagesChangedReceiver }
+
+        val requester = wakeWork()
+        val initialReceiverCount = wakeReceiverCount()
+        val work = initializeWork(requester)
+        val initializedReceiverCount = wakeReceiverCount()
+        assertThat(initializedReceiverCount).isEqualTo(initialReceiverCount + 1)
+
+        val startup = work.pending("wake-history-update").id
+        runs.single().finish(ListenableWorker.Result.success())
+
+        requester.initialize()
+        runCurrent()
+
+        assertThat(wakeReceiverCount()).isEqualTo(initializedReceiverCount)
+        assertThat(checkNotNull(backgroundScope.coroutineContext[Job]).children.count()).isEqualTo(1)
+        assertThat(work.getWorkInfosForUniqueWork("wake-history-update").get().map { it.id }).containsExactly(startup)
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test

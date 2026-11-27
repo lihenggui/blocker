@@ -11,6 +11,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 
 /**
@@ -26,6 +27,7 @@ private class StubbornProcess(
 ) : Process() {
     private val ended = CountDownLatch(1)
     private val stdoutClosed = CountDownLatch(1)
+    val stopRequested = CountDownLatch(1)
     private var hangs = false
     var stopRequests = 0
     var kills = 0
@@ -68,6 +70,7 @@ private class StubbornProcess(
 
     override fun destroy() {
         stopRequests++
+        stopRequested.countDown()
     }
 
     override fun destroyForcibly(): Process {
@@ -85,6 +88,48 @@ private class StubbornProcess(
 }
 
 class RunBoundedTest {
+    @Test
+    fun givenInterruptedCaller_whenWaitingForTheProcess_thenPropagatesAndRestoresInterrupt() {
+        val process = StubbornProcess(keepsStdoutOpen = false).apply { hang() }
+
+        Thread.currentThread().interrupt()
+        try {
+            assertThrows(InterruptedException::class.java) {
+                runBounded(process, "SERVICES", null, ByteArrayOutputStream(), kill = Process::destroyForcibly)
+            }
+            assertThat(Thread.currentThread().isInterrupted).isTrue()
+            assertThat(process.kills).isEqualTo(1)
+        } finally {
+            Thread.interrupted()
+        }
+    }
+
+    @Test
+    fun givenStopTimerHasFired_whenCallerIsInterruptedDuringGrace_thenPropagatesAndRestoresInterrupt() {
+        val process = StubbornProcess(keepsStdoutOpen = false, unkillable = true).apply { hang() }
+        val result = FutureTask {
+            val failure = runCatching {
+                runBounded(process, "SERVICES", null, ByteArrayOutputStream(), 50, 5_000, Process::destroyForcibly)
+            }.exceptionOrNull()
+            failure to Thread.currentThread().isInterrupted
+        }
+        val caller = Thread(result).apply {
+            isDaemon = true
+            start()
+        }
+        try {
+            assertThat(process.stopRequested.await(5, TimeUnit.SECONDS)).isTrue()
+            caller.interrupt()
+
+            val (failure, interrupted) = result.get(5, TimeUnit.SECONDS)
+            assertThat(failure).isInstanceOf(InterruptedException::class.java)
+            assertThat(interrupted).isTrue()
+        } finally {
+            caller.interrupt()
+            caller.join(5_000)
+        }
+    }
+
     @Test
     fun givenCommandThatExits_whenRun_thenItsOutputArrives() {
         val output = ByteArrayOutputStream()

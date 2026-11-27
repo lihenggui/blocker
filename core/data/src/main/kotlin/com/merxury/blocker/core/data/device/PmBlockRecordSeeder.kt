@@ -22,6 +22,7 @@ import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
 import androidx.core.database.getStringOrNull
+import com.merxury.blocker.core.data.wake.asModel
 import com.merxury.blocker.core.data.wake.componentWritePending
 import com.merxury.blocker.core.database.wake.WakeHistoryDao
 import com.merxury.blocker.core.datastore.BlockerAppPropertiesDataStore
@@ -193,6 +194,7 @@ internal class InstalledAppDbPmBlockRecordSeeder @Inject constructor(
 
     /** The components the wake feature disabled through PackageManager, or is disabling, and claims. */
     private suspend fun wakeClaims(): Set<ComponentId> = wakeHistory.readProtections()
+        .map { it.asModel() }
         .filter { it.method == "PM" && (it.configured || it.componentWritePending) }
         .map { ComponentId(it.target, it.component) }
         .toSet()

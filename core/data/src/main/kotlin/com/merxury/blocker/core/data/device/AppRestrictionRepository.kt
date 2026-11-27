@@ -88,20 +88,26 @@ internal class LocalAppRestrictionRepository @Inject constructor(
     private val journal = context.getSharedPreferences("wake_deep_restriction_journal", Context.MODE_PRIVATE)
 
     override fun observe(app: AppKey): Flow<DeepBackgroundRestriction?> = channelFlow {
+        val cached = settings.value[app]
+        if (cached != null) send(cached)
         launch(start = CoroutineStart.UNDISPATCHED) {
             this@LocalAppRestrictionRepository.channel.state.map { it is ChannelState.Ready }
                 .distinctUntilChanged().drop(1).filter { it }.collect { read(app) }
         }
-        read(app)
-        settings.map { it[app] }.distinctUntilChanged().collect { send(it) }
-    }
+        if (cached == null) {
+            read(app)
+        } else {
+            launch { read(app) }
+        }
+        settings.map { it[app] }.collect { send(it) }
+    }.distinctUntilChanged()
 
-    override suspend fun read(app: AppKey): AppRestrictionResult = access.withLock {
-        if (channel.connectIfGranted() !is ChannelState.Ready) return@withLock unavailable(app)
+    override suspend fun read(app: AppKey): AppRestrictionResult = withAccess {
+        if (channel.connectIfGranted() !is ChannelState.Ready) return@withAccess unavailable(app)
         readConnected(app).toResult()
     }
 
-    override suspend fun setDeepRestricted(app: AppKey, restricted: Boolean): AppRestrictionResult = edit {
+    override suspend fun setDeepRestricted(app: AppKey, restricted: Boolean): AppRestrictionResult = withAccess {
         when (val read = readForWrite(app)) {
             is CallResult.Failure -> read.toResult()
 
@@ -109,7 +115,7 @@ internal class LocalAppRestrictionRepository @Inject constructor(
                 val before = read.value
                 val existing = entry(app)?.takeIf { it.installTime == before.firstInstallTime }
                 if (restricted) {
-                    if (!before.setting.changeable) return@edit AppRestrictionResult.Failure(AppRestrictionFailure.NOT_CHANGEABLE)
+                    if (!before.setting.changeable) return@withAccess AppRestrictionResult.Failure(AppRestrictionFailure.NOT_CHANGEABLE)
                     val baseline = existing?.let { before.snapshot.restoreMatching(it.written, it.baseline) } ?: before.snapshot
                     val desired = DeepRestrictionSnapshot(
                         before.snapshot.standbyBucket?.let { before.restrictedStandbyBucket },
@@ -124,8 +130,8 @@ internal class LocalAppRestrictionRepository @Inject constructor(
         }
     }
 
-    override suspend fun restoreOwned(app: AppKey): AppRestrictionRestoreResult = edit {
-        val saved = entry(app) ?: return@edit AppRestrictionRestoreResult.NotOwned
+    override suspend fun restoreOwned(app: AppKey): AppRestrictionRestoreResult = withAccess {
+        val saved = entry(app) ?: return@withAccess AppRestrictionRestoreResult.NotOwned
         when (val read = readForWrite(app)) {
             is CallResult.Failure -> when (val reason = read.reason.toRestrictionFailure()) {
                 AppRestrictionFailure.NOT_INSTALLED -> AppRestrictionRestoreResult.NotOwned
@@ -134,7 +140,7 @@ internal class LocalAppRestrictionRepository @Inject constructor(
 
             is CallResult.Success -> {
                 val before = read.value
-                if (before.firstInstallTime != saved.installTime) return@edit AppRestrictionRestoreResult.NotOwned
+                if (before.firstInstallTime != saved.installTime) return@withAccess AppRestrictionRestoreResult.NotOwned
                 val target = before.snapshot.restoreMatching(saved.written, saved.baseline)
                 when (val result = change(app, before, target)) {
                     is AppRestrictionResult.Success -> if (target == before.snapshot) {
@@ -154,23 +160,23 @@ internal class LocalAppRestrictionRepository @Inject constructor(
         target: DeepRestrictionSnapshot,
         baseline: DeepRestrictionSnapshot,
         firstInstallTime: Long?,
-    ): AppRestrictionResult = edit {
+    ): AppRestrictionResult = withAccess {
         when (val read = readForWrite(app)) {
             is CallResult.Failure -> read.toResult()
 
             is CallResult.Success -> {
                 val before = read.value
                 if (firstInstallTime != null && before.firstInstallTime != firstInstallTime) {
-                    return@edit AppRestrictionResult.Failure(AppRestrictionFailure.NOT_INSTALLED)
+                    return@withAccess AppRestrictionResult.Failure(AppRestrictionFailure.NOT_INSTALLED)
                 }
                 val desired = before.snapshot.restoreMatching(baseline, target)
-                if (desired == before.snapshot) return@edit AppRestrictionResult.Success(before.setting)
+                if (desired == before.snapshot) return@withAccess AppRestrictionResult.Success(before.setting)
                 change(app, before, desired, JournalEntry(before.firstInstallTime, before.snapshot, desired))
             }
         }
     }
 
-    private suspend fun <T> edit(action: suspend () -> T): T = access.withLock { withContext(io) { action() } }
+    private suspend fun <T> withAccess(action: suspend () -> T): T = access.withLock { withContext(io) { action() } }
 
     private suspend fun change(
         app: AppKey,

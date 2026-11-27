@@ -30,4 +30,8 @@ message AppProperties {
   // Whether the record of components Blocker disabled through PackageManager has been seeded once
   // from the component list of earlier versions. Set also when there was nothing to seed.
   bool pm_block_records_seeded = 6;
+  // Wall-clock time of the last successful catalog check, in epoch milliseconds.
+  int64 last_catalog_synced_epoch_ms = 7;
+  // Rule server provider used for the last successful catalog check.
+  string last_catalog_synced_provider = 8;
 }

@@ -10,6 +10,7 @@ import android.app.AppOpsManager.MODE_IGNORED
 import android.content.pm.ApplicationInfo
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.privileged.CallFailure
 import com.merxury.blocker.core.model.privileged.CallResult
 import com.merxury.blocker.core.model.system.DeepBackgroundRestriction
 import com.merxury.blocker.core.model.system.DeepRestrictionSnapshot
@@ -17,6 +18,7 @@ import com.merxury.blocker.core.privileged.FakeSystemServices
 import com.merxury.blocker.core.privileged.decodeOutcome
 import com.merxury.blocker.core.privileged.encodeOutcome
 import com.merxury.blocker.core.privileged.marshallCall
+import com.merxury.blocker.core.privileged.toCallFailure
 import com.merxury.blocker.core.privileged.unmarshallCall
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -118,6 +120,15 @@ class AppRestrictionCallsTest {
             assertThat(assertThrows(IOException::class.java) { set.run(system, command) }.message).isEqualTo(expected)
             assertThat(system.backgroundUsageChanges).isEmpty()
         }
+    }
+
+    @Test
+    fun givenStandbyCommandDeniesAccess_whenReadingTheBucket_thenReportsNotPermitted() {
+        val failure = assertThrows(SecurityException::class.java) {
+            read.run(system) { throw SecurityException("Standby bucket access denied") }
+        }
+
+        assertThat(failure.toCallFailure()).isEqualTo(CallFailure.NotPermitted("Standby bucket access denied"))
     }
 
     @Test fun givenBucketChangesButReadBackFails_whenRestricting_thenBothBucketAndAppOpsRollBack() {

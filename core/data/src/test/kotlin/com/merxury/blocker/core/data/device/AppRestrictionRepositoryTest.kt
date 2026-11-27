@@ -48,12 +48,15 @@ class AppRestrictionRepositoryTest {
 
     private fun TestScope.repository() = LocalAppRestrictionRepository(channel, control, RuntimeEnvironment.getApplication(), StandardTestDispatcher(testScheduler))
 
-    @Test fun givenTwoObservers_whenWriting_thenOnlyTheirAppChanges() = runTest {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenTwoObservers_whenWriting_thenOnlyTheirAppChanges() = runTest {
         val repository = repository()
         repository.observe(app).test firstObserver@{
             assertThat(awaitItem()).isEqualTo(defaults.setting())
             repository.observe(app).test {
                 assertThat(awaitItem()).isEqualTo(defaults.setting())
+                runCurrent()
                 assertThat(channel.quietConnectCount).isEqualTo(2)
                 assertThat(channel.connectCount).isEqualTo(0)
 
@@ -70,11 +73,35 @@ class AppRestrictionRepositoryTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
+    fun givenUncachedRestrictedApp_whenObserving_thenWaitsForTheFirstRead() = runTest {
+        val repository = repository()
+        control.states[app] = restriction
+        val firstRead = CompletableDeferred<Unit>()
+        control.beforeRead = { firstRead.await() }
+
+        repository.observe(app).test {
+            runCurrent()
+            assertThat(control.reads).containsExactly(app)
+            expectNoEvents()
+
+            firstRead.complete(Unit)
+            assertThat(awaitItem()).isEqualTo(restriction.setting())
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
     fun givenCachedSettings_whenResubscribingAndReconnecting_thenObserversSeeFreshValuesWithoutPrompting() = runTest {
         val repository = repository()
-        repository.observe(app).test { assertThat(awaitItem()).isEqualTo(defaults.setting()) }
+        assertThat(repository.read(app)).isEqualTo(AppRestrictionResult.Success(defaults.setting()))
         control.states[app] = restriction
+        val refresh = CompletableDeferred<Unit>()
+        control.beforeRead = { refresh.await() }
         repository.observe(app).test {
+            assertThat(awaitItem()).isEqualTo(defaults.setting())
+            runCurrent()
+            assertThat(control.reads).containsExactly(app, app)
+            refresh.complete(Unit)
             assertThat(awaitItem()).isEqualTo(restriction.setting())
             channel.setState(ChannelState.Unavailable(UnavailableReason.NOT_CHECKED))
             runCurrent()
@@ -268,6 +295,7 @@ class AppRestrictionRepositoryTest {
         val reads = mutableListOf<AppKey>()
         var writeFailure: CallFailure? = null
         var readFailure: CallFailure? = null
+        var beforeRead: suspend () -> Unit = {}
         var beforeWrite: suspend () -> Unit = {}
         var afterWrite: () -> CallFailure? = { null }
         var protected = false
@@ -275,6 +303,7 @@ class AppRestrictionRepositoryTest {
 
         override suspend fun read(app: AppKey): CallResult<AppRestrictionReading> {
             reads += app
+            beforeRead()
             return readFailure?.let { CallResult.Failure(it) } ?: CallResult.Success(reading(app))
         }
 

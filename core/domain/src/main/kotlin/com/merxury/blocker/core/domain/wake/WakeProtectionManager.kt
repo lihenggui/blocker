@@ -7,9 +7,9 @@ import com.merxury.blocker.core.data.wake.WakeProtectionRepository
 import com.merxury.blocker.core.data.wake.WakeRepository
 import com.merxury.blocker.core.data.wake.WakeRuleLock
 import com.merxury.blocker.core.data.wake.WakeWrites
-import com.merxury.blocker.core.database.wake.WakeSourceStatus
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.wake.WakeSourceStatus
 import com.merxury.core.ifw.ManagedWakeReset
 import dagger.Module
 import dagger.Provides

@@ -28,6 +28,7 @@ dependencies {
     api(libs.androidx.compose.ui.test)
     api(projects.core.analytics)
     api(projects.core.data)
+    implementation(projects.core.database)
     api(projects.core.model)
 
     debugApi(libs.androidx.compose.ui.testManifest)

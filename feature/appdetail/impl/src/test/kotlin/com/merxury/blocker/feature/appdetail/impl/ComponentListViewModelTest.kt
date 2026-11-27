@@ -36,8 +36,8 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.repository.defaultUserData
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.component.ComponentRow
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.api.navigation.FIRST_COMPONENT_TAB
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job

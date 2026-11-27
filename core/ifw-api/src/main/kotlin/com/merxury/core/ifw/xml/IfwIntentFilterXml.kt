@@ -102,6 +102,8 @@ internal fun parseIntentFilter(parser: XmlPullParser): IfwIntentFilter {
             XmlPullParser.END_TAG -> if (parser.depth == outerDepth && parser.name == TAG_INTENT_FILTER) {
                 break
             }
+
+            XmlPullParser.END_DOCUMENT -> throw unexpectedEndOfDocument(parser)
         }
     }
 
@@ -232,6 +234,7 @@ internal fun skipCurrentTag(parser: XmlPullParser) {
         when (parser.next()) {
             XmlPullParser.START_TAG -> depth++
             XmlPullParser.END_TAG -> depth--
+            XmlPullParser.END_DOCUMENT -> throw unexpectedEndOfDocument(parser)
         }
     }
 }

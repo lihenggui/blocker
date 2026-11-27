@@ -22,6 +22,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -60,15 +62,12 @@ fun SupportAndFeedbackScreen(
         onReportBugClick = { viewModel.openReportBugPage(context) },
         onExportLogClick = {
             scope.launch {
-                viewModel.exportErrorLog()
-                    .collect { file ->
-                        shareFile(
-                            context = context,
-                            file = file,
-                            scope = scope,
-                            snackbarHostState = snackbarHostState,
-                        )
-                    }
+                shareFile(
+                    context = context,
+                    file = viewModel.exportErrorLog(),
+                    scope = scope,
+                    snackbarHostState = snackbarHostState,
+                )
             }
         },
         onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
@@ -145,41 +144,47 @@ fun SupportAndFeedbackScreen(
             hasNavigationIcon = true,
             onNavigationClick = onNavigationClick,
         )
-        BlockerSettingItem(
-            icon = DrawableResourceIcon(BlockerIcons.GitHub),
-            title = stringResource(id = string.feature_settings_api_project_homepage),
-            onItemClick = { onProjectHomeClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.Rule),
-            title = stringResource(id = string.feature_settings_api_rule_repository),
-            onItemClick = { onRulesRepositoryClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.BugReport),
-            title = stringResource(id = string.feature_settings_api_report_bugs_or_submit_ideas),
-            onItemClick = { onReportBugClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.Log),
-            title = stringResource(id = string.feature_settings_api_export_error_log),
-            onItemClick = { onExportLogClick() },
-        )
-        BlockerSettingItem(
-            icon = DrawableResourceIcon(BlockerIcons.Telegram),
-            title = stringResource(id = string.feature_settings_api_telegram_group),
-            onItemClick = { onTelegramGroupLinkClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.DesignService),
-            title = stringResource(id = string.feature_settings_api_designers_homepage),
-            onItemClick = { onDesignLinkClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.DocumentScanner),
-            title = stringResource(id = string.feature_settings_api_open_source_licenses),
-            onItemClick = { onOpenSourceLicenseClick() },
-        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            BlockerSettingItem(
+                icon = DrawableResourceIcon(BlockerIcons.GitHub),
+                title = stringResource(id = string.feature_settings_api_project_homepage),
+                onItemClick = { onProjectHomeClick() },
+            )
+            BlockerSettingItem(
+                icon = ImageVectorIcon(BlockerIcons.Rule),
+                title = stringResource(id = string.feature_settings_api_rule_repository),
+                onItemClick = { onRulesRepositoryClick() },
+            )
+            BlockerSettingItem(
+                icon = ImageVectorIcon(BlockerIcons.BugReport),
+                title = stringResource(id = string.feature_settings_api_report_bugs_or_submit_ideas),
+                onItemClick = { onReportBugClick() },
+            )
+            BlockerSettingItem(
+                icon = ImageVectorIcon(BlockerIcons.Log),
+                title = stringResource(id = string.feature_settings_api_export_error_log),
+                onItemClick = { onExportLogClick() },
+            )
+            BlockerSettingItem(
+                icon = DrawableResourceIcon(BlockerIcons.Telegram),
+                title = stringResource(id = string.feature_settings_api_telegram_group),
+                onItemClick = { onTelegramGroupLinkClick() },
+            )
+            BlockerSettingItem(
+                icon = ImageVectorIcon(BlockerIcons.DesignService),
+                title = stringResource(id = string.feature_settings_api_designers_homepage),
+                onItemClick = { onDesignLinkClick() },
+            )
+            BlockerSettingItem(
+                icon = ImageVectorIcon(BlockerIcons.DocumentScanner),
+                title = stringResource(id = string.feature_settings_api_open_source_licenses),
+                onItemClick = { onOpenSourceLicenseClick() },
+            )
+        }
     }
 }
 

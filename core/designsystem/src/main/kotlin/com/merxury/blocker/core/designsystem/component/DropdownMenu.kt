@@ -236,34 +236,28 @@ fun <T> BlockerDropdownMenu(
     itemTrailingIcon: @Composable ((item: T) -> Unit)? = null,
 ) {
     DropdownMenu(
-        offset = DpOffset(x = 56.dp, y = (-16).dp),
         expanded = expanded,
         onDismissRequest = onDismissRequest,
         modifier = modifier,
     ) {
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = onDismissRequest,
-        ) {
-            items.forEach { item ->
-                DropdownMenuItem(
-                    text = { itemText(item) },
-                    onClick = {
-                        onItemClick(item)
-                        if (dismissOnItemClick) onDismissRequest()
-                    },
-                    leadingIcon = if (itemLeadingIcon != null) {
-                        { itemLeadingIcon(item) }
-                    } else {
-                        null
-                    },
-                    trailingIcon = if (itemTrailingIcon != null) {
-                        { itemTrailingIcon(item) }
-                    } else {
-                        null
-                    },
-                )
-            }
+        items.forEach { item ->
+            DropdownMenuItem(
+                text = { itemText(item) },
+                onClick = {
+                    onItemClick(item)
+                    if (dismissOnItemClick) onDismissRequest()
+                },
+                leadingIcon = if (itemLeadingIcon != null) {
+                    { itemLeadingIcon(item) }
+                } else {
+                    null
+                },
+                trailingIcon = if (itemTrailingIcon != null) {
+                    { itemTrailingIcon(item) }
+                } else {
+                    null
+                },
+            )
         }
     }
 }

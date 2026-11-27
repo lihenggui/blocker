@@ -6,8 +6,6 @@ package com.merxury.blocker.core.domain.wake
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
-import com.merxury.blocker.core.database.wake.WakeExemption
-import com.merxury.blocker.core.database.wake.WakeRelation
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentId
@@ -21,7 +19,9 @@ import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
 import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
+import com.merxury.blocker.core.model.wake.WakeExemption
 import com.merxury.blocker.core.model.wake.WakePathBlock
+import com.merxury.blocker.core.model.wake.WakeRelation
 import com.merxury.blocker.core.model.wake.WakeSpecialAccess
 import com.merxury.blocker.core.model.wake.WakeVerdict
 import kotlinx.coroutines.ExperimentalCoroutinesApi

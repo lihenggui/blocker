@@ -61,6 +61,7 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.TouchPointHolder
 
 /**
  * One component: its names and description, a running marker for a running service, and a switch
@@ -92,7 +93,8 @@ fun ComponentListItem(
     onSelectionToggle: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
+    val touchPoint = remember { TouchPointHolder() }
+    var menuOffset by remember { mutableStateOf(DpOffset.Zero) }
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
     val animatedColor = animateColorAsState(
@@ -106,13 +108,14 @@ fun ComponentListItem(
             .combinedClickable(
                 onClick = { if (isSelectedMode) onSelectionToggle() else onClick() },
                 onLongClick = {
+                    menuOffset = touchPoint.menuOffset(density)
                     expanded = true
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
             )
             .pointerInteropFilter {
                 if (it.action == MotionEvent.ACTION_DOWN) {
-                    touchPoint = Offset(it.x, it.y)
+                    touchPoint.position = Offset(it.x, it.y)
                 }
                 false
             }
@@ -122,7 +125,7 @@ fun ComponentListItem(
             .padding(start = 16.dp, end = 24.dp, top = 14.dp, bottom = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.fillMaxWidth(0.8f)) {
+        Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 BlockerBodyLargeText(
                     modifier = Modifier.weight(1F),
@@ -157,19 +160,16 @@ fun ComponentListItem(
                 )
             }
         }
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.width(8.dp))
         BlockerSwitch(
             checked = enabled,
             onCheckedChange = { onSwitchClick(!enabled) },
             enabled = !inFlight,
         )
-        val offset = with(density) {
-            DpOffset(touchPoint.x.toDp(), -touchPoint.y.toDp())
-        }
         ComponentItemMenu(
             expanded = expanded,
             type = type,
-            offset = offset,
+            offset = menuOffset,
             isServiceRunning = isServiceRunning,
             onStopServiceClick = onStopServiceClick,
             onLaunchActivityClick = onLaunchActivityClick,

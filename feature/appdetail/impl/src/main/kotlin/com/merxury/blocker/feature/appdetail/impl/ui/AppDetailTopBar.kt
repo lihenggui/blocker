@@ -34,11 +34,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
-import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.appdetail.api.R.plurals
 import com.merxury.blocker.feature.appdetail.api.R.string
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.impl.AppHeaderUiState
 import com.merxury.blocker.feature.appdetail.impl.ComponentListUiState
 import com.merxury.blocker.feature.appdetail.impl.LaunchMode

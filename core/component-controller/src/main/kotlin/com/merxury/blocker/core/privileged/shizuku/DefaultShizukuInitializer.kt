@@ -29,6 +29,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -83,7 +84,7 @@ internal class DefaultShizukuInitializer @Inject constructor(
             }
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             Timber.e(e, "Check Shizuku permission failed")
             Failed(e)
         }
@@ -95,8 +96,10 @@ internal class DefaultShizukuInitializer @Inject constructor(
         var listener: Shizuku.OnBinderReceivedListener? = null
         try {
             suspendCancellableCoroutine { cont ->
-                listener = Shizuku.OnBinderReceivedListener { cont.resumeIfActive(Unit) }
-                    .also(shizuku::addBinderReceivedListenerSticky)
+                val resumed = AtomicBoolean()
+                val callback = Shizuku.OnBinderReceivedListener { cont.resumeIfActive(resumed) { Unit } }
+                listener = callback
+                shizuku.addBinderReceivedListenerSticky(callback)
             }
         } finally {
             listener?.let(shizuku::removeBinderReceivedListener)
@@ -108,23 +111,26 @@ internal class DefaultShizukuInitializer @Inject constructor(
         try {
             val result = withTimeoutOrNull(SHIZUKU_PERMISSION_TIMEOUT) {
                 suspendCancellableCoroutine { cont ->
-                    listener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+                    val resumed = AtomicBoolean()
+                    val callback = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
                         if (requestCode == REQUEST_CODE_PERMISSION) {
                             val granted = grantResult == PackageManager.PERMISSION_GRANTED
                             Timber.i("Shizuku permission granted: $granted")
-                            cont.resumeIfActive(if (granted) Granted(getUid()) else Denied)
+                            cont.resumeIfActive(resumed) { if (granted) Granted(getUid()) else Denied }
                         }
-                    }.also(shizuku::addRequestPermissionResultListener)
+                    }
+                    listener = callback
                     Timber.d("Request Shizuku permission")
                     // Report failures through the continuation. An exception thrown out of this
                     // block would leave the listener able to resume a call that already returned.
                     try {
+                        shizuku.addRequestPermissionResultListener(callback)
                         shizuku.requestPermission(REQUEST_CODE_PERMISSION)
                     } catch (e: CancellationException) {
                         cont.cancel(e)
-                    } catch (e: Throwable) {
+                    } catch (e: Exception) {
                         Timber.e(e, "Request Shizuku permission failed")
-                        cont.resumeIfActive(Failed(e))
+                        cont.resumeIfActive(resumed) { Failed(e) }
                     }
                 }
             }
@@ -141,13 +147,20 @@ internal class DefaultShizukuInitializer @Inject constructor(
         shizuku.getUid()
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         Timber.e(e, "Get uid failed")
         -1
     }
 }
 
 // Shizuku can deliver the same callback more than once, for example when it restarts.
-private fun <T> CancellableContinuation<T>.resumeIfActive(value: T) {
-    if (isActive) resume(value)
+private inline fun <T> CancellableContinuation<T>.resumeIfActive(resumed: AtomicBoolean, value: () -> T) {
+    if (!isActive || !resumed.compareAndSet(false, true)) return
+    val result = try {
+        value()
+    } catch (e: CancellationException) {
+        cancel(e)
+        return
+    }
+    resume(result)
 }

@@ -152,7 +152,7 @@ internal class RootTransport(
         } finally {
             request.close()
         }
-        val bytes = withContext(ioDispatcher) { reply.read() }
+        val bytes = reply.use { withContext(ioDispatcher) { it.read() } }
         return decodeOutcome(call, bytes)
     }
 }

@@ -22,7 +22,6 @@ import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -41,7 +40,6 @@ import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
-import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -67,7 +65,6 @@ import javax.inject.Inject
 /**
  * Tests that the Snackbar is correctly displayed on different screen sizes.
  */
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 // Configure Robolectric to use a very large screen size that can fit all of the test sizes.
@@ -88,9 +85,6 @@ class SnackbarScreenshotTests {
      */
     @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
-
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
 
     @Inject
     lateinit var timeZoneMonitor: TimeZoneMonitor
@@ -208,7 +202,6 @@ class SnackbarScreenshotTests {
                                 LocalSnackbarHostState provides snackbarHostState,
                             ) {
                                 val fakeAppState = rememberBlockerAppState(
-                                    networkMonitor = networkMonitor,
                                     timeZoneMonitor = timeZoneMonitor,
                                     permissionMonitor = permissionMonitor,
                                 )

@@ -26,8 +26,6 @@ android {
 }
 
 dependencies {
-    lintPublish(projects.lint)
-
     api(libs.androidx.compose.foundation)
     api(libs.androidx.compose.foundation.layout)
     api(libs.androidx.compose.material.iconsExtended)
@@ -47,5 +45,6 @@ dependencies {
     testImplementation(libs.androidx.compose.ui.testManifest)
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)
+    testImplementation(libs.truth)
     testImplementation(projects.core.screenshotTesting)
 }

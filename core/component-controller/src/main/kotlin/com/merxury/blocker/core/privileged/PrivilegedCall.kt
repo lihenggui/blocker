@@ -139,7 +139,10 @@ internal interface PrivilegedExecutor {
 /** One way to reach the system with privilege: a root process or Shizuku. */
 internal interface PrivilegedTransport :
     PrivilegedChannel,
-    PrivilegedExecutor
+    PrivilegedExecutor {
+    /** Whether a previously ready connection can be reused without acquiring it again. */
+    suspend fun isConnectionCurrent(): Boolean
+}
 
 /** Lets calls carry a [UserId] with `@TypeParceler`. */
 internal object UserIdParceler : Parceler<UserId> {

@@ -4,14 +4,14 @@
 package com.merxury.blocker.core.domain.wake
 
 import com.merxury.blocker.core.data.wake.WakeDetectionEvidence
-import com.merxury.blocker.core.database.wake.WakeFindingDay
-import com.merxury.blocker.core.database.wake.WakeVerdictDay
 import com.merxury.blocker.core.model.wake.Confidence
 import com.merxury.blocker.core.model.wake.HoldCause
 import com.merxury.blocker.core.model.wake.Justification
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeFinding
+import com.merxury.blocker.core.model.wake.WakeFindingDay
 import com.merxury.blocker.core.model.wake.WakeVerdict
+import com.merxury.blocker.core.model.wake.WakeVerdictDay
 import com.merxury.blocker.core.model.wake.normalizeWakeTag
 import java.time.Instant
 import java.time.LocalDate

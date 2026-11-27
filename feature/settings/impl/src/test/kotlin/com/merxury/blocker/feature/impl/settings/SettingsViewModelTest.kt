@@ -17,9 +17,9 @@
 package com.merxury.blocker.feature.impl.settings
 
 import android.app.Application
-import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.work.WorkManager
+import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.analytics.NoOpAnalyticsHelper
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
@@ -45,12 +45,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -116,17 +111,11 @@ class SettingsViewModelTest {
     @Test
     fun givenGitHubSelected_whenSwitchingToGitLab_thenTheNewProviderIsCheckedImmediately() = runTest {
         userDataRepository.sendUserData(defaultUserData)
-        val editor = mock<SharedPreferences.Editor>()
-        val preferences = mock<SharedPreferences>()
-        whenever(preferences.edit()) doReturn editor
-        whenever(editor.remove(any())) doReturn editor
-        whenever(appContext.getSharedPreferences("sync_rule", Application.MODE_PRIVATE)) doReturn preferences
 
         viewModel.updateRuleServerProvider(RuleServerProvider.GITLAB)
 
-        assertEquals(RuleServerProvider.GITLAB, userDataRepository.userData.first().ruleServerProvider)
-        verify(editor).remove("last_synced_time")
-        assertTrue(syncManager.syncRequestedImmediately)
+        assertThat(userDataRepository.userData.first().ruleServerProvider).isEqualTo(RuleServerProvider.GITLAB)
+        assertThat(syncManager.syncRequestedImmediately).isTrue()
     }
 }
 

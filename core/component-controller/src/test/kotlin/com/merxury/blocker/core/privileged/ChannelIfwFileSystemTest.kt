@@ -55,15 +55,21 @@ class ChannelIfwFileSystemTest {
     }
 
     @Test
-    fun givenRuleEditorAccess_whenWriting_thenUsesRootAndLeavesOrdinaryReadsOnTheSelectedChannel() = runTest {
-        val root = ScriptedExecutor().apply { answer = { CallResult.Success(Unit) } }
+    fun givenRuleEditorAccess_whenWritingAndReadingQuietly_thenBothUseRoot() = runTest {
+        val root = ScriptedExecutor().apply { answer = { CallResult.Success(if (it is ReadIfwRuleFile) "<rules />" else Unit) } }
         executor.answer = { CallResult.Success(null) }
         val fileSystem = ChannelIfwFileSystem(executor, root)
 
-        withIfwEditorAccess { fileSystem.writeRules(PKG, "<rules />") }
+        withIfwEditorAccess {
+            fileSystem.writeRules(PKG, "<rules />")
+            assertThat(fileSystem.readRulesIfConnected(PKG)).isEqualTo("<rules />")
+        }
         assertThat(fileSystem.readRulesIfConnected(PKG)).isNull()
 
-        assertThat(root.runs).containsExactly(ReplaceIfwRuleFile(PKG, "<rules />") to true)
+        assertThat(root.runs).containsExactly(
+            ReplaceIfwRuleFile(PKG, "<rules />") to true,
+            ReadIfwRuleFile(PKG) to false,
+        ).inOrder()
         assertThat(executor.runs).containsExactly(ReadIfwRuleFile(PKG) to false)
     }
 

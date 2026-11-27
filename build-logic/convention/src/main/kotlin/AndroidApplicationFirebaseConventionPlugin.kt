@@ -21,10 +21,8 @@ import com.merxury.blocker.BlockerFlavor
 import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.withType
 
 class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -45,18 +43,15 @@ class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
                         mappingFileUploadEnabled = this@configureEach.name.contains("release")
                     }
                 }
-                tasks.configureEach {
-                    val isFossTask = name.contains(BlockerFlavor.foss.name, ignoreCase = true)
-                    if (isFossTask) {
-                        val disableKeywords = listOf("google", "crashlytics", "upload", "gms")
-                        if (disableKeywords.any { name.contains(it, ignoreCase = true) }) {
-                            logger.debug("Disabling task: $name")
-                            enabled = false
-                        }
-                    }
-                }
             }
-            tasks.withType<Task>().configureEach {
+            val crashlyticsTaskPrefixes = listOf("injectCrashlytics", "generateCrashlytics", "uploadCrashlytics")
+            tasks.configureEach {
+                val isFossTask = name.contains(BlockerFlavor.foss.name, ignoreCase = true)
+                val isGoogleServicesTask = name.startsWith("process") && name.endsWith("GoogleServices")
+                if (isFossTask && (isGoogleServicesTask || crashlyticsTaskPrefixes.any { name.startsWith(it) })) {
+                    logger.debug("Disabling task: $name")
+                    enabled = false
+                }
                 if (name == "uploadCrashlyticsMappingFileMarketRelease") {
                     mustRunAfter(tasks.named("updateMarketReleaseBadging"))
                 }

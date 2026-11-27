@@ -25,24 +25,21 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.model.component.AppKey
+import com.merxury.blocker.core.utils.ZipArchiver
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
+import java.io.IOException
 import javax.inject.Inject
-import kotlin.time.Clock
 
-/**
- * Zips the rules the user wrote for the components of one app, the ones its user has cached, so
- * they can be shared.
- */
-class ZipAppRuleUseCase @Inject constructor(
+/** Archives the generated rules that match components of the selected app and user. */
+class ZipAppRuleUseCase
+@Inject
+constructor(
     private val componentStatusRepository: ComponentStatusRepository,
     private val userDataRepository: UserDataRepository,
     @CacheDir private val cacheDir: File,
@@ -50,77 +47,47 @@ class ZipAppRuleUseCase @Inject constructor(
     @GeneratedRuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(app: AppKey): Flow<ZippedRule> = flow {
-        val packageName = app.packageName
-        val time = Clock.System.now().toString()
-            .replace(":", "-")
-            .replace(".", "-")
-        val fileName = "rules-$packageName-$time.zip"
-        val zipFile = File(cacheDir, fileName)
-        val baseFolder = filesDir.resolve(ruleBaseFolder)
-            .resolve(userDataRepository.getLibDisplayLanguage())
-        if (!baseFolder.exists()) {
+    suspend operator fun invoke(app: AppKey): ZippedRule = withContext(ioDispatcher) {
+        val ruleRoot = filesDir.resolve(ruleBaseFolder)
+        val baseFolder = ruleRoot.resolve(userDataRepository.getLibDisplayLanguage())
+        if (!baseFolder.isDirectory) {
             Timber.e("Rule base folder $baseFolder does not exist")
-            emit(ZippedRule.EMPTY)
-            return@flow
+            return@withContext ZippedRule.EMPTY
         }
-        val classNames = componentStatusRepository.components(app)
-            .first()
-            .mapTo(mutableSetOf()) { it.declaration.id.className }
-        val matchedFile = mutableListOf<File>()
-        baseFolder.listFilesRecursively().forEach { file ->
-            if (file.isDirectory) {
-                return@forEach
-            }
-            if (file.extension != "json") {
-                return@forEach
-            }
-            val componentName = file.relativeTo(baseFolder).path
-                .replace(".json", "")
-                .replace("/", ".")
-            if (componentName !in classNames) {
-                Timber.v("Component $componentName does not exist in component list")
-                return@forEach
-            }
-            // Put json file to the zip file
-            matchedFile.add(file)
-        }
-        if (matchedFile.isEmpty()) {
-            Timber.i("No matched generated rules found")
-            emit(ZippedRule.EMPTY)
-        } else {
-            Timber.v("Found ${matchedFile.size} matched generated rules")
-            updateZipPackage(zipFile, matchedFile)
-            emit(ZippedRule(packageName, zipFile))
-        }
-    }
-        .flowOn(ioDispatcher)
 
-    private fun updateZipPackage(zipFile: File, files: List<File>) {
-        if (files.isEmpty()) {
-            Timber.w("Files is empty, skip update zip package")
-            return
-        }
-        if (zipFile.exists()) {
-            Timber.i("Zip file $zipFile exists, delete it")
-            zipFile.delete()
-        }
-        Timber.i("Start to update zip package")
-        val baseFolder = filesDir.resolve(ruleBaseFolder)
-        val zipOutputStream = zipFile.outputStream()
-            .buffered()
-            .let { ZipOutputStream(it) }
-        // Put files into the zip file, and keep the original folder structure
-        zipOutputStream.use { outputStream ->
-            files.forEach { file ->
-                val relativePath = file.relativeTo(baseFolder)
-                val zipEntry = ZipEntry(relativePath.path)
-                outputStream.putNextEntry(zipEntry)
-                file.inputStream().use { inputStream ->
-                    inputStream.copyTo(outputStream)
+        val classNames =
+            componentStatusRepository
+                .components(app)
+                .first()
+                .mapTo(mutableSetOf()) { it.declaration.id.className }
+        val matchedFiles =
+            try {
+                baseFolder.listFilesRecursively().filter { file ->
+                    ensureActive()
+                    file.extension == "json" &&
+                        file
+                            .relativeTo(baseFolder)
+                            .path
+                            .removeSuffix(".json")
+                            .replace(File.separatorChar, '.') in classNames
                 }
-                outputStream.closeEntry()
+            } catch (e: IOException) {
+                Timber.e(e, "Failed to read generated rules in $baseFolder")
+                return@withContext ZippedRule.EMPTY
             }
+        if (matchedFiles.isEmpty()) {
+            Timber.i("No matched generated rules found for ${app.packageName}")
+            return@withContext ZippedRule.EMPTY
         }
+
+        exportZipArchive(cacheDir, "app-rules-${app.packageName}-") { target ->
+            ZipArchiver.zipFiles(ruleRoot, matchedFiles, target, ioDispatcher)
+        }.fold(
+            onSuccess = { ZippedRule(app.packageName, it) },
+            onFailure = {
+                Timber.e(it, "Failed to zip rules for ${app.packageName}")
+                ZippedRule.EMPTY
+            },
+        )
     }
 }

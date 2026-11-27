@@ -24,15 +24,12 @@ android {
 }
 
 dependencies {
-    api(projects.core.data)
+    implementation(projects.core.data)
     api(projects.core.model)
     implementation(projects.core.common)
     implementation(projects.core.componentController)
     implementation(projects.core.ifwApi)
-    implementation(projects.core.rule)
 
-    implementation(libs.androidx.work.ktx)
-    implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt.android)
     implementation(libs.timber)
@@ -46,5 +43,4 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
     testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.robolectric)
 }

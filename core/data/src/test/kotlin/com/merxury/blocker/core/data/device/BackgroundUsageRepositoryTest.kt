@@ -16,7 +16,9 @@ import com.merxury.blocker.core.model.privileged.UnavailableReason
 import com.merxury.blocker.core.model.system.BackgroundUsage
 import com.merxury.blocker.core.testing.controller.FakePrivilegedChannel
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -26,6 +28,7 @@ class BackgroundUsageRepositoryTest {
     private val control = FakeBackgroundUsageControl()
     private val repository = LocalBackgroundUsageRepository(channel, control)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenTwoObservers_whenUsageIsWrittenOrRead_thenBothReceiveTheLatestReadBack() = runTest {
         val allowed = BackgroundUsage(allowed = true, changeable = true)
@@ -35,6 +38,7 @@ class BackgroundUsageRepositoryTest {
             assertThat(awaitItem()).isEqualTo(allowed)
             repository.observe(app).test {
                 assertThat(awaitItem()).isEqualTo(allowed)
+                runCurrent()
                 assertThat(channel.quietConnectCount).isEqualTo(2)
                 assertThat(channel.connectCount).isEqualTo(0)
 
@@ -53,24 +57,53 @@ class BackgroundUsageRepositoryTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenUncachedRestrictedApp_whenObserving_thenWaitsForTheFirstRead() = runTest {
+        val restricted = BackgroundUsage(allowed = false, changeable = true)
+        control.readResult = CallResult.Success(restricted)
+        val firstRead = CompletableDeferred<Unit>()
+        control.beforeRead = { firstRead.await() }
+
+        repository.observe(app).test {
+            runCurrent()
+            assertThat(control.calls).containsExactly("read $app")
+            expectNoEvents()
+
+            firstRead.complete(Unit)
+            assertThat(awaitItem()).isEqualTo(restricted)
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenExternalSettingChange_whenResubscribing_thenEmitsTheCurrentUsage() = runTest {
         val allowed = BackgroundUsage(allowed = true, changeable = true)
         val restricted = allowed.copy(allowed = false)
-        assertThat(repository.observe(app).first()).isEqualTo(allowed)
+        assertThat(repository.read(app)).isEqualTo(BackgroundUsageResult.Success(allowed))
         control.readResult = CallResult.Success(restricted)
+        val refresh = CompletableDeferred<Unit>()
+        control.beforeRead = { refresh.await() }
 
-        assertThat(repository.observe(app).first()).isEqualTo(restricted)
+        repository.observe(app).test {
+            assertThat(awaitItem()).isEqualTo(allowed)
+            runCurrent()
+            assertThat(control.calls).containsExactly("read $app", "read $app")
+            refresh.complete(Unit)
+            assertThat(awaitItem()).isEqualTo(restricted)
+        }
         assertThat(control.calls).containsExactly("read $app", "read $app")
         assertThat(channel.connectCount).isEqualTo(0)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenUnavailableChannel_whenItBecomesReadyDuringObservation_thenEmitsTheCurrentUsage() = runTest {
         channel.setState(ChannelState.Unavailable(UnavailableReason.DENIED))
 
         repository.observe(app).test {
             assertThat(awaitItem()).isNull()
+            runCurrent()
             assertThat(control.calls).isEmpty()
 
             channel.setState(ChannelState.Ready(PrivilegedIdentity.SHELL))
@@ -81,11 +114,16 @@ class BackgroundUsageRepositoryTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenUncachedFailedRead_whenObserving_thenEmitsNullWithoutPrompting() = runTest {
         control.readResult = CallResult.Failure(CallFailure.SystemError("app ops unavailable"))
 
-        assertThat(repository.observe(app).first()).isNull()
+        repository.observe(app).test {
+            assertThat(awaitItem()).isNull()
+            runCurrent()
+            expectNoEvents()
+        }
         assertThat(channel.quietConnectCount).isEqualTo(1)
         assertThat(channel.connectCount).isEqualTo(0)
         assertThat(control.calls).containsExactly("read $app")
@@ -219,10 +257,12 @@ private class FakeBackgroundUsageControl : BackgroundUsageControl {
     var readResult: CallResult<BackgroundUsage> = CallResult.Success(BackgroundUsage(allowed = true, changeable = true))
     var writeResult: CallResult<Boolean> = CallResult.Success(true)
     var readCancellation: CancellationException? = null
+    var beforeRead: suspend () -> Unit = {}
     val calls = mutableListOf<String>()
 
     override suspend fun read(app: AppKey): CallResult<BackgroundUsage> {
         calls += "read $app"
+        beforeRead()
         readCancellation?.let { throw it }
         return readResult
     }

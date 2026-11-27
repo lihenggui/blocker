@@ -21,9 +21,24 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+data class CatalogSyncRecord(val epochMs: Long, val provider: String)
+
 class BlockerAppPropertiesDataStore @Inject constructor(
     private val appProperties: DataStore<AppProperties>,
 ) {
+    val lastCatalogSync: Flow<CatalogSyncRecord> = appProperties.data.map {
+        CatalogSyncRecord(it.lastCatalogSyncedEpochMs, it.lastCatalogSyncedProvider)
+    }
+
+    suspend fun setLastCatalogSynced(epochMs: Long, provider: String) {
+        appProperties.updateData {
+            it.copy {
+                lastCatalogSyncedEpochMs = epochMs
+                lastCatalogSyncedProvider = provider
+            }
+        }
+    }
+
     /**
      * Whether su last started a root process for Blocker, kept across process starts. Starting su
      * again shows no prompt while the root manager keeps that grant.

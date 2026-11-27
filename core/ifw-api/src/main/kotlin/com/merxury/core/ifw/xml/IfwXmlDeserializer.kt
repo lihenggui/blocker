@@ -57,6 +57,7 @@ import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_SENDER
 import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_SENDER_PACKAGE
 import com.merxury.core.ifw.xml.IfwXmlConstants.TAG_SENDER_PERMISSION
 import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.StringReader
 
@@ -81,34 +82,26 @@ class IfwXmlDeserializer {
      * @throws IfwXmlParseException if the XML is malformed, truncated or contains unrecognized elements
      */
     fun deserialize(xml: String): IfwRules {
-        requireComplete(xml)
         val parser = XmlPullParserFactory.newInstance().newPullParser()
         parser.setInput(StringReader(xml))
 
         val rules = mutableListOf<IfwRule>()
-        var eventType = parser.eventType
-
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            if (eventType == XmlPullParser.START_TAG && parser.name != TAG_RULES) {
-                val componentType = IfwComponentType.fromXmlTag(parser.name)
-                if (componentType != null) {
-                    rules.add(parseRule(parser, componentType))
+        try {
+            var eventType = parser.eventType
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if (eventType == XmlPullParser.START_TAG && parser.name != TAG_RULES) {
+                    val componentType = IfwComponentType.fromXmlTag(parser.name)
+                    if (componentType != null) {
+                        rules.add(parseRule(parser, componentType))
+                    }
                 }
+                eventType = parser.next()
             }
-            eventType = parser.next()
+        } catch (e: XmlPullParserException) {
+            throw IfwXmlParseException("Not well-formed at line ${parser.lineNumber}: ${e.message}", e)
         }
+        if (parser.depth != 0) throw unexpectedEndOfDocument(parser)
         return IfwRules(rules)
-    }
-
-    // The parser reports END_DOCUMENT instead of failing when a truncated file leaves elements
-    // open, which would keep the element loops below waiting for an end tag forever.
-    private fun requireComplete(xml: String) {
-        val parser = XmlPullParserFactory.newInstance().newPullParser()
-        parser.setInput(StringReader(xml))
-        while (parser.next() != XmlPullParser.END_DOCUMENT) Unit
-        if (parser.depth != 0) {
-            throw IfwXmlParseException("Unexpected end of document at line ${parser.lineNumber}")
-        }
     }
 
     private fun parseRule(parser: XmlPullParser, componentType: IfwComponentType): IfwRule {
@@ -146,6 +139,8 @@ class IfwXmlDeserializer {
                         break
                     }
                 }
+
+                XmlPullParser.END_DOCUMENT -> throw unexpectedEndOfDocument(parser)
             }
         }
         return filters
@@ -220,6 +215,7 @@ class IfwXmlDeserializer {
             when (parser.next()) {
                 XmlPullParser.START_TAG -> filters += parseFilter(parser)
                 XmlPullParser.END_TAG -> if (parser.depth == outerDepth) break
+                XmlPullParser.END_DOCUMENT -> throw unexpectedEndOfDocument(parser)
             }
         }
         return filters
@@ -262,15 +258,14 @@ class IfwXmlDeserializer {
         )
     }
 
-    private fun parsePort(parser: XmlPullParser): IfwFilter.Port {
-        val equalsStr = parser.getAttributeValue(null, ATTR_EQUALS)
-        val minStr = parser.getAttributeValue(null, ATTR_MIN)
-        val maxStr = parser.getAttributeValue(null, ATTR_MAX)
-        return IfwFilter.Port(
-            equals = equalsStr?.toInt(),
-            min = minStr?.toInt(),
-            max = maxStr?.toInt(),
+    private fun parsePort(parser: XmlPullParser): IfwFilter.Port = try {
+        IfwFilter.Port(
+            equals = parser.getAttributeValue(null, ATTR_EQUALS)?.toInt(),
+            min = parser.getAttributeValue(null, ATTR_MIN)?.toInt(),
+            max = parser.getAttributeValue(null, ATTR_MAX)?.toInt(),
         )
+    } catch (e: NumberFormatException) {
+        throw IfwXmlParseException("Invalid port at line ${parser.lineNumber}: ${e.message}", e)
     }
 
     private fun requireAttr(parser: XmlPullParser, attr: String): String = parser.getAttributeValue(null, attr)
@@ -284,4 +279,6 @@ class IfwXmlDeserializer {
  *
  * @property message a description of what went wrong, including line number when available
  */
-class IfwXmlParseException(message: String) : RuntimeException(message)
+class IfwXmlParseException @JvmOverloads constructor(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+
+internal fun unexpectedEndOfDocument(parser: XmlPullParser) = IfwXmlParseException("Unexpected end of document at line ${parser.lineNumber}")

@@ -52,7 +52,7 @@ class SupportFeedbackViewModel @Inject constructor(
 
     fun openDesignLink(context: Context) = openUrl(context, DESIGN_LINK_URL)
 
-    fun exportErrorLog() = zipLogFileUseCase()
+    suspend fun exportErrorLog() = zipLogFileUseCase()
 
     private fun openUrl(context: Context, url: String) {
         val chromeIntent = CustomTabsIntent.Builder()

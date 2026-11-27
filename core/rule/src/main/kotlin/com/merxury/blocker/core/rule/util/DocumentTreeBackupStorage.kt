@@ -17,12 +17,15 @@
 package com.merxury.blocker.core.rule.util
 
 import android.content.Context
+import android.net.Uri
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.merxury.blocker.core.rule.backup.BackupStorage
 import com.merxury.blocker.core.rule.backup.BackupStorageException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -38,13 +41,15 @@ class DocumentTreeBackupStorage private constructor(
     private val root: DocumentFile,
     private val ioDispatcher: CoroutineDispatcher,
 ) : BackupStorage {
+    private val accessLock = Mutex()
+    private val childrenByDirectory = mutableMapOf<Uri, MutableMap<String, DocumentFile>>()
 
     override suspend fun listFiles(folder: String): List<String> = access("list $folder") {
-        find(folder)?.listFiles()?.filter { it.isFile }?.mapNotNull { it.name }.orEmpty()
+        find(folder)?.let(::children)?.mapNotNull { (name, file) -> name.takeIf { file.isFile } }.orEmpty()
     }
 
     override suspend fun listFolders(folder: String): List<String> = access("list $folder") {
-        find(folder)?.listFiles()?.filter { it.isDirectory }?.mapNotNull { it.name }.orEmpty()
+        find(folder)?.let(::children)?.mapNotNull { (name, file) -> name.takeIf { file.isDirectory } }.orEmpty()
     }
 
     override suspend fun read(path: String): String? = access("read $path") {
@@ -57,7 +62,10 @@ class DocumentTreeBackupStorage private constructor(
         val folder = path.substringBeforeLast('/', "")
         val name = path.substringAfterLast('/')
         val parent = folderOf(folder)
-        val file = parent.findFile(name) ?: createFile(parent, name) ?: throw BackupStorageException("Cannot create $path")
+        val entries = children(parent)
+        val file = entries[name] ?: parent.findFile(name)?.also { entries[name] = it }
+            ?: createFile(parent, name)?.also { entries.addDocument(it) }
+            ?: throw BackupStorageException("Cannot create $path")
         // "rwt" truncates, so a shorter backup leaves no tail of the old one.
         context.contentResolver.openOutputStream(file.uri, "rwt")?.use { it.write(content.toByteArray()) }
             ?: throw BackupStorageException("Cannot open $path for writing")
@@ -71,16 +79,29 @@ class DocumentTreeBackupStorage private constructor(
     }
 
     /** The document at [path], or null when some part of it does not exist. */
-    private fun find(path: String): DocumentFile? = path.split('/').filter { it.isNotEmpty() }.fold(root as DocumentFile?) { dir, name -> dir?.findFile(name) }
+    private fun find(path: String): DocumentFile? = path.split('/').filter { it.isNotEmpty() }.fold(root as DocumentFile?) { dir, name ->
+        dir?.let { children(it)[name] }
+    }
 
     /** The folder at [path], created with its missing parents. */
     private fun folderOf(path: String): DocumentFile = path.split('/').filter { it.isNotEmpty() }.fold(root) { dir, name ->
-        dir.findFile(name)?.takeIf { it.isDirectory } ?: dir.createDirectory(name) ?: throw BackupStorageException("Cannot create the folder $name")
+        val entries = children(dir)
+        val folder = entries[name] ?: dir.findFile(name)?.also { entries[name] = it }
+            ?: dir.createDirectory(name)?.also { entries.addDocument(it) }
+        folder?.takeIf { it.isDirectory } ?: throw BackupStorageException("Cannot create the folder $name")
+    }
+
+    private fun children(directory: DocumentFile): MutableMap<String, DocumentFile> = childrenByDirectory.getOrPut(directory.uri) {
+        mutableMapOf<String, DocumentFile>().apply { directory.listFiles().forEach { addDocument(it) } }
+    }
+
+    private fun MutableMap<String, DocumentFile>.addDocument(file: DocumentFile) {
+        file.name?.let { putIfAbsent(it, file) }
     }
 
     private suspend fun <T> access(what: String, block: () -> T): T = withContext(ioDispatcher) {
         try {
-            block()
+            accessLock.withLock { block() }
         } catch (e: CancellationException) {
             throw e
         } catch (e: BackupStorageException) {

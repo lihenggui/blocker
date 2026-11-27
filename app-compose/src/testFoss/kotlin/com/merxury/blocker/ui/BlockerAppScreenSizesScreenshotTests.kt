@@ -21,7 +21,6 @@ import android.util.Log
 import androidx.activity.BackEventCompat
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -53,7 +52,6 @@ import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.merxury.blocker.R
 import com.merxury.blocker.core.data.test.repository.FakeOperationHistoryRepository
-import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.data.util.TimeZoneMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -98,7 +96,6 @@ import com.merxury.blocker.feature.wake.api.R.string as wakeString
 /**
  * Tests that the navigation UI is rendered correctly on different screen sizes.
  */
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 // Configure Robolectric to use a very large screen size that can fit all of the test sizes.
@@ -119,9 +116,6 @@ class BlockerAppScreenSizesScreenshotTests {
      */
     @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
-
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
 
     @Inject
     lateinit var timeZoneMonitor: TimeZoneMonitor
@@ -164,7 +158,6 @@ class BlockerAppScreenSizesScreenshotTests {
                 ) {
                     BlockerTheme {
                         val appState = rememberBlockerAppState(
-                            networkMonitor = networkMonitor,
                             permissionMonitor = permissionMonitor,
                             timeZoneMonitor = timeZoneMonitor,
                         )
@@ -196,7 +189,7 @@ class BlockerAppScreenSizesScreenshotTests {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 DeviceConfigurationOverride(DeviceConfigurationOverride.ForcedSize(DpSize(widthDp.dp, 880.dp))) {
                     BlockerTheme {
-                        val appState = rememberBlockerAppState(networkMonitor, permissionMonitor, timeZoneMonitor)
+                        val appState = rememberBlockerAppState(permissionMonitor, timeZoneMonitor)
                         LaunchedEffect(appState) {
                             startNavigation(Navigator(appState.navigationState))
                         }

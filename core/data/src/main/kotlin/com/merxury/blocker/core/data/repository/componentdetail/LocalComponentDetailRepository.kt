@@ -17,10 +17,10 @@
 package com.merxury.blocker.core.data.repository.componentdetail
 
 import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
-import com.merxury.blocker.core.data.repository.catalog.catalogLanguage
 import com.merxury.blocker.core.data.repository.componentdetail.datasource.CatalogComponentDetailDataSource
 import com.merxury.blocker.core.data.repository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.observeLibDisplayLanguage
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.component.AppKey
@@ -53,7 +53,7 @@ internal class LocalComponentDetailRepository @Inject constructor(
     override fun getLocalComponentDetails(names: Set<String>): Flow<Map<String, ComponentDetail>> {
         if (names.isEmpty()) return flowOf(emptyMap())
         val edits = updatedComponent.filter { it.name in names }.map { Unit }.onStart { emit(Unit) }
-        return combine(catalog.catalogState, userData.catalogLanguage(), edits) { _, language, _ ->
+        return combine(catalog.catalogState, userData.observeLibDisplayLanguage(), edits) { _, language, _ ->
             val saved = userGeneratedDataSource.findByNames(names, language)
             val bundled = catalogDetails.findByNames(names - saved.keys, language)
             saved + bundled.associateBy(ComponentDetail::name)

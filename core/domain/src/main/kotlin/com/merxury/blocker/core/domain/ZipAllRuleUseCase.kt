@@ -23,49 +23,47 @@ import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.ZippedRule
-import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.core.utils.ZipArchiver
+import com.merxury.blocker.core.utils.listFilesRecursively
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
-import kotlin.time.Clock
 
-class ZipAllRuleUseCase @Inject constructor(
+class ZipAllRuleUseCase
+@Inject
+constructor(
     private val userDataRepository: UserDataRepository,
     @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
     @GeneratedRuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(): Flow<ZippedRule> = flow {
-        val time = Clock.System.now().toString()
-            .replace(":", "-")
-            .replace(".", "-")
-        val fileName = "rules-$time.zip"
-        val zipFile = File(cacheDir, fileName)
-        val baseFolder = filesDir.resolve(ruleBaseFolder)
-            .resolve(userDataRepository.getLibDisplayLanguage())
-        if (!baseFolder.exists()) {
+    suspend operator fun invoke(): ZippedRule = withContext(ioDispatcher) {
+        val ruleRoot = filesDir.resolve(ruleBaseFolder)
+        val baseFolder = ruleRoot.resolve(userDataRepository.getLibDisplayLanguage())
+        if (!baseFolder.isDirectory) {
             Timber.e("Rule base folder $baseFolder does not exist")
-            emit(ZippedRule.EMPTY)
-            return@flow
+            return@withContext ZippedRule.EMPTY
         }
-        val files = baseFolder.listFiles()
-        if (files.isNullOrEmpty()) {
-            Timber.e("Folder $files is empty")
-            emit(ZippedRule.EMPTY)
-            return@flow
-        }
+
         try {
-            FileUtils.zipFolder(baseFolder.absolutePath, zipFile.absolutePath)
-            emit(ZippedRule(null, zipFile))
+            val files = baseFolder.listFilesRecursively().filter { it.extension == "json" }
+            if (files.isEmpty()) {
+                Timber.e("Folder $baseFolder is empty")
+                return@withContext ZippedRule.EMPTY
+            }
+            val zipFile = exportZipArchive(cacheDir, "all-rules-") { target ->
+                ZipArchiver.zipFiles(ruleRoot, files, target, ioDispatcher)
+            }.getOrThrow()
+            ZippedRule(null, zipFile)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            Timber.e(e)
-            emit(ZippedRule.EMPTY)
+            Timber.e(e, "Failed to zip rules in $baseFolder")
+            ZippedRule.EMPTY
         }
     }
-        .flowOn(ioDispatcher)
 }

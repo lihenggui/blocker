@@ -17,6 +17,16 @@ const val WAKE_OVERLAY_WINDOWS = "OverlayWindow"
 const val WAKE_AUDIO_PLAYBACK = "AudioPlayback"
 const val WAKE_DEVICE_ADMIN = "DeviceAdmin"
 
+private val appUid = Regex("""u(\d+)a(\d+)""")
+private val eventTime = Regex("""^\s*(\d+)\.(\d{3})\d*\s""")
+private val idleWhitelistTypes = setOf("system-excidle", "system", "user")
+private val standbyBucket = Regex("""^([\w.]+): (\d+)$""")
+private val queriedPackage = Regex("""[a-zA-Z][\w]*(?:\.[\w]+)+""")
+private val oomAdjustment = Regex("""\bset=(-?\d+)""")
+private val roleHolder = Regex("""[\w.]+""")
+private val bindingTarget = Regex("""[a-zA-Z][\w.]+(?:/[\w.$]+)?""")
+private val cpuProcessName = Regex("""[\w.:]+""")
+
 internal object WakeSystemEvidence {
     private val logLine = Regex("""^\s*(\d+\.\d+)\s+(?:1000|system)\s+\d+\s+\d+\s+I\s+(am_proc_start|am_proc_died|am_kill|am_schedule_service_restart)\s*:\s*\[(.*)]\s*$""")
     private val component = Regex("""([a-zA-Z][\w.$]+/[\w.$]+)""")
@@ -31,7 +41,7 @@ internal object WakeSystemEvidence {
 
     private fun uidFromDump(value: String): Int? {
         value.toIntOrNull()?.let { return it }
-        val match = Regex("""u(\d+)a(\d+)""").matchEntire(value) ?: return null
+        val match = appUid.matchEntire(value) ?: return null
         return match.groupValues[1].toInt() * UIDS_PER_USER + 10000 + match.groupValues[2].toInt()
     }
 
@@ -97,7 +107,7 @@ internal object WakeSystemEvidence {
 
     /** Wall millis of the oldest entry left in the event buffer, or null if it is empty. */
     fun eventLogHead(output: String): Long? = output.lineSequence().firstNotNullOfOrNull { line ->
-        Regex("""^\s*(\d+)\.(\d{3})\d*\s""").find(line)?.destructured?.let { (seconds, millis) -> seconds.toLong() * 1000 + millis.toLong() }
+        eventTime.find(line)?.destructured?.let { (seconds, millis) -> seconds.toLong() * 1000 + millis.toLong() }
     }
 
     /**
@@ -117,18 +127,18 @@ internal object WakeSystemEvidence {
     /** `dumpsys deviceidle whitelist` prints `type,package,uid` for system-excidle, system and user entries. */
     fun idleWhitelist(output: String): Map<String, Set<String>> = output.lineSequence().mapNotNull { line ->
         val fields = line.trim().split(',')
-        if (fields.size == 3 && fields[0] in setOf("system-excidle", "system", "user") && fields[2].toIntOrNull() != null) fields[1] to fields[0] else null
+        if (fields.size == 3 && fields[0] in idleWhitelistTypes && fields[2].toIntOrNull() != null) fields[1] to fields[0] else null
     }.groupBy({ it.first }, { it.second }).mapValues { it.value.toSet() }
 
     /** `am get-standby-bucket` without a package prints `package: bucket` for each package. */
     fun standbyBuckets(output: String): Map<String, Int> = output.lineSequence().mapNotNull { line ->
-        val match = Regex("""^([\w.]+): (\d+)$""").find(line.trim()) ?: return@mapNotNull null
+        val match = standbyBucket.find(line.trim()) ?: return@mapNotNull null
         match.groupValues[1] to match.groupValues[2].toInt()
     }.toMap()
 
     /** `cmd appops query-op` prints one package per line, or "No operations.". */
     fun queriedPackages(output: String): Set<String> = output.lineSequence().map(String::trim)
-        .filter { it.matches(Regex("""[a-zA-Z][\w]*(?:\.[\w]+)+""")) }.toSet()
+        .filter { it.matches(queriedPackage) }.toSet()
 
     private fun heldConnections(source: WakeCommand, output: String, now: Long): List<WakeObservation> {
         val facts = mutableSetOf<WakeObservation>()
@@ -327,7 +337,7 @@ internal object WakeSystemEvidence {
                 host = match.groupValues[4]
             }
             if (client != null && text.startsWith("oom:")) {
-                val adj = Regex("""\bset=(-?\d+)""").find(text)?.groupValues?.get(1)
+                val adj = oomAdjustment.find(text)?.groupValues?.get(1)
                 this += WakeObservation(
                     "ProcessImportance",
                     now,
@@ -430,7 +440,7 @@ internal object WakeSystemEvidence {
             if (text.startsWith("user_id=")) sourceUser = text.substringAfter('=').toIntOrNull() ?: profile
             if (text.startsWith("name=android.app.role.")) host = text.substringAfter('=')
             if (text.startsWith("holders=") && host != null) {
-                val holders = text.substringAfter('=').trim('[', ']').split(", ").filter { it.matches(Regex("""[\w.]+""")) }
+                val holders = text.substringAfter('=').trim('[', ']').split(", ").filter { it.matches(roleHolder) }
                 val user = mapOf("user" to sourceUser.toString())
                 for (pkg in holders.ifEmpty { listOf(null) }) {
                     add(WakeObservation("RoleHolder", now, targetPackage = pkg, action = host, attributes = user))
@@ -443,7 +453,7 @@ internal object WakeSystemEvidence {
         val meta = mapOf("user" to profile.toString())
         for (text in lines) {
             for (item in text.split(':')) {
-                if (item.matches(Regex("""[a-zA-Z][\w.]+(?:/[\w.$]+)?""")) && item != "null") {
+                if (item.matches(bindingTarget) && item != "null") {
                     this += WakeObservation(
                         "SystemBinding",
                         now,
@@ -594,7 +604,7 @@ internal object WakeSystemEvidence {
             if (values.getOrNull(3) == "pr" && values.size >= 7) {
                 val uid = values[1].toIntOrNull() ?: continue
                 val proc = values[4].trim('"')
-                if (proc.matches(Regex("""[\w.:]+"""))) {
+                if (proc.matches(cpuProcessName)) {
                     this += WakeObservation(
                         "ProcessCpuSnapshot",
                         now,

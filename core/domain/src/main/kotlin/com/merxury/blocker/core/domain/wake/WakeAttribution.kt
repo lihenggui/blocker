@@ -3,10 +3,10 @@
 
 package com.merxury.blocker.core.domain.wake
 
-import com.merxury.blocker.core.database.wake.WakeContinuation
-import com.merxury.blocker.core.database.wake.WakeRecord
-import com.merxury.blocker.core.database.wake.WakeRelation
 import com.merxury.blocker.core.model.wake.SYSTEM_WAKE_EVENTS
+import com.merxury.blocker.core.model.wake.WakeContinuation
+import com.merxury.blocker.core.model.wake.WakeRecord
+import com.merxury.blocker.core.model.wake.WakeRelation
 import com.merxury.blocker.core.model.wake.qualifiedWakeComponent
 import org.json.JSONObject
 import kotlin.math.abs

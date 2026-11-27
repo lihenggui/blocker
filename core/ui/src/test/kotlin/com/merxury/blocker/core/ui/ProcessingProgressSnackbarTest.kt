@@ -22,7 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltTestApplication
+import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,8 +32,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.LooperMode
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 35], application = HiltTestApplication::class)
@@ -39,7 +39,7 @@ import kotlin.test.assertTrue
 @LooperMode(LooperMode.Mode.PAUSED)
 class ProcessingProgressSnackbarTest {
     @get:Rule
-    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+    val composeTestRule = createAndroidComposeRule<ComponentActivity>(effectContext = StandardTestDispatcher())
 
     @Test
     fun givenVisibleProgress_whenCountChanges_thenUpdatesWithoutQueuingOldMessages() {
@@ -58,7 +58,7 @@ class ProcessingProgressSnackbarTest {
         val updatedMessage = composeTestRule.activity.getString(R.string.core_ui_disabling_component_hint, 80, 100)
         composeTestRule.onNodeWithText(updatedMessage).assertIsDisplayed()
         composeTestRule.onNodeWithText(initialMessage).assertDoesNotExist()
-        assertTrue(composeTestRule.mainClock.currentTime - beforeUpdate < 1_000)
+        assertThat(composeTestRule.mainClock.currentTime - beforeUpdate).isLessThan(1_000L)
 
         composeTestRule.runOnIdle { progress.value = progress.value.copy(current = 81, isEnabling = true) }
 
@@ -79,10 +79,10 @@ class ProcessingProgressSnackbarTest {
         composeTestRule.runOnIdle { progress.value = progress.value.copy(current = 10, isComplete = true) }
 
         val resources = composeTestRule.activity.resources
-        composeTestRule.onNodeWithText(resources.getQuantityString(R.plurals.core_ui_operation_completed_with_failures, 2, 2))
-            .assertIsDisplayed()
-        composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.core_ui_operation_completed))
-            .assertDoesNotExist()
+        val failedMessage = resources.getQuantityString(R.plurals.core_ui_operation_completed_with_failures, 2, 2)
+        val completedMessage = resources.getString(R.string.core_ui_operation_completed)
+        composeTestRule.onNodeWithText(failedMessage).assertIsDisplayed()
+        composeTestRule.onNodeWithText(completedMessage).assertDoesNotExist()
     }
 
     @Test
@@ -106,17 +106,54 @@ class ProcessingProgressSnackbarTest {
 
         val pendingMessage = composeTestRule.activity.getString(R.string.core_ui_disabling_component_hint, 100, 100)
         composeTestRule.onNodeWithText(pendingMessage).assertIsDisplayed()
-        composeTestRule.mainClock.autoAdvance = false
-        composeTestRule.mainClock.advanceTimeBy(5_000)
+        composeTestRule.mainClock.advanceTimeBy(5_000, ignoreFrameDuration = true)
 
         composeTestRule.onNodeWithText(pendingMessage).assertIsDisplayed()
         composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.core_ui_operation_completed)).assertDoesNotExist()
-        assertEquals(0, dismissCount)
+        composeTestRule.runOnIdle { assertThat(dismissCount).isEqualTo(0) }
 
         composeTestRule.runOnIdle { progress.value = progress.value?.copy(isComplete = true) }
-        composeTestRule.mainClock.autoAdvance = true
 
         composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.core_ui_operation_completed)).assertIsDisplayed()
         composeTestRule.onNodeWithText(pendingMessage).assertDoesNotExist()
+    }
+
+    @Test
+    fun givenConsecutiveCompletedBatches_whenCallbackChanges_thenDismissesLatestBatchOnItsOwnTimeout() {
+        val progress = mutableStateOf(ProcessingProgress(0, 1, isEnabling = true, isComplete = false))
+        val dismissals = mutableListOf<String>()
+        val onDismiss = mutableStateOf<() -> Unit>({ dismissals.add("initial callback") })
+        composeTestRule.setContent {
+            MaterialTheme {
+                ProcessingProgressSnackbar(progress.value, onDismiss = onDismiss.value)
+            }
+        }
+        val resources = composeTestRule.activity.resources
+        val initialMessage = resources.getString(R.string.core_ui_enabling_component_hint, 0, 1)
+        composeTestRule.onNodeWithText(initialMessage).assertIsDisplayed()
+
+        composeTestRule.runOnIdle {
+            progress.value = ProcessingProgress(1, 1, isEnabling = true, isComplete = true)
+        }
+        composeTestRule.onNodeWithText(resources.getString(R.string.core_ui_operation_completed)).assertIsDisplayed()
+        composeTestRule.mainClock.advanceTimeBy(1_000, ignoreFrameDuration = true)
+        composeTestRule.runOnIdle { assertThat(dismissals).isEmpty() }
+
+        composeTestRule.runOnIdle {
+            progress.value = ProcessingProgress(2, 2, isEnabling = false, isComplete = true, failed = 1)
+        }
+        val failedMessage = resources.getQuantityString(R.plurals.core_ui_operation_completed_with_failures, 1, 1)
+        composeTestRule.onNodeWithText(failedMessage).assertIsDisplayed()
+        composeTestRule.mainClock.advanceTimeBy(1_500, ignoreFrameDuration = true)
+        composeTestRule.runOnIdle { assertThat(dismissals).isEmpty() }
+
+        composeTestRule.runOnIdle { onDismiss.value = { dismissals.add("latest callback") } }
+        composeTestRule.waitForIdle()
+        composeTestRule.mainClock.advanceTimeBy(2_000, ignoreFrameDuration = true)
+        composeTestRule.runOnIdle { assertThat(dismissals).isEmpty() }
+
+        composeTestRule.mainClock.advanceTimeBy(600, ignoreFrameDuration = true)
+        composeTestRule.runOnIdle { assertThat(dismissals).containsExactly("latest callback") }
+        composeTestRule.onNodeWithText(failedMessage).assertDoesNotExist()
     }
 }

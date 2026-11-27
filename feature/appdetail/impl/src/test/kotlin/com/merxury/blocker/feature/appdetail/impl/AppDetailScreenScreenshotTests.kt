@@ -18,8 +18,11 @@ package com.merxury.blocker.feature.appdetail.impl
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.component.AppKey
@@ -29,9 +32,10 @@ import com.merxury.blocker.core.model.system.ReadFailure
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.testing.util.viewportEdgeClippedScrollItemSuppression
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.profile.ProfileLabel
+import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowActions
 import com.merxury.blocker.feature.appdetail.impl.ui.ComponentRowItem
 import dagger.hilt.android.testing.HiltTestApplication
@@ -158,7 +162,7 @@ class AppDetailScreenScreenshotTests {
         val content = @Composable {
             BlockerTheme {
                 Surface {
-                    Column {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                         rows.forEachIndexed { index, row ->
                             ComponentRowItem(row = row, inFlight = index == rows.lastIndex, actions = ComponentRowActions())
                         }
@@ -166,11 +170,15 @@ class AppDetailScreenScreenshotTests {
                 }
             }
         }
-        composeTestRule.captureMultiDevice("AppDetailComponentRowStates") { content() }
+        composeTestRule.captureMultiDevice(
+            screenshotName = "AppDetailComponentRowStates",
+            accessibilitySuppressions = viewportEdgeClippedScrollItemSuppression(),
+        ) { content() }
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = "AppDetailComponentRowStates",
+            accessibilitySuppressions = viewportEdgeClippedScrollItemSuppression(),
             darkMode = true,
         ) { content() }
     }
@@ -182,11 +190,15 @@ class AppDetailScreenScreenshotTests {
         control: ControlUiState = ControlUiState(),
         searchQuery: String? = null,
     ) {
-        composeTestRule.captureMultiDevice(name) { Screen(header, list, control, searchQuery) }
+        composeTestRule.captureMultiDevice(
+            screenshotName = name,
+            accessibilitySuppressions = viewportEdgeClippedScrollItemSuppression(),
+        ) { Screen(header, list, control, searchQuery) }
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
             screenshotName = name,
+            accessibilitySuppressions = viewportEdgeClippedScrollItemSuppression(),
             darkMode = true,
         ) { Screen(header, list, control, searchQuery) }
     }

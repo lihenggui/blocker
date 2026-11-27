@@ -41,7 +41,7 @@ class AutomaticWakeBlockRepositoryTest {
     private val channel = FakePrivilegedChannel()
     private val lock = WakeRuleLock()
     private val rules = mock<ManagedWakeRules>()
-    private val protection = WakeProtectionRepository(mock(), mock(), mock(), rules, mock(), channel, pmBlocks, mock(), lock, mock())
+    private val protection = LocalWakeProtectionRepository(mock(), mock(), mock(), rules, mock(), channel, pmBlocks, mock(), lock, mock())
     private val repository = LocalAutomaticWakeBlockRepository(history, pmBlocks, lock, runs, protection)
     private val reviewed = WakeProtection("review", "peer.app", "target.app", "target.app.Wake", "", "example", false, true)
 

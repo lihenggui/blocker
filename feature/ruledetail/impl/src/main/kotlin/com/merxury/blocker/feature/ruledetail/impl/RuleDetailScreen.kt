@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.ruledetail.impl
 
 import android.content.ClipData
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -75,19 +76,20 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.control.ActivityLaunchFailedSnackbar
 import com.merxury.blocker.core.ui.control.ControlMessageSnackbar
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
+import com.merxury.blocker.feature.ruledetail.api.navigation.RuleDetailTabs
 import com.merxury.blocker.feature.ruledetail.impl.RuleInfoUiState.Error
 import com.merxury.blocker.feature.ruledetail.impl.component.MatchedAppActions
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleDescription
 import com.merxury.blocker.feature.ruledetail.impl.component.RuleMatchedAppList
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
+import com.merxury.blocker.core.ui.R.string as uiString
 
 /**
  * Opens the detail screen of an app.
@@ -268,7 +270,6 @@ fun RuleDetailContent(
                 subtitle = ruleInfoUiState.ruleInfo.company.toString(),
                 summary = "",
                 iconSource = ruleInfoUiState.ruleInfo.iconUrl,
-                onIconClick = { },
                 actions = {
                     RuleDetailAppBarActions(
                         appBarUiState = appBarUiState,
@@ -340,6 +341,13 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState = r
     ExitUntilCollapsedState(heightRange = toolbarHeightRange)
 }
 
+@get:StringRes
+private val RuleDetailTabs.titleRes: Int
+    get() = when (this) {
+        RuleDetailTabs.Description -> uiString.core_ui_description
+        RuleDetailTabs.Applicable -> uiString.core_ui_applicable_application
+    }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RuleDetailTabContent(
@@ -371,7 +379,7 @@ fun RuleDetailTabContent(
                     text = {
                         Text(
                             text = stringResource(
-                                id = tabItem.title,
+                                id = tabItem.titleRes,
                             ),
                         )
                     },

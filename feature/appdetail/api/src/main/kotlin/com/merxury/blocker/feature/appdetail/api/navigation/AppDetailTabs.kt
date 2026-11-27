@@ -1,6 +1,5 @@
 /*
  * Copyright 2025 Blocker
- * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +14,21 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.sync.status
+package com.merxury.blocker.feature.appdetail.api.navigation
 
-import timber.log.Timber
-import javax.inject.Inject
+enum class AppDetailTabs(
+    val routeName: String,
+) {
+    Info("info"),
+    Receiver("receiver"),
+    Service("service"),
+    Activity("activity"),
+    Provider("provider"),
+    Sdk("sdks"),
+    ;
 
-class SyncSubscriber @Inject constructor() : ISyncSubscriber {
-    override suspend fun subscribe() {
-        Timber.d("Subscribing to sync")
+    companion object {
+        fun fromName(name: String?): AppDetailTabs = entries.firstOrNull { it.routeName == name }
+            ?: throw IllegalArgumentException("Invalid screen $name in detail page")
     }
 }

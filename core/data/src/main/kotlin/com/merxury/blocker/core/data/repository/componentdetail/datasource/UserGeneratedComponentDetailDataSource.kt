@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.repository.componentdetail.datasource
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
 import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.repository.userdata.observeLibDisplayLanguage
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -31,10 +32,12 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -59,11 +62,16 @@ internal class UserGeneratedComponentDetailDataSource @Inject constructor(
         MutableSharedFlow<ComponentDetail>(replay = 1, onBufferOverflow = DROP_OLDEST)
     val eventFlow = _eventFlow.asSharedFlow()
 
-    fun getByApp(app: AppKey): Flow<List<ComponentDetail>> = components.components(app)
-        .map { statuses -> statuses.map { it.declaration.id.className }.toSet() }
-        .distinctUntilChanged()
-        .map { names -> findByNames(names, userDataRepository.getLibDisplayLanguage()).values.toList() }
-        .flowOn(ioDispatcher)
+    fun getByApp(app: AppKey): Flow<List<ComponentDetail>> {
+        val names = components.components(app)
+            .map { statuses -> statuses.map { it.declaration.id.className }.toSet() }
+            .distinctUntilChanged()
+        return combine(names, userDataRepository.observeLibDisplayLanguage(), eventFlow.map { Unit }.onStart { emit(Unit) }) { currentNames, language, _ ->
+            findByNames(currentNames, language).values.toList()
+        }
+            .distinctUntilChanged()
+            .flowOn(ioDispatcher)
+    }
 
     suspend fun findByNames(names: Set<String>, language: String): Map<String, ComponentDetail> {
         val workingDir = filesDir.resolve(generatedRuleBaseFolder).resolve(language)
@@ -77,7 +85,7 @@ internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     }
 
     private fun readDetail(workingDir: File, name: String): ComponentDetail? {
-        val file = workingDir.resolve(name.replace(".", File.separator) + ".$EXTENSION")
+        val file = workingDir.detailFile(name) ?: return null
         if (!file.isFile) return null
         return try {
             json.decodeFromString<ComponentDetail>(file.readText())
@@ -91,34 +99,41 @@ internal class UserGeneratedComponentDetailDataSource @Inject constructor(
     }
 
     fun saveComponentData(component: ComponentDetail): Flow<Boolean> = flow {
-        val workingDir = getWorkingDirWithLang()
         val name = component.name
-        val path = name.replace(".", File.separator)
-            .plus(".$EXTENSION")
-        try {
-            if (!workingDir.exists()) {
-                workingDir.mkdirs()
+        val file = filesDir.resolve(generatedRuleBaseFolder)
+            .resolve(userDataRepository.getLibDisplayLanguage())
+            .detailFile(name)
+        if (file == null) {
+            Timber.w("Invalid component name for a user detail")
+            emit(false)
+            return@flow
+        }
+        val saved = try {
+            val parent = checkNotNull(file.parentFile)
+            if (!parent.mkdirs() && !parent.isDirectory) throw IOException("Cannot create $parent")
+            val temporary = File.createTempFile("component-", ".tmp", parent)
+            try {
+                temporary.writeText(json.encodeToString(component))
+                if (!temporary.renameTo(file)) throw IOException("Cannot replace $file")
+            } finally {
+                if (temporary.exists() && !temporary.delete()) Timber.w("Cannot remove %s", temporary)
             }
-            val file = workingDir.resolve(path)
-            if (!file.exists()) {
-                file.parentFile?.mkdirs()
-            }
-            val content = json.encodeToString(component)
-            file.writeText(content)
-            val result = _eventFlow.tryEmit(component)
-            if (result) {
-                Timber.d("Successfully emit event for component detail: $name")
-            } else {
-                Timber.d("Failed to emit event for component detail: $name")
-            }
-            emit(true)
+            _eventFlow.tryEmit(component)
+            true
         } catch (e: IOException) {
             Timber.e(e, "Failed to save component detail: $name")
-            emit(false)
+            false
         }
+        emit(saved)
     }
         .flowOn(ioDispatcher)
 
-    private suspend fun getWorkingDirWithLang(): File = filesDir.resolve(generatedRuleBaseFolder)
-        .resolve(userDataRepository.getLibDisplayLanguage())
+    private fun File.detailFile(name: String): File? {
+        if (name.isBlank() || name.startsWith('.') || name.endsWith('.') || ".." in name ||
+            '/' in name || '\\' in name || '\u0000' in name
+        ) {
+            return null
+        }
+        return resolve(name.replace('.', File.separatorChar) + ".$EXTENSION")
+    }
 }

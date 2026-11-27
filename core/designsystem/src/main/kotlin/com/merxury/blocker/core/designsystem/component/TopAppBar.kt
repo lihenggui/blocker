@@ -136,7 +136,7 @@ fun BlockerLargeTopAppBar(
     LargeTopAppBar(
         title = {
             Row(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -146,6 +146,7 @@ fun BlockerLargeTopAppBar(
                 }
             }
         },
+        modifier = modifier,
         navigationIcon = {
             navigation()
         },
@@ -170,7 +171,7 @@ fun BlockerMediumTopAppBar(
     MediumTopAppBar(
         title = {
             Row(
-                modifier = modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
@@ -178,6 +179,7 @@ fun BlockerMediumTopAppBar(
                 }
             }
         },
+        modifier = modifier,
         navigationIcon = {
             navigation()
         },

@@ -32,7 +32,7 @@ class FirewallResetRepositoryTest {
         operationsBeforeWakeReset = files.operations.toList()
         wakeCanWrite
     }
-    private val repository = FirewallResetRepository(
+    private val repository = LocalFirewallResetRepository(
         managed,
         IfwModule.providesIfwStore(files, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test"),
     )

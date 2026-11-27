@@ -21,38 +21,35 @@ import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.logging.LOG_DIR
-import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.core.logging.LogFileLock
+import com.merxury.blocker.core.utils.ZipArchiver
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
-import kotlin.time.Clock
 
-class ZipLogFileUseCase @Inject constructor(
+class ZipLogFileUseCase
+@Inject
+constructor(
     @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(): Flow<File?> = flow {
+    suspend operator fun invoke(): File? = withContext(ioDispatcher) {
         val logFolder = filesDir.resolve(LOG_DIR)
-        if (!logFolder.exists()) {
-            Timber.w("Log folder not exists")
-            emit(null)
-            return@flow
+        if (!logFolder.isDirectory) {
+            Timber.w("Log folder does not exist: $logFolder")
+            return@withContext null
         }
-        val currentTime = Clock.System.now().toString()
-            .replace(":", "-")
-            .replace(".", "-")
-        val file = cacheDir.resolve("Blocker-log-$currentTime.zip")
-        val status = FileUtils.zipFolder(logFolder.absolutePath, file.absolutePath)
-        if (status) {
-            emit(file)
-        } else {
-            emit(null)
+        exportZipArchive(cacheDir, "Blocker-log-") { target ->
+            LogFileLock.mutex.withLock {
+                ZipArchiver.zipDirectory(logFolder, target, ioDispatcher)
+            }
+        }.getOrElse {
+            Timber.e(it, "Failed to zip logs in $logFolder")
+            null
         }
     }
-        .flowOn(ioDispatcher)
 }

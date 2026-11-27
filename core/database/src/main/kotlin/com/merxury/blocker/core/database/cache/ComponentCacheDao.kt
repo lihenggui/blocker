@@ -20,6 +20,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import com.merxury.blocker.core.database.util.escapeLikeWildcards
 import com.merxury.blocker.core.model.component.IfwBlock
 import com.merxury.blocker.core.model.component.PmSetting
 import kotlinx.coroutines.flow.Flow
@@ -457,12 +458,4 @@ abstract class ComponentCacheDao {
 
     @Upsert
     protected abstract suspend fun upsertIfwBlockRows(rows: List<ComponentIfwBlockEntity>)
-}
-
-/** Escapes `\`, `%` and `_` for a `LIKE` pattern that declares `ESCAPE '\'`. */
-internal fun String.escapeLikeWildcards(): String = buildString(length) {
-    for (char in this@escapeLikeWildcards) {
-        if (char == '\\' || char == '%' || char == '_') append('\\')
-        append(char)
-    }
 }

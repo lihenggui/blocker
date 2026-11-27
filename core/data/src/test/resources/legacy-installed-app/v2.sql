@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS `installed_app` (`package_name` TEXT NOT NULL, `version_name` TEXT NOT NULL, `version_code` INTEGER NOT NULL, `min_sdk_version` INTEGER NOT NULL, `target_sdk_version` INTEGER NOT NULL, `first_install_time` INTEGER, `last_update_time` INTEGER, `is_enabled` INTEGER NOT NULL, `is_system` INTEGER NOT NULL, `label` TEXT NOT NULL, PRIMARY KEY(`package_name`))
+CREATE INDEX IF NOT EXISTS `index_installed_app_package_name` ON `installed_app` (`package_name`)
+CREATE TABLE IF NOT EXISTS `app_component` (`package_name` TEXT NOT NULL, `component_name` TEXT NOT NULL, `ifw_blocked` INTEGER NOT NULL, `pm_blocked` INTEGER NOT NULL, `type` TEXT NOT NULL, `exported` INTEGER NOT NULL, PRIMARY KEY(`package_name`, `component_name`))
+CREATE INDEX IF NOT EXISTS `index_app_component_package_name_component_name` ON `app_component` (`package_name`, `component_name`)
+CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)
+INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c853f533d14472564738e97e070c57a4')

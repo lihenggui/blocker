@@ -65,14 +65,21 @@ internal class LocalBackgroundUsageRepository @Inject constructor(
     private val settings = MutableStateFlow<Map<AppKey, BackgroundUsage?>>(emptyMap())
 
     override fun observe(app: AppKey): Flow<BackgroundUsage?> = channelFlow {
+        val cached = settings.value[app]
+        if (cached != null) send(cached)
         launch(start = CoroutineStart.UNDISPATCHED) {
             this@LocalBackgroundUsageRepository.channel.state.map { it is ChannelState.Ready }.distinctUntilChanged().drop(1).filter { it }.collect {
                 read(app)
             }
         }
-        read(app)
-        settings.map { it[app] }.distinctUntilChanged().collect { send(it) }
-    }
+        if (cached == null) {
+            read(app)
+        } else {
+            launch { read(app) }
+        }
+        settings.map { it[app] }.collect { send(it) }
+    }.distinctUntilChanged()
+
     override suspend fun read(app: AppKey): BackgroundUsageResult = access.withLock {
         readQuietly(app).also { publish(app, it) }
     }

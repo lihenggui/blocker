@@ -16,12 +16,14 @@
 
 package com.merxury.core.ifw.xml
 
+import com.google.common.truth.Truth.assertThat
 import com.merxury.core.ifw.model.IfwComponentType
 import com.merxury.core.ifw.model.IfwFilter
 import com.merxury.core.ifw.model.IfwMimeTypeKind
 import com.merxury.core.ifw.model.IfwPatternMatcherType
 import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.model.StringMatcher
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -499,23 +501,30 @@ class IfwXmlDeserializerTest {
         }
     }
 
-    @Test
-    fun givenFileTruncatedInsideRule_whenDeserializing_thenThrowsParseException() {
-        val xml = """
-            <rules>
-              <broadcast block="true" log="false">
-                <and>
-                  <component-filter name="a/b" />
-        """.trimIndent()
-        assertFailsWith<IfwXmlParseException> {
-            deserializer.deserialize(xml)
+    @Test(timeout = 5_000)
+    fun givenTruncationAtDifferentNestingLevels_whenDeserializing_thenThrowsParseException() {
+        val documents = listOf(
+            "<rules>",
+            "<rules><broadcast>",
+            "<rules><broadcast><and><component-filter name='a/b' />",
+            "<rules><broadcast><intent-filter><action name='a' />",
+            "<rules><broadcast><intent-filter><unknown>",
+        )
+        documents.forEach { xml ->
+            val failure = assertThrows(xml, IfwXmlParseException::class.java) { deserializer.deserialize(xml) }
+            assertThat(failure).hasMessageThat().contains("line")
         }
     }
 
     @Test
-    fun givenUnclosedRootElement_whenDeserializing_thenThrowsParseException() {
-        assertFailsWith<IfwXmlParseException> {
-            deserializer.deserialize("<rules>")
+    fun givenNonNumericPortBeforeMalformedMarkup_whenDeserializing_thenReportsTheInvalidPort() {
+        listOf("equals", "min", "max").forEach { attribute ->
+            val xml = "<rules><service><port $attribute='https' /></service></wrong>"
+
+            val failure = assertThrows(IfwXmlParseException::class.java) { deserializer.deserialize(xml) }
+
+            assertThat(failure).hasMessageThat().startsWith("Invalid port at line")
+            assertThat(failure).hasCauseThat().isInstanceOf(NumberFormatException::class.java)
         }
     }
 }

@@ -29,7 +29,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import com.merxury.blocker.sync.R
 
-private const val SYNC_NOTIFICATION_ID = 0
+private const val SYNC_NOTIFICATION_ID = 1001
 private const val SYNC_NOTIFICATION_CHANNEL_ID = "SyncNotificationChannel"
 
 // All sync work needs an internet connectionS

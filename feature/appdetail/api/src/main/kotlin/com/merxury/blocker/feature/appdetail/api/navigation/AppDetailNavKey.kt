@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.appdetail.api.navigation
 
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.navigation.Navigator
-import com.merxury.blocker.core.ui.AppDetailTabs
 import kotlinx.serialization.Serializable
 
 /** Opens the first available component list for the app. */
@@ -33,14 +32,14 @@ const val FIRST_COMPONENT_TAB = "first-component"
 @Serializable
 data class AppDetailNavKey(
     val packageName: String,
-    val tab: String = AppDetailTabs.Info.name,
+    val tab: String = AppDetailTabs.Info.routeName,
     val searchKeyword: List<String> = listOf(),
     val userId: Int? = null,
 ) : NavKey
 
 fun Navigator.navigateToAppDetail(
     packageName: String,
-    tab: String = AppDetailTabs.Info.name,
+    tab: String = AppDetailTabs.Info.routeName,
     searchKeyword: List<String> = listOf(),
     userId: Int? = null,
 ) {

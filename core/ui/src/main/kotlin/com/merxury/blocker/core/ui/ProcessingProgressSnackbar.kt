@@ -31,9 +31,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -70,28 +72,32 @@ fun ProcessingProgressSnackbar(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isCompleted = progress?.isComplete == true
-    val hasFailures = (progress?.failed ?: 0) > 0
     val context = LocalContext.current
-    LaunchedEffect(isCompleted) {
-        if (isCompleted) {
-            val displayMillis = if (hasFailures) COMPLETED_WITH_FAILURES_DISPLAY_MILLIS else COMPLETED_DISPLAY_MILLIS
+    val currentOnDismiss by rememberUpdatedState(onDismiss)
+    val completedProgress = progress?.takeIf { it.isComplete }
+    var dismissed by remember(completedProgress) { mutableStateOf(false) }
+    if (completedProgress != null && !dismissed) {
+        LaunchedEffect(completedProgress, context) {
+            val displayMillis = if (completedProgress.failed > 0) COMPLETED_WITH_FAILURES_DISPLAY_MILLIS else COMPLETED_DISPLAY_MILLIS
             val timeout = getRecommendedTimeout(context, displayMillis)
             delay(timeout)
-            onDismiss()
+            dismissed = true
+            currentOnDismiss()
         }
     }
-    var lastProgress by remember { mutableStateOf(progress) }
-    if (progress != null) {
-        lastProgress = progress
+    val visibleProgress = progress?.takeUnless { dismissed }
+    var lastProgress by remember { mutableStateOf<ProcessingProgress?>(null) }
+    if (visibleProgress != null) {
+        SideEffect { lastProgress = visibleProgress }
     }
+    val displayProgress = visibleProgress ?: lastProgress
     AnimatedVisibility(
-        visible = progress != null,
+        visible = visibleProgress != null,
         modifier = modifier,
         enter = fadeIn() + slideInVertically { it },
         exit = fadeOut() + slideOutVertically { it },
     ) {
-        lastProgress?.let { displayProgress ->
+        if (displayProgress != null) {
             val message = if (displayProgress.isComplete && displayProgress.failed > 0) {
                 pluralStringResource(
                     uiplurals.core_ui_operation_completed_with_failures,

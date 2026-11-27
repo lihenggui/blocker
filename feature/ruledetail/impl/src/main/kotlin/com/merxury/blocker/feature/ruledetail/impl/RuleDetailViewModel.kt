@@ -51,10 +51,10 @@ import com.merxury.blocker.core.ui.control.batchSummary
 import com.merxury.blocker.core.ui.control.enqueue
 import com.merxury.blocker.core.ui.control.toMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
+import com.merxury.blocker.feature.ruledetail.api.navigation.RuleDetailTabs
+import com.merxury.blocker.feature.ruledetail.api.navigation.RuleDetailTabs.Applicable
+import com.merxury.blocker.feature.ruledetail.api.navigation.RuleDetailTabs.Description
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -110,7 +110,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     private val analyticsHelper: AnalyticsHelper,
     @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
     @Assisted("ruleId") val ruleId: String,
-    @Assisted("tab") val tab: String = Applicable.name,
+    @Assisted("tab") val tab: String = Applicable.routeName,
 ) : ViewModel() {
     private val id = ruleId.toInt()
     private val tabState = MutableStateFlow(TabState(items = listOf(Applicable, Description), selectedItem = RuleDetailTabs.fromName(tab)))
@@ -339,7 +339,7 @@ class RuleDetailViewModel @AssistedInject constructor(
     interface Factory {
         fun create(
             @Assisted("ruleId") ruleId: String,
-            @Assisted("tab") tab: String = Applicable.name,
+            @Assisted("tab") tab: String = Applicable.routeName,
         ): RuleDetailViewModel
     }
 }

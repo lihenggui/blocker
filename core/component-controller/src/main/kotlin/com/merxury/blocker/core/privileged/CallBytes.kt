@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.privileged
 
+import android.os.BadParcelableException
 import android.os.Parcel
 import android.os.ParcelFileDescriptor
 import android.os.Parcelable
@@ -23,7 +24,12 @@ import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
-import kotlin.concurrent.thread
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.Semaphore
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 /**
  * A call from [marshallCall], or its outcome from [encodeOutcome], on its way to or from a
@@ -33,8 +39,7 @@ import kotlin.concurrent.thread
  * file can be larger. Up to [INLINE_LIMIT] bytes therefore travel in the parcel; more go through
  * a pipe that the sending side fills from a background thread.
  *
- * The writer thread ends once every byte is written or the reading side closes its end, so a
- * receiver that dies or refuses to read leaks neither the thread nor a descriptor.
+ * A write finishes once every byte is written or the reading side closes its end.
  */
 internal class CallBytes private constructor(
     private val bytes: ByteArray?,
@@ -46,9 +51,16 @@ internal class CallBytes private constructor(
     /**
      * The bytes. Reads the pipe to its end and closes it, so call it once.
      *
-     * @throws IOException when the pipe breaks or carries more than [maxBytes]
+     * @throws IOException when the pipe breaks or the payload exceeds [maxBytes]
      */
-    fun read(maxBytes: Int = Int.MAX_VALUE): ByteArray = bytes ?: ParcelFileDescriptor.AutoCloseInputStream(pipe).use { it.readAtMost(maxBytes) }
+    fun read(maxBytes: Int = Int.MAX_VALUE): ByteArray {
+        require(maxBytes >= 0)
+        bytes?.let {
+            if (it.size > maxBytes) throw IOException("More than $maxBytes bytes")
+            return it
+        }
+        return ParcelFileDescriptor.AutoCloseInputStream(pipe).use { it.readAtMost(maxBytes) }
+    }
 
     /** Closes this side's copy of the pipe, so its writer stops if nobody else reads. Safe to repeat. */
     override fun close() {
@@ -73,6 +85,20 @@ internal class CallBytes private constructor(
 
         // Well below the space binder keeps for one-way calls.
         private const val INLINE_LIMIT = 64 * 1024
+
+        private const val MAX_PENDING_PIPE_WRITES = 20
+        private val pipeWriterSlots = Semaphore(MAX_PENDING_PIPE_WRITES)
+        private val pipeWriters: ExecutorService = ThreadPoolExecutor(
+            0,
+            MAX_PENDING_PIPE_WRITES,
+            30,
+            TimeUnit.SECONDS,
+            SynchronousQueue(),
+            { task -> Thread(task, "CallBytes").apply { isDaemon = true } },
+        )
+
+        /** Robolectric pipes are files, so JVM tests wait for pending writes before reading. */
+        internal fun hasPendingPipeWrites(): Boolean = pipeWriterSlots.availablePermits() != MAX_PENDING_PIPE_WRITES
 
         /** No call needs more; a larger one is a bug, not a rule file. */
         const val MAX_REQUEST_BYTES = 16 * 1024 * 1024
@@ -102,20 +128,45 @@ internal class CallBytes private constructor(
         }
 
         private fun pipeOf(bytes: ByteArray): ParcelFileDescriptor {
-            val (read, write) = ParcelFileDescriptor.createPipe()
-            thread(isDaemon = true, name = "CallBytes") {
+            // Bound the number of active writers before allocating pipe descriptors.
+            if (!pipeWriterSlots.tryAcquire()) throw IOException("Too many pending privileged pipes")
+            var scheduled = false
+            try {
+                val (read, write) = ParcelFileDescriptor.createPipe()
                 try {
-                    ParcelFileDescriptor.AutoCloseOutputStream(write).use { it.write(bytes) }
-                } catch (_: IOException) {
-                    // The other side stopped reading, for example because its caller was cancelled.
+                    pipeWriters.execute { writePipe(write, bytes) }
+                    scheduled = true
+                } catch (e: RejectedExecutionException) {
+                    read.use { write.use { throw IOException("Cannot schedule a privileged pipe write", e) } }
                 }
+                return read
+            } finally {
+                if (!scheduled) pipeWriterSlots.release()
             }
-            return read
+        }
+
+        private fun writePipe(write: ParcelFileDescriptor, bytes: ByteArray) {
+            try {
+                ParcelFileDescriptor.AutoCloseOutputStream(write).use { it.write(bytes) }
+            } catch (_: IOException) {
+                // The other side stopped reading, for example because its caller was cancelled.
+            } finally {
+                pipeWriterSlots.release()
+            }
         }
 
         override fun createFromParcel(source: Parcel): CallBytes = when (val kind = source.readInt()) {
-            INLINE -> CallBytes(source.createByteArray(), null, closeWhenParceled = false)
-            PIPED -> CallBytes(null, ParcelFileDescriptor.CREATOR.createFromParcel(source), closeWhenParceled = false)
+            INLINE -> {
+                val bytes = source.createByteArray() ?: throw BadParcelableException("Missing inline call bytes")
+                CallBytes(bytes, null, closeWhenParceled = false)
+            }
+
+            PIPED -> {
+                val pipe = ParcelFileDescriptor.CREATOR.createFromParcel(source)
+                    ?: throw BadParcelableException("Missing call pipe")
+                CallBytes(null, pipe, closeWhenParceled = false)
+            }
+
             else -> error("Unknown kind $kind")
         }
 

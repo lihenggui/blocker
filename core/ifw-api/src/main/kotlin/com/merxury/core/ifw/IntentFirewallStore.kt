@@ -205,16 +205,18 @@ class IntentFirewallStore(
                     val checked = protection.checkXml(content, name)
                     if (checked is IfwResult.Failure) return@withLock checked
                     // Runs to its end once started, as a save does.
-                    when (val written = withContext(NonCancellable) { changeFile(name) { fileSystem.writeRules(name, content) } }) {
-                        is IfwResult.Success -> {
-                            Timber.i("Restored the IFW rule file $name.xml")
-                            // The cache may hold "no file" for it from an earlier read.
-                            cache.remove(name)
-                            mutableChanges.emit(name)
-                            IfwResult.Success(true)
-                        }
+                    withContext(NonCancellable) {
+                        when (val written = changeFile(name) { fileSystem.writeRules(name, content) }) {
+                            is IfwResult.Success -> {
+                                Timber.i("Restored the IFW rule file $name.xml")
+                                // The cache may hold "no file" for it from an earlier read.
+                                cache.remove(name)
+                                mutableChanges.emit(name)
+                                IfwResult.Success(true)
+                            }
 
-                        is IfwResult.Failure -> written
+                            is IfwResult.Failure -> written
+                        }
                     }
                 }
             }

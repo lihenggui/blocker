@@ -17,6 +17,7 @@ import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 private const val AUTOMATIC_FILE = "blocker-managed-wake"
@@ -137,12 +138,23 @@ internal fun withoutWakePackage(xml: String, target: String): String? {
  * the new file, or deletes it when [xml] is null. Writes nothing when the file already holds
  * [xml], or for null when there is no file, so running it again changes nothing.
  */
-fun writeWakeRuleFile(owner: String, kind: WakeRuleFileKind, xml: String?, directory: File = File(IfwStorageUtils.ifwFolder)) {
+fun writeWakeRuleFile(owner: String, kind: WakeRuleFileKind, xml: String?, directory: File = File(IfwStorageUtils.ifwFolder)) = mapWakeFileErrors {
     val target = File(directory, "${wakeRuleFileName(owner, kind)}.xml")
     if (xml == null) {
-        if (target.exists()) check(target.delete())
-    } else if (!target.exists() || target.readText() != xml) {
-        check(directory.isDirectory || directory.mkdirs())
+        try {
+            Os.remove(target.path)
+        } catch (e: ErrnoException) {
+            if (e.errno != OsConstants.ENOENT) throw e
+        }
+    } else if (!wakeRuleExists(target) || target.readText() != xml) {
+        if (!directory.isDirectory && !directory.mkdirs() && !directory.isDirectory) {
+            // Use the last mkdir's errno when the File API could not create the directory.
+            try {
+                Os.mkdir(directory.path, 0x1ff)
+            } catch (e: ErrnoException) {
+                if (e.errno != OsConstants.EEXIST || !directory.isDirectory) throw e
+            }
+        }
         replaceIfwFile(target, xml)
         check(target.readText() == xml)
     }
@@ -152,13 +164,33 @@ fun writeWakeRuleFile(owner: String, kind: WakeRuleFileKind, xml: String?, direc
  * Removes the rules for package [target] from [owner]'s [kind] file in [directory],
  * and the file once no rule is left. A missing file, or one without such rules, stays as it is.
  */
-fun removeWakeRuleTarget(owner: String, kind: WakeRuleFileKind, target: String, directory: File = File(IfwStorageUtils.ifwFolder)) {
+fun removeWakeRuleTarget(owner: String, kind: WakeRuleFileKind, target: String, directory: File = File(IfwStorageUtils.ifwFolder)) = mapWakeFileErrors {
     val file = File(directory, "${wakeRuleFileName(owner, kind)}.xml")
-    try {
-        Os.stat(file.path)
-    } catch (e: ErrnoException) {
-        if (e.errno == OsConstants.ENOENT) return
-        throw e
-    }
+    if (!wakeRuleExists(file)) return@mapWakeFileErrors
     writeWakeRuleFile(owner, kind, withoutWakePackage(file.readText(), target), directory)
+}
+
+private fun wakeRuleExists(file: File): Boolean = try {
+    Os.stat(file.path)
+    true
+} catch (e: ErrnoException) {
+    if (e.errno == OsConstants.ENOENT) false else throw e
+}
+
+private inline fun mapWakeFileErrors(block: () -> Unit) {
+    try {
+        block()
+    } catch (e: ErrnoException) {
+        throw e.asWakeFileError()
+    } catch (e: IOException) {
+        throw e.asWakeFileError()
+    }
+}
+
+private fun Exception.asWakeFileError(): Exception {
+    val errno = generateSequence(this as Throwable) { it.cause }.take(4).filterIsInstance<ErrnoException>().firstOrNull()?.errno
+    return when (errno) {
+        OsConstants.EACCES, OsConstants.EPERM -> SecurityException(message, this)
+        else -> this
+    }
 }

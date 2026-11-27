@@ -245,9 +245,6 @@ private fun standbyCommand(
 } catch (e: IOException) {
     Timber.w(e, "Cannot %s for %s in user %s", verb, packageName, user.value)
     null
-} catch (e: SecurityException) {
-    Timber.w(e, "Cannot %s for %s in user %s", verb, packageName, user.value)
-    null
 }
 
 private fun runStandbyCommand(arguments: List<String>): String {

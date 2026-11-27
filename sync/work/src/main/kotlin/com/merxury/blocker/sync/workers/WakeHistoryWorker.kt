@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,7 +42,10 @@ class WakeHistoryWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val protection: WakeProtectionManager,
 ) : CoroutineWorker(context, params) {
-    override suspend fun doWork(): Result = if (protection.reconcile()) Result.success() else Result.retry()
+    override suspend fun doWork(): Result {
+        if (runAttemptCount >= MAX_RETRY_ATTEMPTS) return Result.failure()
+        return if (protection.reconcile()) Result.success() else retryOrFail()
+    }
 }
 
 /**
@@ -56,6 +60,8 @@ class WakeWork @Inject constructor(
     private val authorization: WakeAuthorizationRepository,
     @param:ApplicationScope private val scope: CoroutineScope,
 ) : WakeRunRequester {
+    private val initialized = AtomicBoolean(false)
+
     override val isRunning: Flow<Boolean>
         get() = WorkManager.getInstance(context).getWorkInfosFlow(activeOneTimeWork)
             .map { workInfos ->
@@ -72,6 +78,7 @@ class WakeWork @Inject constructor(
     }
 
     fun initialize() {
+        if (!initialized.compareAndSet(false, true)) return
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             "wake-history-periodic",
             ExistingPeriodicWorkPolicy.KEEP,

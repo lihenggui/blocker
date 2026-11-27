@@ -43,7 +43,7 @@ class ResetPmWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val user = inputData.userOr(PARAM_TARGET_USER, currentUserId())
         Timber.i("Reset the PM settings of user ${user.value}")
-        val result = reset.reset(user) { current, done, total -> setForeground(updateNotification(current, done, total)) }
+        val result = reset.reset(user) { current, done, total -> setForegroundSafely(updateNotification(current, done, total)) }
         Timber.i("Reset PM settings: $result")
         return result.toWorkResult(PARAM_RESTORED_COUNT) { it.changedCount(RuleWorkType.RESET_PM) }
     }

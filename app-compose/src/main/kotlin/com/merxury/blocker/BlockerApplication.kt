@@ -107,7 +107,7 @@ class BlockerApplication :
         super.onCreate()
         if (appDebugChecker.isDebugMode()) {
             Timber.plant(Timber.DebugTree())
-            // Kill the app if there are main thread policy violations.
+            // Log main thread policy violations.
             StrictMode.setThreadPolicy(
                 StrictMode.ThreadPolicy.Builder()
                     .apply {
@@ -122,6 +122,7 @@ class BlockerApplication :
                     .build(),
             )
         }
+        releaseTree.start()
         Timber.plant(releaseTree)
         initAppSettings()
         addApiExemptions()
@@ -151,8 +152,8 @@ class BlockerApplication :
 
     private suspend fun setDefaultRuleProvider() {
         // Set default server provider for first time run
-        val locale = Locale.getDefault().toString()
-        if (locale == "zh_CN") {
+        val locale = Locale.getDefault()
+        if (locale.language == "zh" && locale.country == "CN") {
             // Set default server provider to GitLab for Chinese users
             Timber.i("Set default server provider to GitLab")
             userDataRepository.setRuleServerProvider(GITLAB)

@@ -116,8 +116,15 @@ internal class IfwDirectory(private val directory: File = File(IfwStorageUtils.i
     }
 
     fun replace(packageName: String, content: String) {
-        if (!exists(directory)) check(directory.mkdirs()) { "Cannot create $directory" }
         try {
+            if (!exists(directory) && !directory.mkdirs() && !directory.isDirectory) {
+                // File.mkdirs() loses errno; retry the last component to report permission errors.
+                try {
+                    Os.mkdir(directory.path, 0x1ff)
+                } catch (e: ErrnoException) {
+                    if (e.errno != OsConstants.EEXIST || !directory.isDirectory) throw e
+                }
+            }
             replaceIfwFile(fileOf(packageName), content)
         } catch (e: IOException) {
             throw e.asSecurityExceptionIfDenied()
@@ -135,8 +142,23 @@ internal class IfwDirectory(private val directory: File = File(IfwStorageUtils.i
 
     fun list(): List<String> {
         if (!exists(directory)) return emptyList()
-        val names = directory.list() ?: throw IOException("Cannot list $directory")
+        val names = directory.list() ?: return listFailure()
         return names.filter { it.endsWith(EXTENSION) }.map { it.removeSuffix(EXTENSION) }.sorted()
+    }
+
+    private fun listFailure(): List<String> {
+        if (!exists(directory)) return emptyList()
+        if (directory.isDirectory) {
+            try {
+                if (!Os.access(directory.path, OsConstants.R_OK or OsConstants.X_OK)) {
+                    throw SecurityException("Cannot read $directory")
+                }
+            } catch (e: ErrnoException) {
+                if (e.errno == OsConstants.ENOENT) return emptyList()
+                throw e.asSecurityExceptionIfDenied()
+            }
+        }
+        throw IOException("Cannot list $directory")
     }
 
     private fun fileOf(packageName: String): File {

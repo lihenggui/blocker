@@ -31,12 +31,14 @@ import com.merxury.blocker.core.model.manifest.ManifestPermission
 import com.merxury.blocker.core.model.manifest.ManifestProvider
 import com.merxury.blocker.core.model.manifest.ManifestReceiver
 import com.merxury.blocker.core.model.manifest.ManifestService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import timber.log.Timber
+import java.io.Closeable
 import java.io.File
 import java.io.IOException
 
@@ -51,10 +53,13 @@ object ManifestParser {
 
     private const val NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android"
 
-    private data class ParserContext(
+    private class ParserContext(
         val parser: XmlResourceParser,
         val resources: Resources,
-    )
+        val assetManager: AssetManager,
+    ) : Closeable {
+        override fun close() = assetManager.use { parser.close() }
+    }
 
     /**
      * Parses an APK file and returns its complete manifest representation.
@@ -68,9 +73,11 @@ object ManifestParser {
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Result<AndroidManifest> = withContext(dispatcher) {
         try {
-            val context = getParserContext(apkFile, dispatcher)
-            val manifest = parseManifestXml(context.parser, context.resources)
-            Result.success(manifest)
+            getParserContext(apkFile).use { context ->
+                Result.success(parseManifestXml(context.parser, context.resources))
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: XmlPullParserException) {
             Timber.e(e, "XML parsing error in manifest")
             Result.failure(e)
@@ -458,7 +465,7 @@ object ManifestParser {
         )
     }
 
-    private fun resolveLabel(
+    internal fun resolveLabel(
         rawLabel: String?,
         resources: Resources,
         fallbackName: String?,
@@ -469,7 +476,7 @@ object ManifestParser {
 
         val resourceId = try {
             when {
-                rawLabel.startsWith("@0x") -> rawLabel.substring(1).toLong(16).toInt()
+                rawLabel.startsWith("@0x", ignoreCase = true) -> rawLabel.substring(3).toLong(16).toInt()
 
                 rawLabel.contains("/") -> {
                     val (type, name) = rawLabel.substring(1).split("/", limit = 2)
@@ -485,7 +492,7 @@ object ManifestParser {
                     }
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: NumberFormatException) {
             Timber.w(e, "Failed to parse resource reference: $rawLabel")
             return fallbackName
         }
@@ -494,7 +501,7 @@ object ManifestParser {
 
         return try {
             resources.getString(resourceId)
-        } catch (e: Exception) {
+        } catch (e: Resources.NotFoundException) {
             Timber.w(e, "Failed to resolve resource: $rawLabel (id: $resourceId)")
             fallbackName
         }
@@ -509,52 +516,26 @@ object ManifestParser {
         return resolved.substringAfterLast(".")
     }
 
-    private val assetManager: Any?
-        get() {
-            return try {
-                val assetManagerClass = Class.forName("android.content.res.AssetManager")
-                assetManagerClass.getDeclaredConstructor().newInstance()
-            } catch (e: Exception) {
-                Timber.e(e, "Cannot create AssetManager")
-                null
-            }
-        }
-
     @Throws(IOException::class)
     @Suppress("DEPRECATION")
-    private suspend fun getParserContext(
-        apkFile: File,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): ParserContext = withContext(dispatcher) {
+    private fun getParserContext(apkFile: File): ParserContext {
         if (!apkFile.isFile) {
             throw IOException("APK file does not exist: ${apkFile.absolutePath}")
         }
-        val assetManagerInstance = assetManager
-            ?: throw IOException("Failed to create AssetManager")
-        // AssetManager.addAssetPath returns 0 on failure (and the reflection fallback
-        // returns -1), so treat any non-positive cookie as a failure.
-        val cookie = addAssets(apkFile, assetManagerInstance)
-        if (cookie <= 0) {
-            throw IOException("Failed to add assets for ${apkFile.absolutePath}")
+        val assetManager = AssetManager::class.java.getDeclaredConstructor().newInstance()
+        try {
+            val addAssetPath = AssetManager::class.java.getMethod("addAssetPath", String::class.java)
+            val cookie = addAssetPath.invoke(assetManager, apkFile.absolutePath) as Int
+            if (cookie <= 0) {
+                throw IOException("Failed to add assets for ${apkFile.absolutePath}")
+            }
+            val displayMetrics = DisplayMetrics().apply { setToDefaults() }
+            val resources = Resources(assetManager, displayMetrics, Configuration())
+            val parser = assetManager.openXmlResourceParser(cookie, "AndroidManifest.xml")
+            return ParserContext(parser, resources, assetManager)
+        } catch (failure: Throwable) {
+            // Preserve the acquisition error if closing the AssetManager also fails.
+            assetManager.use { throw failure }
         }
-        val typedAssetManager = assetManagerInstance as AssetManager
-        val parser = typedAssetManager.openXmlResourceParser(cookie, "AndroidManifest.xml")
-        val displayMetrics = DisplayMetrics().apply {
-            setToDefaults()
-        }
-        val configuration = Configuration()
-        val resources = Resources(typedAssetManager, displayMetrics, configuration)
-        return@withContext ParserContext(parser, resources)
-    }
-
-    private fun addAssets(apkFile: File, assetManagerInstance: Any): Int = try {
-        val addAssetPath = assetManagerInstance.javaClass.getMethod(
-            "addAssetPath",
-            String::class.java,
-        )
-        addAssetPath.invoke(assetManagerInstance, apkFile.absolutePath) as Int
-    } catch (e: Exception) {
-        Timber.e(e, "Cannot access addAssetPath")
-        -1
     }
 }

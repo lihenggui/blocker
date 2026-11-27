@@ -18,7 +18,7 @@ package com.merxury.blocker.core.data.device
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.merxury.blocker.core.data.wake.FirewallResetRepository
+import com.merxury.blocker.core.data.wake.LocalFirewallResetRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -201,7 +201,7 @@ class ComponentWritersTest : DeviceRepositoryTestBase() {
         val importedRules = IfwXmlDeserializer().deserialize(
             """<rules><activity block="true" log="false"><component-filter name="$PKG/${MAIN.id.className}" /></activity></rules>""",
         )
-        val reset = FirewallResetRepository({ true }, store)
+        val reset = LocalFirewallResetRepository({ true }, store)
 
         repository.components(OWNER_APP).test {
             assertThat(awaitItem().single().state.ifw).isEqualTo(IfwBlock.NOT_BLOCKED)

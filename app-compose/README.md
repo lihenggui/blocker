@@ -140,10 +140,11 @@ graph TB
   :core:data -.-> :core:analytics
   :core:data --> :core:common
   :core:data -.-> :core:component-controller
-  :core:data --> :core:database
-  :core:data --> :core:datastore
+  :core:data -.-> :core:database
+  :core:data -.-> :core:datastore
   :core:data -.-> :core:ifw-api
-  :core:data --> :core:network
+  :core:data --> :core:model
+  :core:data -.-> :core:network
   :core:data -.-> :core:system
   :core:database --> :core:model
   :core:datastore -.-> :core:common
@@ -151,14 +152,12 @@ graph TB
   :core:datastore --> :core:model
   :core:domain -.-> :core:common
   :core:domain -.-> :core:component-controller
-  :core:domain --> :core:data
+  :core:domain -.-> :core:data
   :core:domain -.-> :core:ifw-api
   :core:domain --> :core:model
-  :core:domain -.-> :core:rule
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
-  :core:network --> :core:model
   :core:provider -.-> :core:analytics
   :core:provider -.-> :core:common
   :core:provider -.-> :core:component-controller
@@ -177,7 +176,6 @@ graph TB
   :core:ui --> :core:ifw-api
   :core:ui --> :core:model
   :feature:appdetail:api --> :core:navigation
-  :feature:appdetail:api -.-> :core:ui
   :feature:appdetail:impl -.-> :core:component-controller
   :feature:appdetail:impl -.-> :core:data
   :feature:appdetail:impl -.-> :core:designsystem
@@ -188,7 +186,6 @@ graph TB
   :feature:appdetail:impl -.-> :feature:ruledetail:api
   :feature:appdetail:impl -.-> :feature:wake:api
   :feature:applist:api --> :core:navigation
-  :feature:applist:api -.-> :core:ui
   :feature:applist:impl -.-> :core:component-controller
   :feature:applist:impl -.-> :core:data
   :feature:applist:impl -.-> :core:designsystem
@@ -198,7 +195,6 @@ graph TB
   :feature:applist:impl -.-> :feature:applist:api
   :feature:applist:impl -.-> :feature:settings:api
   :feature:debloater:api --> :core:navigation
-  :feature:debloater:api -.-> :core:ui
   :feature:debloater:impl -.-> :core:component-controller
   :feature:debloater:impl -.-> :core:data
   :feature:debloater:impl -.-> :core:designsystem
@@ -206,7 +202,6 @@ graph TB
   :feature:debloater:impl -.-> :core:ui
   :feature:debloater:impl -.-> :feature:debloater:api
   :feature:generalrule:api --> :core:navigation
-  :feature:generalrule:api -.-> :core:ui
   :feature:generalrule:impl -.-> :core:component-controller
   :feature:generalrule:impl -.-> :core:data
   :feature:generalrule:impl -.-> :core:designsystem
@@ -215,26 +210,22 @@ graph TB
   :feature:generalrule:impl -.-> :feature:generalrule:api
   :feature:generalrule:impl -.-> :feature:ruledetail:api
   :feature:globalifwrule:api --> :core:navigation
-  :feature:globalifwrule:api -.-> :core:ui
   :feature:globalifwrule:impl -.-> :core:data
   :feature:globalifwrule:impl -.-> :core:designsystem
   :feature:globalifwrule:impl -.-> :core:ifw-api
   :feature:globalifwrule:impl -.-> :core:ui
   :feature:globalifwrule:impl -.-> :feature:globalifwrule:api
   :feature:history:api --> :core:navigation
-  :feature:history:api -.-> :core:ui
   :feature:history:impl -.-> :core:data
   :feature:history:impl -.-> :core:designsystem
   :feature:history:impl -.-> :core:ui
   :feature:history:impl -.-> :feature:history:api
   :feature:ifwrule:api --> :core:navigation
-  :feature:ifwrule:api -.-> :core:ui
   :feature:ifwrule:impl -.-> :core:designsystem
   :feature:ifwrule:impl -.-> :core:ifw-api
   :feature:ifwrule:impl -.-> :core:ui
   :feature:ifwrule:impl -.-> :feature:ifwrule:api
   :feature:ruledetail:api --> :core:navigation
-  :feature:ruledetail:api -.-> :core:ui
   :feature:ruledetail:impl -.-> :core:component-controller
   :feature:ruledetail:impl -.-> :core:data
   :feature:ruledetail:impl -.-> :core:designsystem
@@ -246,7 +237,6 @@ graph TB
   :feature:search:api -.-> :core:data
   :feature:search:api -.-> :core:domain
   :feature:search:api --> :core:navigation
-  :feature:search:api -.-> :core:ui
   :feature:search:impl -.-> :core:component-controller
   :feature:search:impl -.-> :core:data
   :feature:search:impl -.-> :core:designsystem
@@ -256,7 +246,6 @@ graph TB
   :feature:search:impl -.-> :feature:ruledetail:api
   :feature:search:impl -.-> :feature:search:api
   :feature:settings:api --> :core:navigation
-  :feature:settings:api -.-> :core:ui
   :feature:settings:impl -.-> :core:data
   :feature:settings:impl -.-> :core:designsystem
   :feature:settings:impl -.-> :core:domain
@@ -264,7 +253,6 @@ graph TB
   :feature:settings:impl -.-> :core:ui
   :feature:settings:impl --> :feature:settings:api
   :feature:wake:api --> :core:navigation
-  :feature:wake:api -.-> :core:ui
   :feature:wake:impl -.-> :core:component-controller
   :feature:wake:impl -.-> :core:data
   :feature:wake:impl -.-> :core:designsystem
@@ -274,6 +262,7 @@ graph TB
   :feature:wake:impl -.-> :feature:wake:api
   :sync:work -.-> :core:analytics
   :sync:work -.-> :core:data
+  :sync:work -.-> :core:datastore
   :sync:work -.-> :core:domain
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;

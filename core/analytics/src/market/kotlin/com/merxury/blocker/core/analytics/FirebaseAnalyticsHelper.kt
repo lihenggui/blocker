@@ -30,7 +30,7 @@ internal class FirebaseAnalyticsHelper @Inject constructor(
     private val firebaseAnalytics: FirebaseAnalytics,
 ) : AnalyticsHelper {
     @Volatile
-    private var enableStatistics = true
+    private var enableStatistics = false
 
     override fun setEnableStatistics(enable: Boolean) {
         Timber.i("Setting analytics collection enabled: $enable")

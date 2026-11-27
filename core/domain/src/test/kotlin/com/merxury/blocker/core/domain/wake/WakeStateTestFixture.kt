@@ -7,10 +7,6 @@ import com.merxury.blocker.core.data.device.BackgroundUsageRepository
 import com.merxury.blocker.core.data.device.ComponentStatusRepository
 import com.merxury.blocker.core.data.wake.WakeReceiverResolver
 import com.merxury.blocker.core.data.wake.WakeRepository
-import com.merxury.blocker.core.database.wake.WakeExemption
-import com.merxury.blocker.core.database.wake.WakeFindingDay
-import com.merxury.blocker.core.database.wake.WakeRecord
-import com.merxury.blocker.core.database.wake.WakeVerdictDay
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.AppKey
 import com.merxury.blocker.core.model.component.ComponentDeclaration
@@ -23,8 +19,12 @@ import com.merxury.blocker.core.model.component.UserId
 import com.merxury.blocker.core.model.wake.ReviveTrigger
 import com.merxury.blocker.core.model.wake.WakeBlock
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
+import com.merxury.blocker.core.model.wake.WakeExemption
+import com.merxury.blocker.core.model.wake.WakeFindingDay
 import com.merxury.blocker.core.model.wake.WakePath
+import com.merxury.blocker.core.model.wake.WakeRecord
 import com.merxury.blocker.core.model.wake.WakeVerdict
+import com.merxury.blocker.core.model.wake.WakeVerdictDay
 import com.merxury.blocker.core.testing.controller.FakeAppControl
 import com.merxury.blocker.core.testing.repository.device.FakeAppRestrictionRepository
 import com.merxury.blocker.core.testing.repository.device.FakeBackgroundUsageRepository

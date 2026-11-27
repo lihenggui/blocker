@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.core.model)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.truth)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext)
     testImplementation(kotlin("test"))

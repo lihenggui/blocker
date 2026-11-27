@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.licenses.store
+package com.merxury.blocker.feature.ruledetail.api.navigation
 
-import com.merxury.blocker.core.data.licenses.fetcher.LicensesFetcher
-import com.merxury.blocker.core.model.licenses.LicenseItem
-import javax.inject.Inject
+enum class RuleDetailTabs(
+    val routeName: String,
+) {
+    Description("description"),
+    Applicable("applicable_app"),
+    ;
 
-internal class LicensesStoreImpl @Inject constructor(private val fetcher: LicensesFetcher) : LicensesStore {
-    override suspend fun getOpenSourceItemList(): List<LicenseItem> = fetcher.fetch()
+    companion object {
+        fun fromName(name: String?): RuleDetailTabs = entries.firstOrNull { it.routeName == name }
+            ?: throw IllegalArgumentException("Invalid screen name: $name in rule detail page")
+    }
 }

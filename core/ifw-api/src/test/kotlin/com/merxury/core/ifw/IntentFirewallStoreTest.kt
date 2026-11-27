@@ -16,6 +16,7 @@
 
 package com.merxury.core.ifw
 
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.IfwBlock
@@ -28,6 +29,11 @@ import com.merxury.core.ifw.model.IfwRules
 import com.merxury.core.ifw.model.SenderType
 import com.merxury.core.ifw.xml.IfwXmlDeserializer
 import com.merxury.core.ifw.xml.IfwXmlSerializer
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -316,6 +322,52 @@ class IntentFirewallStoreTest {
 
         assertThat(store.blocks(PKG, listOf(SYNC, declaration("Other", ComponentType.SERVICE))).values)
             .containsExactly(IfwBlock.CONDITIONAL, IfwBlock.CONDITIONAL)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun givenCachedMissingRuleAndSlowCollector_whenRestoreIsCancelledDuringWrite_thenCacheAndNotificationReflectTheWrite() = runTest {
+        val files = FakeIfwFileSystem()
+        val writeStarted = CompletableDeferred<Unit>()
+        val finishWrite = CompletableDeferred<Unit>()
+        val filesWithPausedWrite = object : IfwFileSystem by files {
+            override suspend fun writeRules(packageName: String, content: String) {
+                writeStarted.complete(Unit)
+                finishWrite.await()
+                files.writeRules(packageName, content)
+            }
+        }
+        val store = IntentFirewallStore(filesWithPausedWrite, IfwXmlSerializer(), IfwXmlDeserializer(), "com.merxury.blocker.test")
+        assertThat(store.blocks(PKG, listOf(MAIN))[MAIN.id]).isEqualTo(IfwBlock.NOT_BLOCKED)
+
+        val releaseCollector = CompletableDeferred<Unit>()
+        store.changes.onEach { if (it == "seed") releaseCollector.await() }.test {
+            files.putFile("seed", "<rules/>")
+            store.clear("seed")
+            runCurrent()
+            // Fill the change buffer so the restore's notification has to suspend.
+            repeat(64) {
+                files.putFile("other", "<rules/>")
+                store.clear("other")
+            }
+            val restore = launch { store.restoreRuleFile(PKG, LEGACY_XML) }
+            writeStarted.await()
+            restore.cancel()
+            finishWrite.complete(Unit)
+            runCurrent()
+            val waitingToNotify = !restore.isCompleted
+
+            releaseCollector.complete(Unit)
+
+            assertThat(awaitItem()).isEqualTo("seed")
+            repeat(64) { assertThat(awaitItem()).isEqualTo("other") }
+            assertThat(awaitItem()).isEqualTo(PKG)
+            restore.join()
+            assertThat(waitingToNotify).isTrue()
+            assertThat(restore.isCancelled).isTrue()
+            assertThat(files.fileContent(PKG)).isEqualTo(LEGACY_XML)
+            assertThat(store.blocks(PKG, listOf(MAIN))[MAIN.id]).isEqualTo(IfwBlock.BLOCKED)
+        }
     }
 
     private fun filterFor(simpleName: String) = IfwFilter.ComponentFilter("$PKG/$PKG.$simpleName")

@@ -43,12 +43,14 @@ graph TB
   :core:data -.-> :core:analytics
   :core:data --> :core:common
   :core:data -.-> :core:component-controller
-  :core:data --> :core:database
-  :core:data --> :core:datastore
+  :core:data -.-> :core:database
+  :core:data -.-> :core:datastore
   :core:data -.-> :core:ifw-api
-  :core:data --> :core:network
+  :core:data --> :core:model
+  :core:data -.-> :core:network
   :core:data -.-> :core:system
   :core:data-test --> :core:data
+  :core:data-test -.-> :core:datastore
   :core:data-test -.-> :core:testing
   :core:data-test -.-> :sync:work
   :core:database --> :core:model
@@ -57,14 +59,12 @@ graph TB
   :core:datastore --> :core:model
   :core:domain -.-> :core:common
   :core:domain -.-> :core:component-controller
-  :core:domain --> :core:data
+  :core:domain -.-> :core:data
   :core:domain -.-> :core:ifw-api
   :core:domain --> :core:model
-  :core:domain -.-> :core:rule
   :core:ifw-api -.-> :core:common
   :core:ifw-api -.-> :core:model
   :core:network --> :core:common
-  :core:network --> :core:model
   :core:rule -.-> :core:common
   :core:rule -.-> :core:component-controller
   :core:rule -.-> :core:data
@@ -75,11 +75,13 @@ graph TB
   :core:testing -.-> :core:common
   :core:testing -.-> :core:component-controller
   :core:testing --> :core:data
+  :core:testing -.-> :core:database
   :core:testing -.-> :core:ifw-api
   :core:testing --> :core:model
   :core:testing -.-> :core:rule
   :sync:work -.-> :core:analytics
   :sync:work -.-> :core:data
+  :sync:work -.-> :core:datastore
   :sync:work -.-> :core:domain
 
 classDef android-application fill:#CAFFBF,stroke:#000,stroke-width:2px,color:#000;

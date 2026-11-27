@@ -16,147 +16,97 @@
 
 package com.merxury.blocker.core.domain
 
+import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
-import com.merxury.blocker.core.testing.util.MainDispatcherRule
-import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.util.zip.ZipFile
-import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.hours
 
 class ZipAllRuleUseCaseTest {
     @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    val folder = TemporaryFolder()
 
-    @get:Rule
-    val folder: TemporaryFolder = TemporaryFolder.builder()
-        .assureDeletion()
-        .build()
+    private val userData = TestUserDataRepository()
+    private val filesDir get() = folder.root.resolve("files")
+    private val cacheDir get() = folder.root.resolve("cache")
 
-    private lateinit var filesDir: File
-    private lateinit var cacheDir: File
-    private val ruleBaseFolder = "user-generated-rule"
-    private val userDataRepository = TestUserDataRepository()
+    @Test
+    fun givenMissingOrEmptyRuleFolder_whenExported_thenReturnsEmptyResult() = runTest {
+        val useCase = createUseCase()
 
-    private lateinit var useCase: ZipAllRuleUseCase
-
-    @Before
-    fun setUp() {
-        filesDir = folder.newFolder("filesDir")
-        cacheDir = folder.newFolder("cacheDir")
-        useCase = ZipAllRuleUseCase(
-            userDataRepository = userDataRepository,
-            cacheDir = cacheDir,
-            filesDir = filesDir,
-            ruleBaseFolder = ruleBaseFolder,
-            ioDispatcher = Dispatchers.IO,
-        )
+        assertThat(useCase()).isEqualTo(ZippedRule.EMPTY)
+        filesDir.resolve("generated/en-US/nested").mkdirs()
+        assertThat(useCase()).isEqualTo(ZippedRule.EMPTY)
+        assertThat(cacheDir.exists()).isFalse()
     }
 
     @Test
-    fun whenNoFilesExist_returnNull() = runTest {
-        // Do not create files before running the test
-        val baseFolder = filesDir.resolve(ruleBaseFolder)
-            .resolve(userDataRepository.getLibDisplayLanguage())
-        if (baseFolder.exists()) {
-            baseFolder.deleteRecursively()
+    fun givenRulesInTwoLanguagesAndStagedFiles_whenExported_thenArchivesOnlySelectedLanguageJson() = runTest {
+        userData.setLibDisplayLanguage("zh")
+        createRule("zh/root.json")
+        createRule("zh/nested/child.json")
+        createRule("zh/nested/component-pending.tmp")
+        createRule("en-US/other.json")
+
+        val useCase = createUseCase()
+        val result = useCase()
+
+        assertThat(result.packageName).isNull()
+        ZipFile(checkNotNull(result.zippedFile)).use {
+            assertThat(it.entries().toList().map { entry -> entry.name })
+                .containsExactly("zh/root.json", "zh/nested/child.json")
         }
-        val result = useCase().first()
-        assertEquals(ZippedRule.EMPTY, result)
     }
 
     @Test
-    fun whenOneFileInRuleFolder_returnFileWithExactlyOneFile() = runTest {
-        val baseFolder = filesDir.resolve(ruleBaseFolder)
-            .resolve(userDataRepository.getLibDisplayLanguage())
-        if (baseFolder.exists()) {
-            baseFolder.deleteRecursively()
-        }
-        baseFolder.mkdirs()
+    fun givenRecentAndStaleRuleArchives_whenExportingAllRules_thenPrunesOnlyStaleAllRuleArchives() = runTest {
+        createRule("en-US/rule.json")
+        cacheDir.mkdir()
+        val now = System.currentTimeMillis()
+        val stale = cacheDir.resolve("all-rules-old.zip").apply { writeText("stale") }
+        val recent = cacheDir.resolve("all-rules-recent.zip").apply { writeText("shared") }
+        val appArchive = cacheDir.resolve("app-rules-com.example-old.zip").apply { writeText("app rules") }
+        assertThat(stale.setLastModified(now - 25.hours.inWholeMilliseconds)).isTrue()
+        assertThat(recent.setLastModified(now - 23.hours.inWholeMilliseconds)).isTrue()
+        assertThat(appArchive.setLastModified(now - 25.hours.inWholeMilliseconds)).isTrue()
 
-        val file = baseFolder.resolve("test.txt")
-        file.createNewFile()
-        val rule = useCase().first()
-        val zipFile = rule.zippedFile?.let {
-            ZipFile(it)
-        } ?: throw AssertionError("Zip file should not be null")
-        assertEquals(1, zipFile.size())
-        assertEquals(
-            File.separator + userDataRepository.getLibDisplayLanguage() + File.separator +
-                "test.txt",
-            zipFile.entries().nextElement().name,
-        )
-        zipFile.close()
+        val archive = checkNotNull(createUseCase()().zippedFile)
+
+        assertThat(archive.name).startsWith("all-rules-")
+        assertThat(stale.exists()).isFalse()
+        assertThat(recent.readText()).isEqualTo("shared")
+        assertThat(appArchive.readText()).isEqualTo("app rules")
     }
 
     @Test
-    fun when5FilesInRuleFolder_returnFileWithExactly5Files() = runTest {
-        val baseFolder = filesDir.resolve(ruleBaseFolder)
-            .resolve(userDataRepository.getLibDisplayLanguage())
-        if (baseFolder.exists()) {
-            baseFolder.deleteRecursively()
-        }
-        baseFolder.mkdirs()
-        for (i in 1..5) {
-            val file = baseFolder.resolve("test$i.txt")
-            file.createNewFile()
-        }
-        val rule = useCase().first()
-        val zipFile = rule.zippedFile?.let {
-            ZipFile(it)
-        } ?: throw AssertionError("Zip file should not be null")
-        // Check file size
-        assertEquals(5, zipFile.size())
-        // Verify file names
-        val filesInZip = zipFile.entries().toList()
-        for (i in 1..5) {
-            val fileName = File.separator + userDataRepository.getLibDisplayLanguage() +
-                File.separator + "test$i.txt"
-            assertTrue(
-                filesInZip.any { it.name == fileName },
-                "File $fileName should exist in zip file",
-            )
-        }
-        zipFile.close()
+    fun givenUnwritableCachePath_whenExported_thenReturnsEmptyResult() = runTest {
+        createRule("en-US/rule.json")
+        cacheDir.writeText("regular file")
+
+        val useCase = createUseCase()
+
+        assertThat(useCase()).isEqualTo(ZippedRule.EMPTY)
+        assertThat(cacheDir.readText()).isEqualTo("regular file")
     }
 
-    @Test
-    fun whenContainingFolders_returnFileWithExactSameStructure() = runTest {
-        val baseFolder = filesDir.resolve(ruleBaseFolder)
-            .resolve(userDataRepository.getLibDisplayLanguage())
-        if (baseFolder.exists()) {
-            baseFolder.deleteRecursively()
-        }
-        baseFolder.mkdirs()
-        for (i in 1..5) {
-            val folder = baseFolder.resolve("folder$i")
-            folder.mkdirs()
-            val file = folder.resolve("test$i.txt")
-            file.createNewFile()
-        }
-        val rule = useCase().first()
-        val zipFile = rule.zippedFile?.let {
-            ZipFile(it)
-        } ?: throw AssertionError("Zip file should not be null")
-        // Check file size
-        assertEquals(5, zipFile.size())
-        // Verify file names
-        val filesInZip = zipFile.entries().toList()
-        for (i in 1..zipFile.size()) {
-            val fileName = File.separator + userDataRepository.getLibDisplayLanguage() +
-                File.separator + "folder$i" + File.separator + "test$i.txt"
-            assertTrue(
-                filesInZip.any { it.name == fileName },
-                "File $fileName should exist in zip file",
-            )
-        }
-        zipFile.close()
+    private fun createRule(path: String) {
+        val rule = filesDir.resolve("generated/$path")
+        checkNotNull(rule.parentFile).mkdirs()
+        rule.writeText("{}")
     }
+
+    private fun TestScope.createUseCase() = ZipAllRuleUseCase(
+        userData,
+        cacheDir,
+        filesDir,
+        "generated",
+        StandardTestDispatcher(testScheduler),
+    )
 }

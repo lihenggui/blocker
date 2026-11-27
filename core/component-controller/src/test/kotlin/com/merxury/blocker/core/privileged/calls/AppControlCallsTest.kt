@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.privileged.calls
 
+import android.content.ComponentName
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageInstaller
@@ -49,6 +50,14 @@ class AppControlCallsTest {
     @Before
     fun installInWorkProfile() {
         pm.install(WORK.value, PKG)
+    }
+
+    @Test
+    fun givenAppCallsWithSideEffects_whenCheckingRetryability_thenNoneCanBeRetried() {
+        assertThat(UninstallApp(PKG, WORK).retryable).isFalse()
+        assertThat(ClearAppData(PKG, WORK).retryable).isFalse()
+        assertThat(ClearAppCache(PKG, WORK).retryable).isFalse()
+        assertThat(StartService(ComponentName(PKG, "$PKG.Service"), WORK).retryable).isFalse()
     }
 
     @Test

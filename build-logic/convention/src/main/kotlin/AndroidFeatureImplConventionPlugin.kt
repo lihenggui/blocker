@@ -15,14 +15,11 @@
  *   limitations under the License.
  */
 
-import com.android.build.api.dsl.LibraryExtension
-import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.hasAndroidTestSources
 import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 
 class AndroidFeatureImplConventionPlugin : Plugin<Project> {
@@ -30,11 +27,6 @@ class AndroidFeatureImplConventionPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "blocker.android.library")
             apply(plugin = "blocker.android.hilt")
-
-            extensions.configure<LibraryExtension> {
-                testOptions.animationsDisabled = true
-                configureGradleManagedDevices(this)
-            }
 
             dependencies {
                 "implementation"(project(":core:ui"))
@@ -44,7 +36,6 @@ class AndroidFeatureImplConventionPlugin : Plugin<Project> {
                 "implementation"(libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
                 "implementation"(libs.findLibrary("androidx.hilt.lifecycle.viewModelCompose").get())
                 "implementation"(libs.findLibrary("androidx.navigation3.runtime").get())
-                "implementation"(libs.findLibrary("androidx.tracing.ktx").get())
 
                 if (hasAndroidTestSources()) {
                     "androidTestImplementation"(
