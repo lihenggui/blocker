@@ -77,6 +77,23 @@ class ObservePotentialWakeEntriesUseCaseTest {
         }
     }
 
+    @Test fun givenSavedDormantBootBlock_whenObservingTheApp_thenItAppearsOnlyAsADormantEntry() = runTest {
+        val f = Fixture(this)
+        f.sendStatus(PmSetting.DEFAULT)
+        val boot = f.observe(TEST_APP).first().single().state.path
+        f.wake.manual.blocks.value = listOf(boot.blockRow())
+        f.sendStatus(PmSetting.DISABLED)
+
+        val observed = f.wake.state(TEST_APP).first()
+        val dormant = f.observe(TEST_APP).first().single().state
+
+        assertThat(observed.paths).isEmpty()
+        assertThat(observed.activity.own).isEmpty()
+        assertThat(observed.allBlocked).isFalse()
+        assertThat(dormant.path).isEqualTo(boot)
+        assertThat(dormant.block).isEqualTo(WakePathBlock.USER)
+    }
+
     @Test fun givenDormantReceiverBlockedOnlyInIfw_whenObserving_thenOnlyThePmBlockCutsThePath() = runTest {
         val f = Fixture(this)
         f.sendStatus(PmSetting.DEFAULT, IfwBlock.BLOCKED)

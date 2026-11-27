@@ -47,6 +47,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+private val WakeBlock.isDormant get() = pathKey.startsWith("STATIC|")
+
 internal class WakeStateObserver @Inject constructor(
     private val user: WakeBlockRepository,
     private val automatic: AutomaticWakeBlockRepository,
@@ -62,7 +64,7 @@ internal class WakeStateObserver @Inject constructor(
         val visibleKeys = activity.allPaths().mapTo(mutableSetOf(), WakePath::pathKey)
         val app = activity.packageName
         return user.blocks.map { blocks ->
-            blocks.filter { (it.target == app || it.sender == app) && it.pathKey !in visibleKeys }
+            blocks.filter { !it.isDormant && (it.target == app || it.sender == app) && it.pathKey !in visibleKeys }
         }.distinctUntilChanged()
             .flatMapLatest { missing ->
                 val withSavedPaths = if (missing.isEmpty()) {
@@ -278,7 +280,7 @@ private val WakePath.supportsLegacyComponentBlock get() = blockMethod == WakeBlo
 private class WakeBlockIndex(blocks: List<WakeBlock>) {
     private val byPath = blocks.associateBy { it.pathKey }
     private val byComponent = blocks.asSequence()
-        .filter { it.method == WakeBlockMethod.COMPONENT && it.component != null && it.pathKey.startsWith("STATIC|") }
+        .filter { it.method == WakeBlockMethod.COMPONENT && it.component != null && it.isDormant }
         .sortedBy { it.blockedAtMillis }
         .associateBy { it.target to it.component }
 
