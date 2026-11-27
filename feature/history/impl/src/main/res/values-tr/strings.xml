@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">İşlem geçmişi</string>
+    <string name="feature_history_impl_undo">Geri al</string>
+    <string name="feature_history_impl_cancel">İptal</string>
+    <string name="feature_history_impl_undone">Geri alındı</string>
+    <string name="feature_history_impl_source_app_detail">Uygulama ayrıntıları</string>
+    <string name="feature_history_impl_source_search">Ara</string>
+    <string name="feature_history_impl_source_general_rule">Genel kurallar</string>
+    <string name="feature_history_impl_source_rule_detail">Kural ayrıntıları</string>
+    <string name="feature_history_impl_source_debloater">Uygulama sadeleştirme</string>
+    <string name="feature_history_impl_source_provider">Başka bir uygulama</string>
+    <string name="feature_history_impl_source_import_blocker">Blocker Kurallarını İçe Aktar</string>
+    <string name="feature_history_impl_source_import_mat">MyAndroidTools Kurallarını İçe Aktar</string>
+    <string name="feature_history_impl_source_reset_pm">PM değişikliklerini geri al</string>
+    <string name="feature_history_impl_load_failed">İşlem geçmişi yüklenemedi.</string>
+    <string name="feature_history_impl_entries_failed">Bileşen değişiklikleri yüklenemedi.</string>
+    <string name="feature_history_impl_empty_title">Henüz işlem yok</string>
+    <string name="feature_history_impl_empty_body">Bileşenleri etkinleştirdikten veya devre dışı bıraktıktan sonra değişiklikleri burada inceleyebilir ve geri alabilirsiniz.</string>
+    <string name="feature_history_impl_provider_headline">%s uygulamasından</string>
+    <string name="feature_history_impl_source_import">İçe aktarma</string>
+    <string name="feature_history_impl_undoing">Geri alınıyor</string>
+    <string name="feature_history_impl_undo_later">Bu işlemi ve sonraki işlemleri geri al</string>
+    <string name="feature_history_impl_undone_suffix">%s · Geri alındı</string>
+    <string name="feature_history_impl_undone_status">Geri alındı · %s</string>
+    <string name="feature_history_impl_on">Etkinleştirildi</string>
+    <string name="feature_history_impl_off">Devre dışı bırakıldı</string>
+    <string name="feature_history_impl_undo_failed">Değişiklikler geri alınamadı.</string>
+    <string name="feature_history_impl_summary_joiner">%1$s · %2$s</string>
+    <string name="feature_history_impl_day_time">%1$s %2$s</string>
+    <string name="feature_history_impl_source_time">%1$s · %2$s</string>
+    <string name="feature_history_impl_restoration_joiner">%1$s. %2$s.</string>
+    <plurals name="feature_history_impl_turned_off">
+        <item quantity="one">%d bileşen devre dışı bırakıldı</item>
+        <item quantity="other">%d bileşen devre dışı bırakıldı</item>
+    </plurals>
+    <plurals name="feature_history_impl_turned_on">
+        <item quantity="one">%d bileşen etkinleştirildi</item>
+        <item quantity="other">%d bileşen etkinleştirildi</item>
+    </plurals>
+    <plurals name="feature_history_impl_off_count">
+        <item quantity="one">%d devre dışı</item>
+        <item quantity="other">%d devre dışı</item>
+    </plurals>
+    <plurals name="feature_history_impl_on_count">
+        <item quantity="one">%d etkin</item>
+        <item quantity="other">%d etkin</item>
+    </plurals>
+    <plurals name="feature_history_impl_changed">
+        <item quantity="one">%d bileşen değiştirildi</item>
+        <item quantity="other">%d bileşen değiştirildi</item>
+    </plurals>
+    <plurals name="feature_history_impl_undo_row">
+        <item quantity="one">%1$s · %2$d bileşen geri yüklendi</item>
+        <item quantity="other">%1$s · %2$d bileşen geri yüklendi</item>
+    </plurals>
+    <plurals name="feature_history_impl_operation_count">
+        <item quantity="one">%d işlem</item>
+        <item quantity="other">%d işlem</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_title">
+        <item quantity="one">%d işlem geri alınsın mı?</item>
+        <item quantity="other">%d işlem geri alınsın mı?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_body">
+        <item quantity="one">Bu işlem ve sonraki %d işlem geri alınacak.</item>
+        <item quantity="other">Bu işlem ve sonraki %d işlem geri alınacak.</item>
+    </plurals>
+    <plurals name="feature_history_impl_restored">
+        <item quantity="one">%d bileşen geri yüklendi</item>
+        <item quantity="other">%d bileşen geri yüklendi</item>
+    </plurals>
+    <plurals name="feature_history_impl_not_restored">
+        <item quantity="one">%d bileşen geri yüklenemedi</item>
+        <item quantity="other">%d bileşen geri yüklenemedi</item>
+    </plurals>
+    <plurals name="feature_history_impl_none_restored">
+        <item quantity="one">%d bileşen geri yüklenemedi</item>
+        <item quantity="other">%d bileşen geri yüklenemedi</item>
+    </plurals>
+</resources>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_history_impl_title">Lịch sử thao tác</string>
+    <string name="feature_history_impl_undo">Hoàn tác</string>
+    <string name="feature_history_impl_cancel">Hủy</string>
+    <string name="feature_history_impl_undone">Đã hoàn tác</string>
+    <string name="feature_history_impl_source_app_detail">Chi tiết ứng dụng</string>
+    <string name="feature_history_impl_source_search">Tìm kiếm</string>
+    <string name="feature_history_impl_source_general_rule">Quy tắc chung</string>
+    <string name="feature_history_impl_source_rule_detail">Chi tiết quy tắc</string>
+    <string name="feature_history_impl_source_debloater">Tinh gọn ứng dụng</string>
+    <string name="feature_history_impl_source_provider">Ứng dụng khác</string>
+    <string name="feature_history_impl_source_import_blocker">Nhập quy tắc Blocker</string>
+    <string name="feature_history_impl_source_import_mat">Nhập quy tắc MyAndroidTools</string>
+    <string name="feature_history_impl_source_reset_pm">Khôi phục thay đổi PM</string>
+    <string name="feature_history_impl_load_failed">Không thể tải lịch sử thao tác.</string>
+    <string name="feature_history_impl_entries_failed">Không thể tải các thay đổi của thành phần.</string>
+    <string name="feature_history_impl_empty_title">Chưa có thao tác nào</string>
+    <string name="feature_history_impl_empty_body">Sau khi bật hoặc tắt thành phần, quý vị có thể xem lại và hoàn tác các thay đổi tại đây.</string>
+    <string name="feature_history_impl_provider_headline">Từ %s</string>
+    <string name="feature_history_impl_source_import">Nhập</string>
+    <string name="feature_history_impl_undoing">Đang hoàn tác</string>
+    <string name="feature_history_impl_undo_later">Hoàn tác thao tác này và các thao tác sau đó</string>
+    <string name="feature_history_impl_undone_suffix">%s · Đã hoàn tác</string>
+    <string name="feature_history_impl_undone_status">Đã hoàn tác · %s</string>
+    <string name="feature_history_impl_on">Đã bật</string>
+    <string name="feature_history_impl_off">Đã tắt</string>
+    <string name="feature_history_impl_undo_failed">Không thể hoàn tác các thay đổi.</string>
+    <string name="feature_history_impl_summary_joiner">%1$s · %2$s</string>
+    <string name="feature_history_impl_day_time">%1$s %2$s</string>
+    <string name="feature_history_impl_source_time">%1$s · %2$s</string>
+    <string name="feature_history_impl_restoration_joiner">%1$s. %2$s.</string>
+    <plurals name="feature_history_impl_turned_off">
+        <item quantity="other">Đã tắt %d thành phần</item>
+    </plurals>
+    <plurals name="feature_history_impl_turned_on">
+        <item quantity="other">Đã bật %d thành phần</item>
+    </plurals>
+    <plurals name="feature_history_impl_off_count">
+        <item quantity="other">%d đã tắt</item>
+    </plurals>
+    <plurals name="feature_history_impl_on_count">
+        <item quantity="other">%d đã bật</item>
+    </plurals>
+    <plurals name="feature_history_impl_changed">
+        <item quantity="other">Đã thay đổi %d thành phần</item>
+    </plurals>
+    <plurals name="feature_history_impl_undo_row">
+        <item quantity="other">%1$s · Đã khôi phục %2$d thành phần</item>
+    </plurals>
+    <plurals name="feature_history_impl_operation_count">
+        <item quantity="other">%d thao tác</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_title">
+        <item quantity="other">Hoàn tác %d thao tác?</item>
+    </plurals>
+    <plurals name="feature_history_impl_confirm_body">
+        <item quantity="other">Thao tác này và %d thao tác tiếp theo sẽ được hoàn tác.</item>
+    </plurals>
+    <plurals name="feature_history_impl_restored">
+        <item quantity="other">Đã khôi phục %d thành phần</item>
+    </plurals>
+    <plurals name="feature_history_impl_not_restored">
+        <item quantity="other">Không thể khôi phục %d</item>
+    </plurals>
+    <plurals name="feature_history_impl_none_restored">
+        <item quantity="other">Không thể khôi phục %d thành phần</item>
+    </plurals>
+</resources>

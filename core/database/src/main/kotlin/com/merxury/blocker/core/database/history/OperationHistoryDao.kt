@@ -30,7 +30,15 @@ import kotlin.time.Instant
 abstract class OperationHistoryDao {
     @Query(
         """
-        SELECT operation.*, COUNT(operation_entry.operation_id) AS entry_count
+        SELECT operation.*, COUNT(operation_entry.operation_id) AS entry_count,
+            SUM(CASE WHEN before_pm NOT IN ('DISABLED', 'UNKNOWN')
+                          AND before_ifw NOT IN ('BLOCKED', 'UNKNOWN')
+                          AND (after_pm = 'DISABLED' OR after_ifw = 'BLOCKED')
+                     THEN 1 ELSE 0 END) AS blocked_count,
+            SUM(CASE WHEN (before_pm = 'DISABLED' OR before_ifw = 'BLOCKED')
+                          AND after_pm NOT IN ('DISABLED', 'UNKNOWN')
+                          AND after_ifw NOT IN ('BLOCKED', 'UNKNOWN')
+                     THEN 1 ELSE 0 END) AS enabled_count
         FROM operation
         LEFT JOIN operation_entry ON operation.id = operation_entry.operation_id
         GROUP BY operation.id

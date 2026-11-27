@@ -43,6 +43,8 @@ data class OperationWithEntryCount(
     val ref: String?,
     @ColumnInfo(name = "undone_by_operation_id") val undoneByOperationId: Long?,
     @ColumnInfo(name = "entry_count") val entryCount: Int,
+    @ColumnInfo(name = "blocked_count") val blockedCount: Int,
+    @ColumnInfo(name = "enabled_count") val enabledCount: Int,
 )
 
 fun Operation.asEntity() = OperationEntity(
@@ -68,4 +70,6 @@ fun OperationWithEntryCount.asExternalModel() = Operation(
     ref = ref,
     undoneByOperationId = undoneByOperationId,
     entryCount = entryCount,
+    blockedCount = blockedCount,
+    enabledCount = enabledCount,
 )

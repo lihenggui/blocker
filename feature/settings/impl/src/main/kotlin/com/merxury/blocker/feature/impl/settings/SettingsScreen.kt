@@ -97,6 +97,7 @@ import com.merxury.blocker.core.rule.R.string as CoreRuleR
 fun SettingsScreen(
     onNavigationClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
+    onHistoryClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
@@ -126,6 +127,7 @@ fun SettingsScreen(
     }
     SettingsScreen(
         onNavigationClick = onNavigationClick,
+        onHistoryClick = onHistoryClick,
         uiState = settingsUiState,
         snackbarHostState = snackbarHostState,
         onChangeControllerType = viewModel::updateControllerType,
@@ -216,6 +218,7 @@ fun SettingsScreen(
     resetIfwRules: () -> Unit = { },
     resetPmRules: () -> Unit = { },
     importMatRules: () -> Unit = { },
+    onHistoryClick: () -> Unit = { },
 ) {
     Column(
         modifier = modifier,
@@ -257,6 +260,7 @@ fun SettingsScreen(
                     resetIfwRules = resetIfwRules,
                     resetPmRules = resetPmRules,
                     importMatRules = importMatRules,
+                    onHistoryClick = onHistoryClick,
                 )
             }
         }
@@ -289,6 +293,7 @@ fun SettingsContent(
     resetIfwRules: () -> Unit = { },
     resetPmRules: () -> Unit = { },
     importMatRules: () -> Unit = { },
+    onHistoryClick: () -> Unit = { },
 ) {
     Column(
         modifier = modifier
@@ -336,6 +341,11 @@ fun SettingsContent(
         )
         HorizontalDivider()
         PmRulesSettings(resetPmRules = resetPmRules)
+        BlockerSettingItem(
+            title = stringResource(string.feature_settings_api_operation_history),
+            onItemClick = onHistoryClick,
+            extraIconPadding = true,
+        )
         HorizontalDivider()
         ItemHeader(
             title = stringResource(id = string.feature_settings_api_others),

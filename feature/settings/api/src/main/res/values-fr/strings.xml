@@ -56,6 +56,7 @@
     <string name="feature_settings_api_no_sharable_app_found">Aucune application partageable trouvée.</string>
     <string name="feature_settings_api_pm_rules">PM</string>
     <string name="feature_settings_api_reset_pm">Restaurer les modifications PM</string>
+    <string name="feature_settings_api_operation_history">Historique des opérations</string>
     <string name="feature_settings_api_reset_pm_summary">Rétablir l’état par défaut des composants que Blocker a désactivés via PM</string>
     <string name="feature_settings_api_reset_pm_dialog_title">Restaurer les modifications PM ?</string>
     <string name="feature_settings_api_reset_pm_dialog_message">Rétablir à leur état par défaut tous les composants que Blocker a désactivés via PM. Les règles IFW ne sont pas affectées. Continuer ?</string>
