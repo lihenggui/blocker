@@ -29,6 +29,7 @@ import com.merxury.blocker.core.data.device.LocalComponentActions
 import com.merxury.blocker.core.data.device.PmBlockRecordSeeder
 import com.merxury.blocker.core.data.device.SelectedUserRepository
 import com.merxury.blocker.core.data.di.DataModule
+import com.merxury.blocker.core.data.history.OperationHistoryRepository
 import com.merxury.blocker.core.data.repository.catalog.CatalogRepository
 import com.merxury.blocker.core.data.repository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.repository.generalrule.GeneralRuleRepository
@@ -37,6 +38,7 @@ import com.merxury.blocker.core.data.repository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.test.repository.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.test.repository.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.test.repository.FakeLicensesRepository
+import com.merxury.blocker.core.data.test.repository.FakeOperationHistoryRepository
 import com.merxury.blocker.core.data.test.repository.FakeUserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.data.util.PermissionMonitor
@@ -115,6 +117,9 @@ internal interface TestDataModule {
 
     @Binds
     fun bindsComponentStatusRepository(repository: FakeComponentStatusRepository): ComponentStatusRepository
+
+    @Binds
+    fun bindsOperationHistoryRepository(repository: FakeOperationHistoryRepository): OperationHistoryRepository
 
     @Binds
     fun bindsSelectedUserRepository(repository: FakeSelectedUserRepository): SelectedUserRepository

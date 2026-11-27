@@ -325,6 +325,8 @@ internal class LocalComponentStatusRepository(
 
     override fun isProtectedFromBlocking(app: AppKey): Boolean = app == self
 
+    internal suspend fun claimedWakePmBlocks(user: UserId, candidates: Set<ComponentId>): List<ComponentId> = claimedWakeBlocks(user, candidates)
+
     override fun control(
         request: ControlRequest,
         keepKnownState: Boolean,
@@ -335,7 +337,11 @@ internal class LocalComponentStatusRepository(
     override fun restore(request: ControlRequest, operation: OperationScope): Flow<ControlEvent> = control(
         request,
         keepKnownState = false,
-        writeObserver = null,
+        writeObserver = if (request.layers == setOf(ControlLayer.INTENT_FIREWALL)) {
+            (operation as? OperationScope.Recording)?.undoIfwWriteObserver(request.user)
+        } else {
+            null
+        },
         operation = operation,
         forgetRefusedPmBlocks = false,
         layersForComponent = { it.supportedLayers(request.layers) },
@@ -389,10 +395,11 @@ internal class LocalComponentStatusRepository(
             ) {
                 controlActivity.recordWrites(AppKey(event.packageName, request.user), event.pmWrites)
                 try {
-                    val wakeBlocks = claimedWakeBlocks(request.user, alreadyDisabled)
+                    val wakeBlocks = claimedWakePmBlocks(request.user, alreadyDisabled)
                     recordPmBlocks(wakeBlocks.map { ComponentKey(it, request.user) })
-                    // Snapshot undo removes its own claims by record identity.
-                    if (request.expectedPm == null) pmBlocks.afterControl(event, forgetRefusedPmBlocks)
+                    // Wake's unrecorded snapshot undo removes its own claims by record identity.
+                    val wakeSnapshotUndo = request.expectedPm != null && operation === OperationScope.Unrecorded
+                    if (!wakeSnapshotUndo) pmBlocks.afterControl(event, forgetRefusedPmBlocks)
                     if (newClaims.isNotEmpty()) {
                         val cleared = event.outcomes.filter { it.state.pm == PmSetting.DEFAULT || it.state.pm == PmSetting.ENABLED }
                             .mapTo(mutableSetOf()) { it.key.id.className }

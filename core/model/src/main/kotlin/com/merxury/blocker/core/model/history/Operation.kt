@@ -24,8 +24,8 @@ import kotlin.time.Instant
  * @property id the operation's identifier
  * @property timestamp when the operation occurred
  * @property source the action that caused the operation
- * @property ref the package for app detail or debloater, rule ID for rule detail, or calling package for
- * the external provider. Null for other sources.
+ * @property ref the package for app detail or debloater, rule ID for rule detail, calling package
+ * for the external provider, or original operation ID for a single undo. Null otherwise.
  * @property undoneByOperationId the ID of the operation that reversed this one, if any
  * @property entryCount the number of component entries in the query result
  */

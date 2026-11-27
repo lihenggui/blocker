@@ -21,8 +21,10 @@ import com.merxury.blocker.core.database.history.OperationHistoryDao
 import com.merxury.blocker.core.database.history.asEntity
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.component.ComponentId
+import com.merxury.blocker.core.model.component.ComponentKey
 import com.merxury.blocker.core.model.component.ControlState
 import com.merxury.blocker.core.model.component.UserId
+import com.merxury.blocker.core.model.control.ComponentWriteObserver
 import com.merxury.blocker.core.model.control.ControlEvent
 import com.merxury.blocker.core.model.history.OperationEntry
 import com.merxury.blocker.core.model.history.OperationSource
@@ -70,17 +72,34 @@ sealed class OperationScope {
         private val lock = Mutex()
         private var id: Long? = null
 
+        // History restores run sequentially. The observer reports only components whose IFW rules changed.
+        private val ifwWrites = mutableSetOf<ComponentKey>()
+
+        /** Creates the header even when undo found all its targets already restored. */
+        internal suspend fun ensureHeader(): Long = lock.withLock { id ?: insertOperation(emptyList()) }
+
+        internal fun undoIfwWriteObserver(user: UserId): ComponentWriteObserver? {
+            if (header.source != OperationSource.UNDO) return null
+            return object : ComponentWriteObserver {
+                override fun canStart() = true
+
+                override fun onWrite(components: Collection<ComponentId>) {
+                    components.mapTo(ifwWrites) { ComponentKey(it, user) }
+                }
+            }
+        }
+
+        internal fun wroteIfw(key: ComponentKey): Boolean = key in ifwWrites
+
         override suspend fun append(packageName: String, user: UserId, entries: List<OperationEntry>) {
             if (entries.isEmpty()) return
             try {
                 lock.withLock {
-                    val dao = history.get()
                     val operationId = id
                     if (operationId == null) {
-                        dao.deleteOlderThan(clock.now() - 90.days)
-                        id = dao.insertOperation(header, entries.map { it.asEntity() })
+                        insertOperation(entries)
                     } else {
-                        dao.insertEntries(entries.map { it.copy(operationId = operationId).asEntity() })
+                        history.get().insertEntries(entries.map { it.copy(operationId = operationId).asEntity() })
                     }
                 }
             } catch (e: CancellationException) {
@@ -88,6 +107,12 @@ sealed class OperationScope {
             } catch (e: Exception) {
                 Timber.e(e, "Cannot record %s component changes for package %s, user %d", header.source, packageName, user.value)
             }
+        }
+
+        private suspend fun insertOperation(entries: List<OperationEntry>): Long {
+            val dao = history.get()
+            dao.deleteOlderThan(clock.now() - 90.days)
+            return dao.insertOperation(header, entries.map { it.asEntity() }).also { id = it }
         }
     }
 }
