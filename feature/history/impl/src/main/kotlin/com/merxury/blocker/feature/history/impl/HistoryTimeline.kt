@@ -4,8 +4,6 @@
 package com.merxury.blocker.feature.history.impl
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,10 +18,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,6 +31,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,6 +44,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.time.toJavaInstant
 import com.merxury.blocker.core.ui.R.string as UiStrings
+
+private val TimelineSpacing = 8.dp
 
 @Composable
 internal fun HistoryTimeline(
@@ -59,35 +61,41 @@ internal fun HistoryTimeline(
     LazyColumn(
         modifier = Modifier.widthIn(max = 840.dp).fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        days.forEach { day ->
+        days.forEachIndexed { index, day ->
             item(key = "day-${day.date}", contentType = "day") {
-                DayHeader(dateFormatter.format(day.date), day.canUndoSince, isUndoing) { onUndoSince(day.date) }
+                DayHeader(
+                    date = dateFormatter.format(day.date),
+                    showUndo = day.canUndoSince,
+                    isUndoing = isUndoing,
+                    onUndo = { onUndoSince(day.date) },
+                    modifier = Modifier.padding(top = if (index == 0) 0.dp else TimelineSpacing),
+                )
             }
             day.operations.forEach { row ->
                 val operation = row.operation
-                val isExpanded = expanded?.id == operation.id
+                val expansion = expanded?.takeIf { it.id == operation.id && operation.entryCount > 0 }
+                val segmentCount = if (expansion == null) 1 else 1 + expansion.entries.orEmpty().size.coerceAtLeast(1)
                 item(key = operation.id, contentType = "operation") {
                     OperationRow(
                         row = row,
                         time = timeFormatter.format(operation.timestamp.toJavaInstant()),
-                        expanded = isExpanded,
-                        canUndo = !isUndoing,
+                        segmentCount = segmentCount,
+                        isUndoing = isUndoing,
                         onExpand = { onExpand(row) },
                         onUndo = { onUndo(row) },
                     )
                 }
-                if (expanded != null && isExpanded) expandedEntries(expanded)
+                if (expansion != null) expandedEntries(expansion, segmentCount)
             }
         }
-        item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing)) }
+        item { Spacer(Modifier.padding(top = TimelineSpacing).windowInsetsBottomHeight(WindowInsets.safeDrawing)) }
     }
 }
 
 @Composable
-private fun DayHeader(date: String, showUndo: Boolean, isUndoing: Boolean, onUndo: () -> Unit) {
-    Column(Modifier.fillMaxWidth()) {
+private fun DayHeader(date: String, showUndo: Boolean, isUndoing: Boolean, onUndo: () -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier.fillMaxWidth()) {
         Text(date, Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium)
         if (showUndo) {
             BlockerTextButton(onClick = onUndo, enabled = !isUndoing) {
@@ -97,72 +105,91 @@ private fun DayHeader(date: String, showUndo: Boolean, isUndoing: Boolean, onUnd
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun OperationRow(
     row: HistoryOperation,
     time: String,
-    expanded: Boolean,
-    canUndo: Boolean,
+    segmentCount: Int,
+    isUndoing: Boolean,
     onExpand: () -> Unit,
     onUndo: () -> Unit,
 ) {
     val operation = row.operation
-    val expandable = operation.entryCount > 0
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .then(if (expandable) Modifier.clickable(role = Role.Button, onClick = onExpand) else Modifier)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(operation.source.label()), style = MaterialTheme.typography.titleSmall)
-                row.reference?.let {
-                    Text(it, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                }
-                Text(time, style = MaterialTheme.typography.bodySmall)
-                Text(
-                    pluralStringResource(
-                        R.plurals.feature_history_impl_component_count,
-                        operation.entryCount,
-                        operation.entryCount,
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                if (operation.undoneByOperationId != null) {
-                    Text(stringResource(R.string.feature_history_impl_undone), style = MaterialTheme.typography.labelMedium)
-                }
+    val modifier = Modifier.padding(top = TimelineSpacing)
+    val shapes = ListItemDefaults.segmentedShapes(index = 0, count = segmentCount)
+    val colors = historySegmentedColors()
+    val headline: @Composable () -> Unit = { Text(stringResource(operation.source.label())) }
+    val supporting: @Composable () -> Unit = {
+        Column {
+            row.reference?.let {
+                Text(it, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
-            if (expandable) {
-                Icon(
-                    imageVector = if (expanded) BlockerIcons.ExpandLess else BlockerIcons.ExpandMore,
-                    contentDescription = stringResource(
-                        if (expanded) R.string.feature_history_impl_collapse else R.string.feature_history_impl_expand,
-                    ),
-                )
-            }
-        }
-        if (row.canUndo) {
-            BlockerTextButton(onClick = onUndo, enabled = canUndo, modifier = Modifier.align(Alignment.End).padding(horizontal = 8.dp)) {
-                Text(stringResource(R.string.feature_history_impl_undo))
+            Text(time)
+            Text(
+                pluralStringResource(
+                    R.plurals.feature_history_impl_component_count,
+                    operation.entryCount,
+                    operation.entryCount,
+                ),
+            )
+            if (operation.undoneByOperationId != null) {
+                Text(stringResource(R.string.feature_history_impl_undone))
             }
         }
     }
+    if (operation.entryCount == 0) {
+        SegmentedListItem(
+            shapes = shapes,
+            colors = colors,
+            modifier = modifier,
+            supportingContent = supporting,
+            content = headline,
+        )
+    } else {
+        val expanded = segmentCount > 1
+        SegmentedListItem(
+            onClick = onExpand,
+            shapes = shapes,
+            colors = colors,
+            modifier = modifier.semantics { role = Role.Button },
+            supportingContent = supporting,
+            trailingContent = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (row.canUndo) {
+                        BlockerTextButton(onClick = onUndo, enabled = !isUndoing) {
+                            Text(stringResource(R.string.feature_history_impl_undo))
+                        }
+                    }
+                    Icon(
+                        imageVector = if (expanded) BlockerIcons.ExpandLess else BlockerIcons.ExpandMore,
+                        contentDescription = stringResource(
+                            if (expanded) R.string.feature_history_impl_collapse else R.string.feature_history_impl_expand,
+                        ),
+                    )
+                }
+            },
+            content = headline,
+        )
+    }
 }
 
-private fun LazyListScope.expandedEntries(expanded: ExpandedOperation) {
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun LazyListScope.expandedEntries(expanded: ExpandedOperation, segmentCount: Int) {
     val entries = expanded.entries
     if (entries.isNullOrEmpty()) {
-        item(key = "entries-${expanded.id}") {
-            Box(Modifier.fillMaxWidth().padding(16.dp)) {
+        item(key = "entries-${expanded.id}", contentType = "entry status") {
+            SegmentedListItem(
+                shapes = ListItemDefaults.segmentedShapes(index = 1, count = segmentCount),
+                colors = historySegmentedColors(),
+                modifier = Modifier.padding(top = ListItemDefaults.SegmentedGap),
+            ) {
                 when {
                     expanded.loadFailed -> Text(stringResource(R.string.feature_history_impl_entries_failed))
 
-                    entries == null -> BlockerLoadingWheel(
-                        contentDesc = stringResource(UiStrings.core_ui_loading),
-                        modifier = Modifier.align(Alignment.Center),
-                    )
+                    entries == null -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        BlockerLoadingWheel(contentDesc = stringResource(UiStrings.core_ui_loading))
+                    }
 
                     else -> Text(stringResource(R.string.feature_history_impl_no_snapshots))
                 }
@@ -170,16 +197,20 @@ private fun LazyListScope.expandedEntries(expanded: ExpandedOperation) {
         }
     } else {
         items(entries.size, key = { "entry-${expanded.id}-$it" }, contentType = { "component" }) { index ->
-            ComponentChange(entries[index])
+            ComponentChange(entries[index], segmentIndex = index + 1, segmentCount = segmentCount)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ComponentChange(entry: HistoryEntry) {
+private fun ComponentChange(entry: HistoryEntry, segmentIndex: Int, segmentCount: Int) {
     val before = stringResource(entry.before.label())
     val after = stringResource(entry.after.label())
-    ListItem(
+    SegmentedListItem(
+        shapes = ListItemDefaults.segmentedShapes(index = segmentIndex, count = segmentCount),
+        colors = historySegmentedColors(),
+        modifier = Modifier.padding(top = ListItemDefaults.SegmentedGap),
         supportingContent = {
             Column {
                 Text(entry.app)
@@ -187,9 +218,12 @@ private fun ComponentChange(entry: HistoryEntry) {
                 Text(stringResource(R.string.feature_history_impl_state_change, before, after))
             }
         },
-        modifier = Modifier.padding(start = 16.dp),
     ) { Text(entry.component) }
 }
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun historySegmentedColors() = ListItemDefaults.segmentedColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
 
 @StringRes
 private fun ComponentState.label(): Int = when (this) {
