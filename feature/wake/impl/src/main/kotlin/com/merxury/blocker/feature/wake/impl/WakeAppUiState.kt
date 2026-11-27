@@ -43,27 +43,84 @@ internal data class WakeAppUiState(
     val busy: Boolean = false,
     val notice: WakeNotice? = null,
     val loaded: Boolean = false,
+    val potentialLoaded: Boolean = true,
 ) {
     val rows get() = relations + methods
     val controllableRows get() = rows + potential
     val hasRestart get() = methods.any { it.kind == OwnWakeKind.RESTART_AFTER_CLOSE && !it.blocked }
     val inbound get() = chainSide(relations.filter { it.direction == WakeDirection.INBOUND || it.direction == WakeDirection.MUTUAL })
     val outbound get() = chainSide(relations.filter { it.direction == WakeDirection.OUTBOUND || it.direction == WakeDirection.MUTUAL })
-    val blockableRows get() = controllableRows.filter { it.canToggle(background) && !it.blocked }
+    private val openPotentialCount get() = potential.count { !it.blocked }
+    val effectiveStatus: WakeAppStatus get() = when (status) {
+        WakeAppStatus.AllBlocked -> if (potentialLoaded && openPotentialCount == 0) status else WakeAppStatus.ObservedBlocked
+        WakeAppStatus.None -> if (potentialLoaded && rows.isEmpty() && dormantRestricted) WakeAppStatus.DormantRestricted else status
+        else -> status
+    }
+    val heroSubtitle: WakeText? get() {
+        val remaining = openPotentialCount
+        return when (effectiveStatus) {
+            WakeAppStatus.ObservedBlocked, WakeAppStatus.DormantRestricted ->
+                WakeText.Count(plurals.feature_wake_api_dormant_remaining, remaining.toLong()).takeIf { remaining > 0 }
+
+            else -> null
+        }
+    }
+    private val dormantRestricted: Boolean get() {
+        val hasSystemRestriction = background?.allowed == false || deepRestriction?.active == true
+        if (!hasSystemRestriction) return false
+        val nonPushPotential = potential.filterNot(WakeDetailRow::isPushReceiver)
+        return nonPushPotential.ifEmpty { potential }.all { it.blocked }
+    }
+    private fun isBlockable(row: WakeDetailRow) = row.canToggle(background) && !row.blocked
+
+    val blockableRows get() = controllableRows.filter(::isBlockable)
     val canEnableDeepRestriction get() = deepRestriction?.let { it.changeable && !it.active } == true
     val choices get() = buildList {
-        val available = blockableRows
-        available.forEach { add(WakeSheetChoice(it.key, it.actionTitle)) }
+        val observed = rows.filter(::isBlockable)
+        val dormant = potential.filter(::isBlockable)
+        observed.forEach { row ->
+            val push = row.paths.any { it.path.trigger == ReviveTrigger.PUSH_TRANSPORT }
+            add(
+                WakeSheetChoice(
+                    key = row.key,
+                    title = row.actionTitle,
+                    group = WakeChoiceGroup.OBSERVED,
+                    checkedByDefault = !push,
+                    supporting = WakeText.Resource(string.feature_wake_api_sheet_push_warning).takeIf { push },
+                    warning = push,
+                ),
+            )
+        }
+        dormant.forEach { row ->
+            add(
+                WakeSheetChoice(
+                    key = row.key,
+                    title = row.actionTitle,
+                    group = WakeChoiceGroup.DORMANT,
+                    checkedByDefault = !row.isPushReceiver,
+                    supporting = WakeText.Resource(string.feature_wake_api_sheet_push_warning).takeIf { row.isPushReceiver },
+                    warning = row.isPushReceiver,
+                ),
+            )
+        }
         if (background?.allowed == true && background.changeable &&
-            available.none { row -> row.paths.any { it.canRestrictBackground(app.packageName) } }
+            (observed + dormant).none { row -> row.paths.any { it.canRestrictBackground(app.packageName) } }
         ) {
-            add(WakeSheetChoice(BACKGROUND_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_background)))
+            add(WakeSheetChoice(BACKGROUND_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_background), WakeChoiceGroup.SYSTEM))
         }
         if (canEnableDeepRestriction) {
-            add(WakeSheetChoice(DEEP_RESTRICTION_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_deep_restriction)))
+            add(WakeSheetChoice(DEEP_RESTRICTION_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_deep_restriction), WakeChoiceGroup.SYSTEM))
         }
         if (isNotEmpty()) {
-            add(WakeSheetChoice(FORCE_STOP_CHOICE, WakeText.Resource(string.feature_wake_api_sheet_force_stop)))
+            add(
+                WakeSheetChoice(
+                    key = FORCE_STOP_CHOICE,
+                    title = WakeText.Resource(string.feature_wake_api_sheet_force_stop),
+                    group = WakeChoiceGroup.SYSTEM,
+                    checkedByDefault = false,
+                    supporting = WakeText.Resource(string.feature_wake_api_sheet_force_stop_hint),
+                ),
+            )
         }
     }
     val canBlockAll get() = choices.any { it.key != FORCE_STOP_CHOICE }
@@ -72,12 +129,24 @@ internal data class WakeAppUiState(
 internal const val BACKGROUND_CHOICE = "background"
 internal const val DEEP_RESTRICTION_CHOICE = "deep-restriction"
 internal const val FORCE_STOP_CHOICE = "force-stop"
-internal data class WakeSheetChoice(val key: String, val title: WakeText)
+internal enum class WakeChoiceGroup { OBSERVED, DORMANT, SYSTEM }
+
+internal data class WakeSheetChoice(
+    val key: String,
+    val title: WakeText,
+    val group: WakeChoiceGroup = WakeChoiceGroup.OBSERVED,
+    val checkedByDefault: Boolean = true,
+    val supporting: WakeText? = null,
+    val warning: Boolean = false,
+)
+
 internal enum class WakeAppStatus(val halo: WakeHalo) {
     KeepAlive(WakeHalo.KeepAlive),
     Attention(WakeHalo.Attention),
     None(WakeHalo.Attention),
     AllBlocked(WakeHalo.Blocked),
+    ObservedBlocked(WakeHalo.Blocked),
+    DormantRestricted(WakeHalo.Blocked),
 }
 
 // Turn the blocked halo by one lobe of the six-sided Material polygon.
@@ -99,7 +168,9 @@ internal data class WakeDetailRow(
     val boot: Boolean = false,
     val reEnabledByApp: Boolean = false,
     val componentLabel: WakeText.Literal? = null,
+    val potentialCategory: PotentialWakeCategory? = null,
 ) {
+    val isPushReceiver get() = potentialCategory == PotentialWakeCategory.PUSH_RECEIVER
     val actionTitle get() = componentLabel?.let {
         WakeText.Resource(string.feature_wake_api_choice_with_component, title, it)
     } ?: title
@@ -138,6 +209,7 @@ internal fun buildWakeAppState(
     installedApps: List<InstalledApp>,
     details: Map<String, ComponentDetail>,
     potential: List<PotentialWakeEntry> = emptyList(),
+    potentialLoaded: Boolean = true,
 ): WakeAppUiState {
     val app = state.activity
     val apps = installedApps.associateBy { it.key.packageName }
@@ -198,6 +270,7 @@ internal fun buildWakeAppState(
         normal = app.justified,
         environment = state.environment,
         loaded = true,
+        potentialLoaded = potentialLoaded,
     )
 }
 
@@ -313,6 +386,7 @@ private class WakeFacts(
             paths = listOf(state),
             reEnabledByApp = reEnabled,
             componentLabel = componentLabel,
+            potentialCategory = entry.category,
         )
     }
 

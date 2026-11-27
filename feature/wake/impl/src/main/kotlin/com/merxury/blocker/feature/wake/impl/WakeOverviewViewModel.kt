@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -62,7 +61,9 @@ internal class WakeOverviewViewModel @Inject constructor(
                     wakeOverviewUiState(availability, checking, summaries, blocks, apps, manual)
                 }
 
-                WakeAvailability.Collecting -> runs.isRunning.map { wakeOverviewUiState(availability, it) }
+                WakeAvailability.Collecting -> combine(runs.isRunning, installedApps.apps(selectedUsers.ownUser)) { checking, apps ->
+                    wakeOverviewUiState(availability, checking, installedApps = apps)
+                }
 
                 else -> flowOf(wakeOverviewUiState(availability, checking = false))
             }

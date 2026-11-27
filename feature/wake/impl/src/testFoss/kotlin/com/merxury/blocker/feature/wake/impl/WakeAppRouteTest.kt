@@ -3,13 +3,18 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -22,6 +27,8 @@ import com.google.common.truth.Truth.assertThat
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.system.DeepBackgroundRestriction
 import com.merxury.blocker.core.model.wake.JustifiedStarts
+import com.merxury.blocker.core.model.wake.OwnWakeKind
+import com.merxury.blocker.core.model.wake.PotentialWakeCategory
 import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeSpecialAccess
 import com.merxury.blocker.core.navigation.NavigationState
@@ -39,6 +46,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -191,6 +199,55 @@ class WakeAppRouteTest {
     }
 
     @Test
+    fun givenExemptions_whenTappingTheCard_thenOpensAndroidSettingsForThatApp() {
+        val activity = compose.activity
+        val state = WakeAppUiState(
+            WakeAppIdentity(DETAIL_PACKAGE),
+            environment = WakeAppEnvironment(userIdleAllowlisted = true),
+            loaded = true,
+        )
+        val viewModel = mock<WakeAppViewModel> { on { uiState } doReturn MutableStateFlow(state) }
+        compose.setContent {
+            BlockerTheme {
+                WakeAppRoute(viewModel, active = true, onBack = {}, onPeerClick = {}, onComponents = {})
+            }
+        }
+
+        val card = compose.onNodeWithText(activity.getString(R.string.feature_wake_api_environment))
+        assertThat(card.fetchSemanticsNode().config[SemanticsActions.OnClick].label)
+            .isEqualTo(activity.getString(R.string.feature_wake_api_environment_manage))
+        card.performClick()
+
+        val intent = shadowOf(activity).nextStartedActivity
+        assertThat(intent.action).isEqualTo(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        assertThat(intent.dataString).isEqualTo("package:$DETAIL_PACKAGE")
+        assertThat(intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK).isNotEqualTo(0)
+    }
+
+    @Test
+    fun givenObservedDormantAndSystemChoices_whenOpeningSheet_thenShowsGroupsAndSafeDefaults() {
+        val resources = compose.activity.resources
+        val entries = listOf(potentialEntry(), potentialEntry(PotentialWakeCategory.PUSH_RECEIVER, name = "PushReceiver"))
+        val observed = detailState(own = listOf(detailMethod(OwnWakeKind.SELF_START, detailPath("observed"))))
+        val state = buildWakeAppState(observed, null, emptyList(), emptyMap(), entries)
+        compose.setContent {
+            BlockerTheme {
+                WakeAppScreen(state, onBack = {}, onPeerClick = {}, initiallyShowingSheet = true)
+            }
+        }
+
+        compose.onNodeWithText(resources.getString(R.string.feature_wake_api_sheet_observed)).assertExists()
+        compose.onNodeWithText(resources.getString(R.string.feature_wake_api_sheet_dormant)).assertExists()
+        compose.onNodeWithText(resources.getString(R.string.feature_wake_api_sheet_system)).assertExists()
+        compose.onNode(hasText(state.choices.first().title.resolve(resources)) and isToggleable()).assertIsOn()
+        compose.onNodeWithText(state.choices[1].title.resolve(resources)).assertIsOn()
+        compose.onNodeWithText(state.choices[2].title.resolve(resources)).assertIsOff()
+        compose.onNodeWithText(resources.getString(R.string.feature_wake_api_sheet_force_stop)).assertIsOff()
+        compose.onNodeWithText(resources.getString(R.string.feature_wake_api_sheet_push_warning)).assertExists()
+        compose.onNodeWithText(resources.getString(R.string.feature_wake_api_sheet_force_stop_hint)).assertExists()
+    }
+
+    @Test
     fun givenBlockSheet_whenOnlyForceStopIsSelected_thenBlockIsDisabled() {
         val resources = compose.activity.resources
         val category = resources.getString(R.string.feature_wake_api_potential_boot)
@@ -222,7 +279,7 @@ class WakeAppRouteTest {
         val resources = compose.activity.resources
         val initial = WakeSheetChoice("first", WakeText.Literal("First receiver"))
         val added = WakeSheetChoice("second", WakeText.Literal("Second receiver"))
-        val forceStop = WakeSheetChoice(FORCE_STOP_CHOICE, WakeText.Literal("Force stop"))
+        val forceStop = WakeSheetChoice(FORCE_STOP_CHOICE, WakeText.Literal("Force stop"), WakeChoiceGroup.SYSTEM, checkedByDefault = false)
         val choices = MutableStateFlow(listOf(initial, forceStop))
         val block = resources.getString(R.string.feature_wake_api_block)
         var confirmed: Set<String>? = null
@@ -249,7 +306,7 @@ class WakeAppRouteTest {
     fun givenEditedSheetChoices_whenRestoringSavedComposition_thenUncheckedAndCheckedChoicesArePreserved() {
         val restoration = StateRestorationTester(compose)
         val receiver = WakeSheetChoice("receiver", WakeText.Literal("Boot receiver"))
-        val forceStop = WakeSheetChoice(FORCE_STOP_CHOICE, WakeText.Literal("Force stop"))
+        val forceStop = WakeSheetChoice(FORCE_STOP_CHOICE, WakeText.Literal("Force stop"), WakeChoiceGroup.SYSTEM, checkedByDefault = false)
         val choices = MutableStateFlow(listOf(receiver, forceStop))
         val block = compose.activity.resources.getString(R.string.feature_wake_api_block)
         restoration.setContent {

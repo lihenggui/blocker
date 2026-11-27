@@ -163,4 +163,22 @@
     </plurals>
     <string name="feature_wake_api_force_stop_failed">無法強制停止 %s</string>
     <string name="feature_wake_api_choice_with_component">%1$s · %2$s</string>
+    <string name="feature_wake_api_search_apps">搜尋應用程式</string>
+    <string name="feature_wake_api_search_keep_alive">保活</string>
+    <string name="feature_wake_api_search_attention">留意</string>
+    <string name="feature_wake_api_search_dormant">休眠</string>
+    <string name="feature_wake_api_search_empty">找不到符合的應用程式</string>
+    <string name="feature_wake_api_browse_installed_apps">先管理已安裝的應用程式</string>
+    <string name="feature_wake_api_browse_installed_apps_description">收集記錄期間仍可管理潛在自動啟動和背景限制</string>
+    <string name="feature_wake_api_sheet_observed">已發現的保活方式</string>
+    <string name="feature_wake_api_sheet_dormant">潛在自動啟動入口</string>
+    <string name="feature_wake_api_sheet_system">系統操作</string>
+    <string name="feature_wake_api_sheet_push_warning">停用後可能延遲或無法收到通知</string>
+    <string name="feature_wake_api_sheet_force_stop_hint">停止應用程式直到您重新開啟，無法復原這項操作</string>
+    <string name="feature_wake_api_status_observed_blocked">已封鎖已發現的保活方式</string>
+    <string name="feature_wake_api_status_dormant_restricted">已限制背景自動啟動</string>
+    <string name="feature_wake_api_environment_manage">開啟 Android 應用程式設定</string>
+    <plurals name="feature_wake_api_dormant_remaining">
+        <item quantity="other">仍有 %d 個潛在自動啟動入口處於啟用狀態</item>
+    </plurals>
 </resources>

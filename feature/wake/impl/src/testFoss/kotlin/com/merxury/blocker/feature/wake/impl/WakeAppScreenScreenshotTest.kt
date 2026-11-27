@@ -13,6 +13,8 @@ import com.merxury.blocker.core.model.system.DeepBackgroundRestriction
 import com.merxury.blocker.core.model.wake.AppWakeState
 import com.merxury.blocker.core.model.wake.JustifiedStarts
 import com.merxury.blocker.core.model.wake.OwnWakeKind
+import com.merxury.blocker.core.model.wake.PotentialWakeCategory
+import com.merxury.blocker.core.model.wake.WakeAppEnvironment
 import com.merxury.blocker.core.model.wake.WakeBlockMethod
 import com.merxury.blocker.core.model.wake.WakeDirection
 import com.merxury.blocker.core.model.wake.WakePathBlock
@@ -77,6 +79,33 @@ class WakeAppScreenScreenshotTest {
     }
 
     @Test
+    fun givenObservedPathsBlockedAndDormantEntryAllowed_whenViewingDetails_thenCapturesRemainingEntryAndExemptionsShortcut() {
+        val path = detailPath("restart", count = 3, last = lastWake)
+        val observed = detailState(
+            own = listOf(detailMethod(OwnWakeKind.RESTART_AFTER_CLOSE, path)),
+            allBlocked = true,
+            normal = JustifiedStarts(0, 0, 0, 0),
+        )
+        val blocked = observed.copy(paths = observed.paths.mapValues { it.value.copy(block = WakePathBlock.USER) })
+        val state = buildWakeAppState(blocked, lastWake + 2, apps, emptyMap(), listOf(potentialEntry())).copy(
+            background = BackgroundUsage(false, true),
+            environment = WakeAppEnvironment(userIdleAllowlisted = true),
+        )
+        capture("WakeAppObservedBlocked", state)
+    }
+
+    @Test
+    fun givenDormantAppWithBootBlockedAndPushAllowed_whenRestricted_thenCapturesGreenHaloAndRemainingEntry() {
+        val dormant = detailState(verdict = WakeVerdict.NORMAL, normal = JustifiedStarts(0, 0, 0, 0))
+        val entries = listOf(potentialEntry(block = WakePathBlock.USER), potentialEntry(PotentialWakeCategory.PUSH_RECEIVER, "PushReceiver"))
+        val state = buildWakeAppState(dormant.copy(activity = dormant.activity.copy(backgroundStarts = 0)), null, apps, emptyMap(), entries).copy(
+            background = BackgroundUsage(false, true),
+            deepRestriction = DeepBackgroundRestriction(true, true, true, changeable = true),
+        )
+        capture("WakeAppDormantGreen", state)
+    }
+
+    @Test
     fun givenSuspiciousActivity_whenViewingDetails_thenCapturesAttentionStatus() = capture("WakeAppAttention", state(base.copy(activity = base.activity.copy(verdict = WakeVerdict.SUSPICIOUS))))
 
     @Test
@@ -87,7 +116,7 @@ class WakeAppScreenScreenshotTest {
 
     @Test
     fun givenAllowedChoices_whenOpeningBlockSheet_thenCapturesConfirmation() {
-        val entries = listOf(potentialEntry(), potentialEntry(name = "RefreshReceiver"))
+        val entries = listOf(potentialEntry(), potentialEntry(PotentialWakeCategory.PUSH_RECEIVER, "PushReceiver"))
         val state = buildWakeAppState(base, lastWake + 2, apps, mapOf(component.name to component), entries).copy(
             background = BackgroundUsage(true, true),
             deepRestriction = DeepBackgroundRestriction(false, false, false, changeable = true),

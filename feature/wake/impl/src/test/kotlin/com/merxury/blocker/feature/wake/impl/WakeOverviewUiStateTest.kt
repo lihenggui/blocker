@@ -20,6 +20,17 @@ import org.junit.Test
 import kotlin.time.Instant
 
 class WakeOverviewUiStateTest {
+    private val searchable = WakeOverviewUiState.Ready(
+        keepAlive = listOf(WakeAppRow("example.keep", "Sync Mail", null, null)),
+        attention = listOf(WakeAppRow("example.attention", "Sync Tasks", null, null)),
+        handledKeepAlive = 0,
+        automaticBlocks = 0,
+        otherApps = 1,
+        checking = false,
+        blockedApps = listOf(WakeAppRow("example.blocked", "Sync Calendar", null, null)),
+        dormantApps = listOf(WakeAppIdentity("example.dormant", "Sync Notes")),
+    )
+    private val searchOrder = listOf(WakeSearchGroup.KeepAlive, WakeSearchGroup.Attention, WakeSearchGroup.Blocked, WakeSearchGroup.Dormant)
 
     @Test
     fun givenNoAvailability_whenMapping_thenLoading() {
@@ -37,6 +48,43 @@ class WakeOverviewUiStateTest {
     fun givenCollecting_whenRunningFlagChanges_thenCheckingFollowsIt() {
         assertThat(wakeOverviewUiState(WakeAvailability.Collecting, checking = false)).isEqualTo(WakeOverviewUiState.Collecting(false))
         assertThat(wakeOverviewUiState(WakeAvailability.Collecting, checking = true)).isEqualTo(WakeOverviewUiState.Collecting(true))
+    }
+
+    @Test
+    fun givenUnsortedInstalledApps_whenCollecting_thenMapsIdentityAndSortsByLabel() {
+        val apps = listOf(wakeTestApp("example.z").copy(label = "zebra"), wakeTestApp("example.a").copy(label = "Apple"))
+        val state = wakeOverviewUiState(WakeAvailability.Collecting, checking = true, installedApps = apps) as WakeOverviewUiState.Collecting
+
+        assertThat(state.checking).isTrue()
+        assertThat(state.installedApps).containsExactly(
+            WakeAppIdentity("example.a", "Apple", apps[1].wakeIcon()),
+            WakeAppIdentity("example.z", "zebra", apps[0].wakeIcon()),
+        ).inOrder()
+    }
+
+    @Test
+    fun givenAllGroups_whenSearchingByLabelOrPackage_thenMatchingIsTrimmedAndCaseInsensitive() {
+        assertThat(searchable.searchResults("  sYnC ").map { it.group }).containsExactlyElementsIn(searchOrder).inOrder()
+        assertThat(searchable.searchResults("  EXAMPLE. ").map { it.group }).containsExactlyElementsIn(searchOrder).inOrder()
+        assertThat(searchable.searchResults("TAsKS").single().app.label).isEqualTo("Sync Tasks")
+        assertThat(searchable.searchResults("DormAnt").single()).isEqualTo(WakeSearchRow(searchable.dormantApps.single(), WakeSearchGroup.Dormant))
+    }
+
+    @Test
+    fun givenAllGroups_whenQueryIsBlankOrDoesNotMatch_thenReturnsAllInOrderOrNoRows() {
+        assertThat(searchable.searchResults("").map { it.group }).containsExactlyElementsIn(searchOrder).inOrder()
+        assertThat(searchable.searchResults("  \t ")).isEqualTo(searchable.searchResults(""))
+        assertThat(searchable.searchResults("other package")).isEmpty()
+    }
+
+    @Test
+    fun givenOnlyOneNonEmptyGroup_whenCheckingSearchAvailability_thenAnyGroupCanEnableSearch() {
+        val empty = WakeOverviewUiState.Ready(emptyList(), emptyList(), 0, 0, 0, false)
+        assertThat(empty.hasSearchableApps).isFalse()
+        assertThat(empty.copy(keepAlive = searchable.keepAlive).hasSearchableApps).isTrue()
+        assertThat(empty.copy(attention = searchable.attention).hasSearchableApps).isTrue()
+        assertThat(empty.copy(blockedApps = searchable.blockedApps).hasSearchableApps).isTrue()
+        assertThat(empty.copy(dormantApps = searchable.dormantApps).hasSearchableApps).isTrue()
     }
 
     @Test

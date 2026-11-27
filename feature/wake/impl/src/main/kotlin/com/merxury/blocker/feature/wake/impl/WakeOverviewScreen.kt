@@ -3,20 +3,28 @@
 
 package com.merxury.blocker.feature.wake.impl
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -26,6 +34,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
+import com.merxury.blocker.core.designsystem.component.BlockerIconButton
+import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -65,13 +75,43 @@ internal fun WakeOverviewScreen(
 ) {
     var blockedExpanded by rememberSaveable { mutableStateOf(false) }
     var dormantExpanded by rememberSaveable { mutableStateOf(false) }
+    var installedExpanded by rememberSaveable { mutableStateOf(false) }
+    var searchOpen by rememberSaveable { mutableStateOf(false) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    val overviewListState = rememberLazyListState()
+    val ready = state as? WakeOverviewUiState.Ready
+    val searching = ready?.takeIf { searchOpen }
+    val closeSearch = {
+        searchOpen = false
+        searchQuery = ""
+    }
+    LaunchedEffect(state) {
+        if (state !is WakeOverviewUiState.Ready && state != WakeOverviewUiState.Loading) closeSearch()
+    }
+    BackHandler(enabled = searching != null, onBack = closeSearch)
+
     WakeTheme {
         Column(modifier.fillMaxSize()) {
-            WakeOverviewTopBar(state, onCheckNow)
+            if (searching != null) {
+                WakeOverviewSearchBar(searchQuery, { searchQuery = it }, closeSearch)
+                val results = remember(searching, searchQuery) { searching.searchResults(searchQuery) }
+                val focus = LocalFocusManager.current
+                WakeOverviewSearchResults(
+                    results = results,
+                    onAppClick = { packageName ->
+                        focus.clearFocus()
+                        onAppClick(packageName)
+                    },
+                    modifier = Modifier.weight(1f).imePadding(),
+                )
+                return@Column
+            }
+            WakeOverviewTopBar(ready, onCheckNow, onSearch = { searchOpen = true })
             if (state != WakeOverviewUiState.Loading) {
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
+                        state = overviewListState,
                         contentPadding = PaddingValues(WakeContentSpacing),
                     ) {
                         item(key = "hero") {
@@ -92,7 +132,10 @@ internal fun WakeOverviewScreen(
                                 )
                             }
 
-                            is WakeOverviewUiState.Collecting -> item(key = "firstRun") { WakeFirstRunSection() }
+                            is WakeOverviewUiState.Collecting -> {
+                                item(key = "firstRun") { WakeFirstRunSection() }
+                                wakeCollectingApps(state.installedApps, installedExpanded, { installedExpanded = !installedExpanded }, onAppClick)
+                            }
 
                             else -> Unit
                         }
@@ -108,9 +151,12 @@ internal fun WakeOverviewScreen(
 }
 
 @Composable
-private fun WakeOverviewTopBar(state: WakeOverviewUiState, onCheckNow: () -> Unit) {
+private fun WakeOverviewTopBar(state: WakeOverviewUiState.Ready?, onCheckNow: () -> Unit, onSearch: () -> Unit) {
     BlockerTopAppBar(title = stringResource(string.feature_wake_api_title)) {
-        if (state is WakeOverviewUiState.Ready) {
+        if (state != null) {
+            if (state.hasSearchableApps) {
+                BlockerIconButton(BlockerIcons.Search, stringResource(string.feature_wake_api_search_apps), onClick = onSearch)
+            }
             BlockerAppTopBarMenu(
                 menuIcon = BlockerIcons.MoreVert,
                 menuIconDesc = coreString.core_ui_more_menu,
@@ -118,4 +164,23 @@ private fun WakeOverviewTopBar(state: WakeOverviewUiState, onCheckNow: () -> Uni
             )
         }
     }
+}
+
+@Composable
+private fun WakeOverviewSearchBar(query: String, onQueryChange: (String) -> Unit, onClose: () -> Unit) {
+    BlockerTopAppBar(
+        title = {
+            ProvideTextStyle(MaterialTheme.typography.bodyLarge) {
+                BlockerSearchTextField(
+                    onSearchQueryChange = onQueryChange,
+                    onSearchTrigger = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    searchQuery = query,
+                    placeholder = { Text(stringResource(string.feature_wake_api_search_apps)) },
+                )
+            }
+        },
+        hasNavigationIcon = true,
+        onNavigationClick = onClose,
+    )
 }

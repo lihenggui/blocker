@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.automirrored.outlined.Rule
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.automirrored.rounded.ShortText
@@ -125,6 +126,7 @@ object BlockerIcons {
     val AutoFix = Icons.Outlined.AutoFixHigh
     val Back = Icons.AutoMirrored.Outlined.ArrowBack
     val Forward = Icons.AutoMirrored.Outlined.ArrowForward
+    val OpenInNew = Icons.AutoMirrored.Outlined.OpenInNew
     val Close = Icons.Outlined.Close
     val Rule = Icons.AutoMirrored.Outlined.Rule
     val Deselect = Icons.Outlined.Deselect

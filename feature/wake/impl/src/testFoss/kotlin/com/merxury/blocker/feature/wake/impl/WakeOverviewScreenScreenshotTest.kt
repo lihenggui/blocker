@@ -6,12 +6,16 @@ package com.merxury.blocker.feature.wake.impl
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTextReplacement
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.google.common.truth.Truth.assertThat
@@ -22,6 +26,7 @@ import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
+import com.merxury.blocker.feature.wake.api.R.string
 import com.merxury.blocker.feature.wake.api.navigation.WakeAppNavKey
 import com.merxury.blocker.feature.wake.api.navigation.WakeOverviewNavKey
 import com.merxury.blocker.feature.wake.api.navigation.navigateToWakeApp
@@ -93,6 +98,29 @@ class WakeOverviewScreenScreenshotTest {
     fun givenNoHistory_whenCollecting_thenCaptureFirstRun() = capture("WakeOverviewCollecting", WakeOverviewUiState.Collecting(false))
 
     @Test
+    fun givenInstalledAppsWithNoHistory_whenCollecting_thenCapturesTheCollapsedAppBrowser() {
+        val state = WakeOverviewUiState.Collecting(
+            checking = false,
+            installedApps = listOf(WakeAppIdentity("example.mail", "Mail"), WakeAppIdentity("example.radio", "Radio")),
+        )
+        capturePortrait("WakeOverviewCollectingApps", state)
+    }
+
+    @Test
+    fun givenAppsAcrossGroups_whenSearchingByName_thenCapturesInlineSearchAndMatchingStatuses() {
+        val state = ready.copy(
+            attention = ready.attention + WakeAppRow("example.mail.sync", "Mail Sync", null, null),
+            blockedApps = listOf(WakeAppRow("example.mail.archive", "Mail Archive", null, null)),
+            dormantApps = listOf(WakeAppIdentity("example.mail.reader", "Mail Reader")),
+        )
+        val search = composeTestRule.activity.getString(string.feature_wake_api_search_apps)
+        capturePortrait("WakeOverviewSearch", state) {
+            composeTestRule.onNodeWithContentDescription(search).performClick()
+            composeTestRule.onNodeWithTag("BlockerSearchTextField").performTextReplacement("mail")
+        }
+    }
+
+    @Test
     fun givenNoAccess_whenOpeningOverview_thenCaptureAccessAction() = capture("WakeOverviewNoAccess", WakeOverviewUiState.NoAccess)
 
     @Test
@@ -111,6 +139,18 @@ class WakeOverviewScreenScreenshotTest {
         ) { Overview(state) }
     }
 
+    private fun capturePortrait(name: String, state: WakeOverviewUiState, beforeCapture: () -> Unit = {}) {
+        for (dark in listOf(false, true)) {
+            composeTestRule.captureForDevice(
+                deviceName = if (dark) "portrait_dark" else "portrait",
+                deviceSpec = PORTRAIT_PHONE,
+                screenshotName = name,
+                darkMode = dark,
+                beforeCapture = beforeCapture,
+            ) { key(dark) { Overview(state) } }
+        }
+    }
+
     @Composable
     private fun Overview(state: WakeOverviewUiState) {
         BlockerTheme {
@@ -118,5 +158,9 @@ class WakeOverviewScreenScreenshotTest {
                 WakeOverviewScreen(state, onGrantAccess = {}, onCheckNow = {}, onAppClick = {})
             }
         }
+    }
+
+    private companion object {
+        const val PORTRAIT_PHONE = "spec:shape=Normal,width=360,height=800,unit=dp,dpi=480"
     }
 }

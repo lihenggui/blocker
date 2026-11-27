@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.collapse
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.expand
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntSize
 import com.merxury.blocker.core.designsystem.component.BlockerSwitch
@@ -279,6 +280,7 @@ internal fun WakeDisclosure(
     expanded: Boolean,
     onExpand: () -> Unit,
     modifier: Modifier = Modifier,
+    supporting: String? = null,
     content: @Composable () -> Unit = {},
 ) {
     val rotation by animateFloatAsState(
@@ -295,6 +297,7 @@ internal fun WakeDisclosure(
             modifier = Modifier.expandable(expanded, onExpand),
             colors = colors,
             leadingContent = { BlockerActionIcon(icon, null, tint = LocalContentColor.current) },
+            supportingContent = supporting?.let { { Text(it) } },
             trailingContent = {
                 BlockerActionIcon(BlockerIcons.ExpandMore, null, Modifier.graphicsLayer { rotationZ = rotation }, tint = LocalContentColor.current)
             },
@@ -341,7 +344,7 @@ internal fun WakeDeepRestrictionCard(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun WakeEnvironmentCard(environment: WakeAppEnvironment, modifier: Modifier = Modifier) {
+internal fun WakeEnvironmentCard(environment: WakeAppEnvironment, modifier: Modifier = Modifier, onOpenSettings: () -> Unit = {}) {
     val labels = buildList {
         if (environment.userIdleAllowlisted || environment.systemIdleAllowlisted) {
             add(stringResource(string.feature_wake_api_battery_allowlist))
@@ -351,12 +354,20 @@ internal fun WakeEnvironmentCard(environment: WakeAppEnvironment, modifier: Modi
         }
     }
     if (labels.isEmpty()) return
+    val manage = stringResource(string.feature_wake_api_environment_manage)
     SegmentedListItem(
+        onClick = onOpenSettings,
         shapes = ListItemDefaults.segmentedShapes(index = 0, count = 1),
         colors = wakeSegmentedColors(),
-        modifier = modifier,
+        modifier = modifier.semantics {
+            onClick(label = manage) {
+                onOpenSettings()
+                true
+            }
+        },
         leadingContent = { BlockerActionIcon(BlockerIcons.Info, null, tint = LocalContentColor.current) },
         supportingContent = { Text(labels.joinToString(" · ")) },
+        trailingContent = { BlockerActionIcon(BlockerIcons.OpenInNew, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
     ) { Text(stringResource(string.feature_wake_api_environment)) }
 }
 

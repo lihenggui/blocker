@@ -188,4 +188,23 @@
     </plurals>
     <string name="feature_wake_api_force_stop_failed">Could not force stop %s</string>
     <string name="feature_wake_api_choice_with_component">%1$s · %2$s</string>
+    <string name="feature_wake_api_search_apps">Search apps</string>
+    <string name="feature_wake_api_search_keep_alive">Keep-alive</string>
+    <string name="feature_wake_api_search_attention">Attention</string>
+    <string name="feature_wake_api_search_dormant">Dormant</string>
+    <string name="feature_wake_api_search_empty">No matching apps</string>
+    <string name="feature_wake_api_browse_installed_apps">Browse installed apps now</string>
+    <string name="feature_wake_api_browse_installed_apps_description">Manage dormant autostart and restrictions while records collect</string>
+    <string name="feature_wake_api_sheet_observed">Observed keep-alive</string>
+    <string name="feature_wake_api_sheet_dormant">Dormant autostart</string>
+    <string name="feature_wake_api_sheet_system">System actions</string>
+    <string name="feature_wake_api_sheet_push_warning">May delay or stop incoming notifications</string>
+    <string name="feature_wake_api_sheet_force_stop_hint">Stops the app until you open it again. Undo skips this action.</string>
+    <string name="feature_wake_api_status_observed_blocked">Observed keep-alive blocked</string>
+    <string name="feature_wake_api_status_dormant_restricted">Background autostart restricted</string>
+    <string name="feature_wake_api_environment_manage">Open Android app settings</string>
+    <plurals name="feature_wake_api_dormant_remaining">
+        <item quantity="one">%d dormant autostart entry still enabled</item>
+        <item quantity="other">%d dormant autostart entries still enabled</item>
+    </plurals>
 </resources>
