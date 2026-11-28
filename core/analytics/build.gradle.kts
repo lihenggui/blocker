@@ -32,8 +32,9 @@ dependencies {
     marketImplementation(platform(libs.firebase.bom))
     marketImplementation(libs.firebase.analytics)
 
-    "testMarketImplementation"(libs.junit4)
-    "testMarketImplementation"(libs.truth)
+    testImplementation(libs.junit4)
+    testImplementation(libs.truth)
+
     "testMarketImplementation"(libs.robolectric)
     "testMarketImplementation"(libs.mockito.kotlin)
 }
