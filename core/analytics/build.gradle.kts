@@ -22,6 +22,7 @@ plugins {
 
 android {
     namespace = "com.merxury.blocker.core.analytics"
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 dependencies {
@@ -30,4 +31,10 @@ dependencies {
 
     marketImplementation(platform(libs.firebase.bom))
     marketImplementation(libs.firebase.analytics)
+
+    testImplementation(libs.junit4)
+    testImplementation(libs.truth)
+
+    "testMarketImplementation"(libs.robolectric)
+    "testMarketImplementation"(libs.mockito.kotlin)
 }

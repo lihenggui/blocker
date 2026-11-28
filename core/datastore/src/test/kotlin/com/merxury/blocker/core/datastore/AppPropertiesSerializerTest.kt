@@ -28,7 +28,7 @@ class AppPropertiesSerializerTest {
     private val appPropertiesSerializer = AppPropertiesSerializer()
 
     @Test
-    fun defaultAppProperties_isEmpty() {
+    fun whenReadingDefaultAppProperties_thenTheyAreEmpty() {
         assertEquals(
             appProperties {
                 // Default value
@@ -38,7 +38,7 @@ class AppPropertiesSerializerTest {
     }
 
     @Test
-    fun writingAndReadingAppProperties_outputsCorrectValue() = runTest {
+    fun givenAppProperties_whenWritingAndReadingThem_thenValuesRoundTrip() = runTest {
         val expectedAppProperties = appProperties {
             generalRuleDatabaseInitialized = true
             componentDatabaseInitialized = true
@@ -59,7 +59,7 @@ class AppPropertiesSerializerTest {
     }
 
     @Test(expected = CorruptionException::class)
-    fun readingInvalidAppProperties_throwsCorruptionException() = runTest {
+    fun givenInvalidAppProperties_whenReadingThem_thenThrowsCorruptionException() = runTest {
         appPropertiesSerializer.readFrom(ByteArrayInputStream(byteArrayOf(0)))
     }
 }

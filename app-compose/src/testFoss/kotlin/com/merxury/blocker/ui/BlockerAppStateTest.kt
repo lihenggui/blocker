@@ -80,7 +80,7 @@ class BlockerAppStateTest {
     )
 
     @Test
-    fun blockerAppState_currentDestination() = runTest {
+    fun givenAppListIsCurrent_whenNavigatingToGeneralRules_thenCurrentDestinationChanges() = runTest {
         val navigationState = testNavigationState()
         val navigator = Navigator(navigationState)
 
@@ -107,7 +107,7 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun blockerAppState_destinations() = runTest {
+    fun whenCreatingAppState_thenItExposesTopLevelDestinationsInOrder() = runTest {
         composeTestRule.setContent {
             state = rememberBlockerAppState(permissionMonitor = permissionMonitor)
         }
@@ -169,7 +169,7 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun blockerAppState_WhenPermissionMonitorCantGetPermission_StateIsNoPermission() = runTest(UnconfinedTestDispatcher()) {
+    fun givenAccessIsUnavailable_whenObservingAppState_thenItReportsNoPermission() = runTest(UnconfinedTestDispatcher()) {
         composeTestRule.setContent {
             state = BlockerAppState(
                 permissionMonitor = permissionMonitor,

@@ -61,7 +61,7 @@ abstract class RuleNotificationWorker(private val context: Context, params: Work
             .setContentTitle(title)
             .setTicker(title)
             // The item worked on, such as a package name; none before the first.
-            .setContentText(summary.ifEmpty { null })
+            .setContentText(summary.ifBlank { null })
             .setSmallIcon(com.merxury.blocker.core.common.R.drawable.core_common_ic_blocker_notification)
             .setProgress(total, current, false)
             .setOngoing(true)
