@@ -29,7 +29,7 @@ class UserPreferencesSerializerTest {
     private val userPreferencesSerializer = UserPreferencesSerializer()
 
     @Test
-    fun defaultUserPreferences_isEmpty() {
+    fun whenReadingDefaultUserPreferences_thenTheyAreEmpty() {
         assertEquals(
             userPreferences {
                 // Default value
@@ -39,7 +39,7 @@ class UserPreferencesSerializerTest {
     }
 
     @Test
-    fun writingAndReadingUserPreferences_outputsCorrectValue() = runTest {
+    fun givenUserPreferences_whenWritingAndReadingThem_thenValuesRoundTrip() = runTest {
         val expectedUserPreferences = userPreferences {
             controllerType = PM
             backupSystemApp = true
@@ -60,7 +60,7 @@ class UserPreferencesSerializerTest {
     }
 
     @Test(expected = CorruptionException::class)
-    fun readingInvalidUserPreferences_throwsCorruptionException() = runTest {
+    fun givenInvalidUserPreferences_whenReadingThem_thenThrowsCorruptionException() = runTest {
         userPreferencesSerializer.readFrom(ByteArrayInputStream(byteArrayOf(0)))
     }
 }

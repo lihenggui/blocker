@@ -49,12 +49,12 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_whenInitial_thenShowDefault() = runTest {
+    fun whenObservingInitialSortState_thenItShowsDefaults() = runTest {
         assertEquals(AppSortInfoUiState.Loading, viewModel.uiState.value)
     }
 
     @Test
-    fun appSortInfoUiState_whenLoaded_thenShowSuccess() = runTest {
+    fun whenSortPreferencesLoad_thenTheStateShowsThem() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.uiState.collect()
         }
@@ -69,7 +69,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_whenUpdateAppSorting_thenUpdateAppSorting() = runTest {
+    fun whenUpdatingAppSorting_thenTheStateShowsTheNewSorting() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.uiState.collect()
         }
@@ -86,7 +86,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_whenUpdateAppSortingOrder_thenUpdateAppSortingOrder() = runTest {
+    fun whenUpdatingAppSortingOrder_thenTheStateShowsTheNewOrder() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.uiState.collect()
         }
@@ -103,7 +103,7 @@ class AppSortViewModelTest {
     }
 
     @Test
-    fun appSortInfoUiState_whenUpdateTopAppType_thenUpdateTopAppType() = runTest {
+    fun whenUpdatingTopAppType_thenTheStateShowsTheNewType() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) {
             viewModel.uiState.collect()
         }

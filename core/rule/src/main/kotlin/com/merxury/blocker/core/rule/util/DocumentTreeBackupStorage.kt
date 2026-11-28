@@ -18,6 +18,7 @@ package com.merxury.blocker.core.rule.util
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.VisibleForTesting
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.merxury.blocker.core.rule.backup.BackupStorage
@@ -36,7 +37,7 @@ private const val JSON_MIME = "application/json"
  * [BackupStorage] over the document tree the user picked through the Storage Access Framework.
  * Files are created as earlier versions created them, so a provider names them the same way.
  */
-class DocumentTreeBackupStorage private constructor(
+class DocumentTreeBackupStorage @VisibleForTesting internal constructor(
     private val context: Context,
     private val root: DocumentFile,
     private val ioDispatcher: CoroutineDispatcher,

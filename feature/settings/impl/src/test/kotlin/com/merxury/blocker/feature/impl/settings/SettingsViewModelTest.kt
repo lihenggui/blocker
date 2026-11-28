@@ -76,7 +76,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun settingsUiState_whenInitial_thenShowLoading() = runTest {
+    fun whenObservingInitialSettingsState_thenItShowsLoading() = runTest {
         assertEquals(
             Loading,
             viewModel.settingsUiState.value,
@@ -84,7 +84,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun settingsUiState_whenSuccess_thenShowData() = runTest {
+    fun whenSettingsLoad_thenTheStateShowsTheSavedData() = runTest {
         val collectJob = launch(UnconfinedTestDispatcher()) { viewModel.settingsUiState.collect() }
         userDataRepository.sendUserData(defaultUserData)
         val defaultUserData = defaultUserData.toUserEditableSettings()

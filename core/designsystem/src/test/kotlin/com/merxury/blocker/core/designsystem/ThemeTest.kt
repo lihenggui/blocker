@@ -140,7 +140,7 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeFalse_dynamicColorTrue_blockerThemeFalse() {
+    fun givenDynamicColorsAndLightMode_whenApplyingTheme_thenUsesDynamicLightColorsAndDefaults() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
@@ -160,7 +160,7 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeTrue_dynamicColorTrue_blockerThemeFalse() {
+    fun givenDynamicColorsAndDarkMode_whenApplyingTheme_thenUsesDynamicDarkColorsAndDefaults() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
@@ -180,7 +180,7 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeFalse_dynamicColorFalse_blockerThemeTrue() {
+    fun givenBlockerColorsAndLightMode_whenApplyingTheme_thenUsesLightBlockerColorsAndDefaults() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
@@ -200,7 +200,7 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeTrue_dynamicColorFalse_blockerThemeTrue() {
+    fun givenBlockerColorsAndDarkMode_whenApplyingTheme_thenUsesDarkBlockerColorsAndDefaults() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
