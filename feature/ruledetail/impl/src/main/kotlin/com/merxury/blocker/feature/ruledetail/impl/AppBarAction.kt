@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.state.toolbar
+package com.merxury.blocker.feature.ruledetail.impl
 
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.runtime.Composable
-
-data class AppBarActionState(
-    val actions: (@Composable RowScope.() -> Unit)? = null,
-)
+enum class AppBarAction {
+    MORE,
+    SEARCH,
+    SHARE_RULE,
+    SORT,
+}

@@ -37,10 +37,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
-import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SORT
-import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.RuleDetailSortType
+import com.merxury.blocker.feature.ruledetail.impl.AppBarAction.MORE
+import com.merxury.blocker.feature.ruledetail.impl.AppBarAction.SORT
 import com.merxury.blocker.core.ui.R.string as uistring
 import com.merxury.blocker.feature.ruledetail.api.R.string as ruledetailString
 

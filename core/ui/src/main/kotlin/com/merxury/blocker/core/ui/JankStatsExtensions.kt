@@ -19,9 +19,6 @@ package com.merxury.blocker.core.ui
 
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.DisposableEffectResult
-import androidx.compose.runtime.DisposableEffectScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -36,7 +33,7 @@ import kotlinx.coroutines.CoroutineScope
  * @see PerformanceMetricsState.getHolderForHierarchy
  */
 @Composable
-fun rememberMetricsStateHolder(): Holder {
+private fun rememberMetricsStateHolder(): Holder {
     val localView = LocalView.current
 
     return remember(localView) {
@@ -47,31 +44,15 @@ fun rememberMetricsStateHolder(): Holder {
 /**
  * Convenience function to work with [PerformanceMetricsState] state. The side effect is
  * re-launched if any of the [keys] value is not equal to the previous composition.
- * @see TrackDisposableJank if you need to work with DisposableEffect to cleanup added state.
  */
 @Composable
-fun TrackJank(
+private fun TrackJank(
     vararg keys: Any,
     reportMetric: suspend CoroutineScope.(state: Holder) -> Unit,
 ) {
     val metrics = rememberMetricsStateHolder()
     LaunchedEffect(metrics, *keys) {
         reportMetric(metrics)
-    }
-}
-
-/**
- * Convenience function to work with [PerformanceMetricsState] state that needs to be cleaned up.
- * The side effect is re-launched if any of the [keys] value is not equal to the previous composition.
- */
-@Composable
-fun TrackDisposableJank(
-    vararg keys: Any,
-    reportMetric: DisposableEffectScope.(state: Holder) -> DisposableEffectResult,
-) {
-    val metrics = rememberMetricsStateHolder()
-    DisposableEffect(metrics, *keys) {
-        reportMetric(this, metrics)
     }
 }
 

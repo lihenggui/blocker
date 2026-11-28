@@ -40,7 +40,7 @@ import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.BlockerSettingItem
-import com.merxury.blocker.core.ui.PreviewDevices
+import com.merxury.blocker.feature.impl.settings.PreviewDevices
 import com.merxury.blocker.feature.settings.api.R.string
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

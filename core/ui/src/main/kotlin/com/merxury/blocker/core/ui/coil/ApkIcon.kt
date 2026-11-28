@@ -16,14 +16,16 @@
 
 package com.merxury.blocker.core.ui.coil
 
-import android.content.pm.PackageInfo
-import coil3.key.Keyer
-import coil3.request.Options
-import me.zhanghai.android.appiconloader.AppIconLoader
-
-class AppIconKeyer : Keyer<PackageInfo> {
-    override fun key(data: PackageInfo, options: Options): String? {
-        if (data.applicationInfo == null) return null
-        return AppIconLoader.getIconKey(data, options.context)
-    }
-}
+/**
+ * The icon of an app installed for any user, as Coil data. The APK is the same for every user, so
+ * the icon is read from [apkPath]; the app need not be installed for the user Blocker runs in.
+ *
+ * @property uid the app's uid in its user; an app in a work profile gets the system's work badge
+ * from it. Null for no badge.
+ */
+data class ApkIcon(
+    val packageName: String,
+    val apkPath: String?,
+    val versionCode: Long,
+    val uid: Int?,
+)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.coil
+package com.merxury.blocker.coil
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -29,23 +29,10 @@ import coil3.fetch.ImageFetchResult
 import coil3.key.Keyer
 import coil3.request.Options
 import com.merxury.blocker.core.model.component.userOfUid
+import com.merxury.blocker.core.ui.coil.ApkIcon
 import com.merxury.blocker.core.utils.currentUserId
 import me.zhanghai.android.appiconloader.AppIconLoader
 import timber.log.Timber
-
-/**
- * The icon of an app installed for any user, as Coil data. The APK is the same for every user, so
- * the icon is read from [apkPath]; the app need not be installed for the user Blocker runs in.
- *
- * @property uid the app's uid in its user; an app in a work profile gets the system's work badge
- * from it. Null for no badge.
- */
-data class ApkIcon(
-    val packageName: String,
-    val apkPath: String?,
-    val versionCode: Long,
-    val uid: Int?,
-)
 
 class ApkIconKeyer : Keyer<ApkIcon> {
     override fun key(data: ApkIcon, options: Options): String = "${data.packageName}:${data.versionCode}:${data.uid}"

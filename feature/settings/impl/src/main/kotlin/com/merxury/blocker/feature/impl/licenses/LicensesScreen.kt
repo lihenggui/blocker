@@ -49,12 +49,11 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.LicenseGroup
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.ItemHeader
-import com.merxury.blocker.core.ui.PreviewDevices
 import com.merxury.blocker.core.ui.TrackScrollJank
-import com.merxury.blocker.core.ui.previewparameter.LicensesPreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.impl.licenses.LicensesUiState.Loading
 import com.merxury.blocker.feature.impl.licenses.LicensesUiState.Success
+import com.merxury.blocker.feature.impl.settings.PreviewDevices
 import com.merxury.blocker.feature.settings.api.R
 
 @Composable

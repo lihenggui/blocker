@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.control
+package com.merxury.blocker.feature.ruledetail.impl
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.model.privileged.CallFailure
-import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.control.AccessMessageSnackbar
+import com.merxury.blocker.core.ui.control.withAccessHint
+import com.merxury.blocker.core.ui.R.string as uiString
 
 /**
  * Launching the activity called [name] failed.
@@ -43,7 +45,7 @@ data class ActivityLaunchFailed(
  * access when its lack was the cause.
  */
 @Composable
-fun ActivityLaunchFailed.text(): String = withAccessHint(stringResource(string.core_ui_launch_failed, name), needsAccess)
+fun ActivityLaunchFailed.text(): String = withAccessHint(stringResource(uiString.core_ui_launch_failed, name), needsAccess)
 
 /**
  * Shows [failure] in a snackbar for its whole duration, with an action to grant access when
