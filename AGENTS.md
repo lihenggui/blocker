@@ -15,7 +15,7 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
 - [`app-compose`](app-compose) assembles features, owns the app shell and
   navigation, and supplies app-level Hilt bindings.
 - [`feature/`](feature) contains app list, app detail, general rules, rule detail,
-  search, settings, debloater, wake protection, and per-app and global IFW editors. `api` modules
+  search, settings, debloater, wake protection, and operation history. `api` modules
   define navigation contracts and `impl` modules own screens and ViewModels.
 - [`core/domain`](core/domain) owns use cases and component batch orchestration.
   [`core/data`](core/data) owns repository interfaces and implementations, including
@@ -23,7 +23,7 @@ Edit this file to update either agent entry point. `CLAUDE.md` links here.
   contains shared models.
 - [`core/component-controller`](core/component-controller) runs typed privileged
   calls over the root and Shizuku transports. [`core/ifw-api`](core/ifw-api) owns
-  `IfwStore` and the rule XML model.
+  `IfwStore` and the complete Intent Firewall rule XML model.
   [`core/system`](core/system) reads users, installed apps, and declared components.
 - [`core/database`](core/database), [`core/datastore`](core/datastore), and
   [`core/datastore-proto`](core/datastore-proto) own Room and Proto DataStore.
@@ -107,7 +107,6 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 ### Guidance for new code
 
 - Keep DAOs, data sources, and privileged calls behind data or domain APIs.
-  The IFW editors work directly with `IfwStore`.
 - Add a use case only for logic shared by several ViewModels. Keep single-screen
   orchestration in its ViewModel and data access in the repository.
 - Expose one read-only `StateFlow<ScreenUiState>` called `uiState`. For upstream flows,
@@ -126,8 +125,6 @@ device tests, coverage, graphs, release builds, and baseline profiles.
 - Use the selected `PrivilegedChannel` for typed system calls. Request access
   in the foreground with `connect()` and check existing grants with
   `connectIfGranted()` when a caller cannot prompt.
-- The per-app and global IFW rule editors always use root, regardless of the
-  selected controller type.
 - PackageManager and privileged Shizuku persist enabled state in each user's
   `package_restrictions.xml` under `/data/system/users/`. Apps can detect that state.
 - `IfwStore` reads and replaces XML in `/data/system/ifw/` and reports changes

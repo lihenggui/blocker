@@ -28,20 +28,10 @@ graph TB
       :feature:generalrule:api[api]:::android-library
       :feature:generalrule:impl[impl]:::android-library
     end
-    subgraph :feature:globalifwrule
-      direction TB
-      :feature:globalifwrule:api[api]:::android-library
-      :feature:globalifwrule:impl[impl]:::android-library
-    end
     subgraph :feature:history
       direction TB
       :feature:history:api[api]:::android-library
       :feature:history:impl[impl]:::android-library
-    end
-    subgraph :feature:ifwrule
-      direction TB
-      :feature:ifwrule:api[api]:::android-library
-      :feature:ifwrule:impl[impl]:::android-library
     end
     subgraph :feature:search
       direction TB
@@ -115,12 +105,8 @@ graph TB
   :app-compose -.-> :feature:debloater:impl
   :app-compose -.-> :feature:generalrule:api
   :app-compose -.-> :feature:generalrule:impl
-  :app-compose -.-> :feature:globalifwrule:api
-  :app-compose -.-> :feature:globalifwrule:impl
   :app-compose -.-> :feature:history:api
   :app-compose -.-> :feature:history:impl
-  :app-compose -.-> :feature:ifwrule:api
-  :app-compose -.-> :feature:ifwrule:impl
   :app-compose -.-> :feature:ruledetail:api
   :app-compose -.-> :feature:ruledetail:impl
   :app-compose -.-> :feature:search:api
@@ -172,7 +158,6 @@ graph TB
   :core:system --> :core:model
   :core:ui --> :core:analytics
   :core:ui --> :core:designsystem
-  :core:ui -.-> :core:ifw-api
   :core:ui --> :core:model
   :feature:appdetail:api --> :core:navigation
   :feature:appdetail:impl -.-> :core:component-controller
@@ -208,22 +193,11 @@ graph TB
   :feature:generalrule:impl -.-> :core:ui
   :feature:generalrule:impl -.-> :feature:generalrule:api
   :feature:generalrule:impl -.-> :feature:ruledetail:api
-  :feature:globalifwrule:api --> :core:navigation
-  :feature:globalifwrule:impl -.-> :core:data
-  :feature:globalifwrule:impl -.-> :core:designsystem
-  :feature:globalifwrule:impl -.-> :core:ifw-api
-  :feature:globalifwrule:impl -.-> :core:ui
-  :feature:globalifwrule:impl -.-> :feature:globalifwrule:api
   :feature:history:api --> :core:navigation
   :feature:history:impl -.-> :core:data
   :feature:history:impl -.-> :core:designsystem
   :feature:history:impl -.-> :core:ui
   :feature:history:impl -.-> :feature:history:api
-  :feature:ifwrule:api --> :core:navigation
-  :feature:ifwrule:impl -.-> :core:designsystem
-  :feature:ifwrule:impl -.-> :core:ifw-api
-  :feature:ifwrule:impl -.-> :core:ui
-  :feature:ifwrule:impl -.-> :feature:ifwrule:api
   :feature:ruledetail:api --> :core:navigation
   :feature:ruledetail:impl -.-> :core:component-controller
   :feature:ruledetail:impl -.-> :core:data

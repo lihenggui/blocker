@@ -33,7 +33,6 @@ class ComponentRowActions(
     val onLaunchActivity: (ComponentRow) -> Unit = {},
     val onCopyName: (ComponentRow) -> Unit = {},
     val onCopyFullName: (ComponentRow) -> Unit = {},
-    val onEditIfwRule: (ComponentRow) -> Unit = {},
 )
 
 /**
@@ -63,7 +62,6 @@ internal fun ComponentRowItem(
         onLaunchActivityClick = { actions.onLaunchActivity(row) },
         onCopyNameClick = { actions.onCopyName(row) },
         onCopyFullNameClick = { actions.onCopyFullName(row) },
-        onEditIfwRuleClick = { actions.onEditIfwRule(row) },
         onSwitchClick = { actions.onSwitch(row, it) },
         isSelected = isSelected,
         isSelectedMode = isSelectionMode,

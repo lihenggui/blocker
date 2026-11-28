@@ -322,7 +322,7 @@ class AppDetailScreenStateTest {
         composeTestRule.setContent {
             val current = tick
             Text("$current")
-            taken += rememberRowActions(fixture.list, fixture.control, { opened += current }, {}, {})
+            taken += rememberRowActions(fixture.list, fixture.control, { opened += current }, {})
         }
 
         composeTestRule.runOnIdle { tick++ }

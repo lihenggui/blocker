@@ -69,8 +69,6 @@ import com.merxury.blocker.core.ui.R.string as uiString
 /**
  * The detail screen of one app for one user. Rows show what the repositories hold; the switches
  * and batch actions go to [controlViewModel], which reports how each change ended.
- *
- * @param navigateToIfwRuleEditor opens the rule editor of a component of this app
  */
 @Composable
 fun AppDetailScreen(
@@ -82,7 +80,6 @@ fun AppDetailScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     navigateToRuleDetail: (Int) -> Unit = {},
-    navigateToIfwRuleEditor: (ComponentRow) -> Unit = {},
     onShowBackgroundActivity: () -> Unit = {},
     showBackButton: Boolean = true,
 ) {
@@ -115,7 +112,7 @@ fun AppDetailScreen(
             scope.launch { snackbarHostState.showSnackbar(cannotLaunch, duration = SnackbarDuration.Short, withDismissAction = true) }
         }
     }
-    val rowActions = rememberRowActions(listViewModel, controlViewModel, { detailOf = it.id.className }, navigateToIfwRuleEditor) { text ->
+    val rowActions = rememberRowActions(listViewModel, controlViewModel, { detailOf = it.id.className }) { text ->
         scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(text, text))) }
     }
     val actions = rememberAppDetailActions(
@@ -209,11 +206,9 @@ internal fun rememberRowActions(
     listViewModel: ComponentListViewModel,
     controlViewModel: ComponentControlViewModel,
     showDetail: (ComponentRow) -> Unit,
-    navigateToIfwRuleEditor: (ComponentRow) -> Unit,
     copy: (String) -> Unit,
 ): ComponentRowActions {
     val currentShowDetail by rememberUpdatedState(showDetail)
-    val currentEditor by rememberUpdatedState(navigateToIfwRuleEditor)
     val currentCopy by rememberUpdatedState(copy)
     return remember(listViewModel, controlViewModel) {
         ComponentRowActions(
@@ -224,7 +219,6 @@ internal fun rememberRowActions(
             onLaunchActivity = { listViewModel.launchActivity(it.id) },
             onCopyName = { currentCopy(it.id.simpleName) },
             onCopyFullName = { currentCopy(it.id.className) },
-            onEditIfwRule = { currentEditor(it) },
         )
     }
 }

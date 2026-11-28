@@ -68,14 +68,12 @@ class AppDetailScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private val switched = mutableListOf<Pair<String, Boolean>>()
-    private val edited = mutableListOf<String>()
     private val opened = mutableListOf<String>()
     private val toggled = mutableListOf<String>()
     private val actions = ComponentRowActions(
         onSwitch = { row, enabled -> switched += row.id.simpleName to enabled },
         onClick = { opened += it.id.simpleName },
         onToggleSelected = { toggled += it.id.simpleName },
-        onEditIfwRule = { edited += it.id.simpleName },
     )
 
     private fun text(id: Int, vararg args: Any) = composeTestRule.activity.getString(id, *args)
