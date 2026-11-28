@@ -32,7 +32,6 @@ import com.merxury.blocker.feature.settings.api.navigation.navigateToSupportAndF
 fun EntryProviderScope<NavKey>.appListEntry(
     navigator: Navigator,
     navigateToAppSlimming: () -> Unit,
-    navigateToFirewallRules: () -> Unit,
 ) {
     entry<AppListNavKey>(
         metadata = ListDetailSceneStrategy.listPane(),
@@ -40,7 +39,6 @@ fun EntryProviderScope<NavKey>.appListEntry(
         AppListScreen(
             navigateToAppDetail = { packageName, userId -> navigator.navigateToAppDetail(packageName, userId = userId) },
             navigateToAppSlimming = navigateToAppSlimming,
-            navigateToFirewallRules = navigateToFirewallRules,
             navigateToSettings = navigator::navigateToSettings,
             navigateToSupportAndFeedback = navigator::navigateToSupportAndFeedback,
             snackbarHostState = LocalSnackbarHostState.current,

@@ -22,7 +22,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.merxury.blocker.core.designsystem.theme.IconThemingState
-import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.navigation.Navigator
 import com.merxury.blocker.core.ui.LocalSnackbarHostState
 import com.merxury.blocker.feature.appdetail.api.navigation.AppDetailNavKey
@@ -36,15 +35,11 @@ import com.merxury.blocker.feature.wake.api.navigation.navigateToWakeApp
 /**
  * The detail screen of [AppDetailNavKey.packageName] for [AppDetailNavKey.userId]. The view models
  * are keyed by both, so the same app of two users keeps two screens.
- *
- * @param navigateToIfwRuleEditor opens the rule editor with the package, the component's class name
- * and its tag in Intent Firewall rules
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.appDetailEntry(
     navigator: Navigator,
     updateIconThemingState: (IconThemingState) -> Unit,
-    navigateToIfwRuleEditor: (String, String, String) -> Unit,
 ) {
     entry<AppDetailNavKey>(
         metadata = ListDetailSceneStrategy.detailPane(),
@@ -65,15 +60,6 @@ fun EntryProviderScope<NavKey>.appDetailEntry(
             onBackClick = { navigator.goBack() },
             navigateToRuleDetail = { ruleId -> navigator.navigateToRuleDetail(ruleId.toString()) },
             onShowBackgroundActivity = { navigator.navigateToWakeApp(key.packageName) },
-            navigateToIfwRuleEditor = { row ->
-                val ifwTag = when (row.type) {
-                    ComponentType.RECEIVER -> "broadcast"
-                    ComponentType.SERVICE -> "service"
-                    ComponentType.ACTIVITY -> "activity"
-                    ComponentType.PROVIDER -> return@AppDetailScreen
-                }
-                navigateToIfwRuleEditor(row.id.packageName, row.id.className, ifwTag)
-            },
         )
     }
 }

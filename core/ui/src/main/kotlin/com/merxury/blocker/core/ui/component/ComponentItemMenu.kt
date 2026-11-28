@@ -23,7 +23,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.R
 
@@ -37,7 +36,6 @@ fun ComponentItemMenu(
     onLaunchActivityClick: () -> Unit = {},
     onCopyNameClick: () -> Unit = {},
     onCopyPackageNameClick: () -> Unit = {},
-    onEditIfwRuleClick: () -> Unit = {},
     onDismissRequest: () -> Unit = {},
 ) {
     val items = buildList {
@@ -66,14 +64,6 @@ fun ComponentItemMenu(
                 DropDownMenuItem(
                     textRes = R.string.core_ui_launch_activity,
                     onClick = onLaunchActivityClick,
-                ),
-            )
-        }
-        if (type != PROVIDER) {
-            add(
-                DropDownMenuItem(
-                    textRes = R.string.core_ui_edit_ifw_rule,
-                    onClick = onEditIfwRuleClick,
                 ),
             )
         }

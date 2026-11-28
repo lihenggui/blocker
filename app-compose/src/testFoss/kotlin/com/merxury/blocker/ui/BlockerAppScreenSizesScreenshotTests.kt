@@ -87,7 +87,6 @@ import kotlin.time.Instant
 import com.merxury.blocker.core.designsystem.R.string as designString
 import com.merxury.blocker.core.ui.R.string as uiString
 import com.merxury.blocker.feature.applist.api.R.string as appsString
-import com.merxury.blocker.feature.globalifwrule.impl.R.string as firewallString
 import com.merxury.blocker.feature.history.impl.R.string as historyString
 import com.merxury.blocker.feature.settings.api.R.string as settingsString
 import com.merxury.blocker.feature.wake.api.R.string as wakeString
@@ -248,22 +247,6 @@ class BlockerAppScreenSizesScreenshotTests {
         destination(R.string.rules).performClick()
 
         composeTestRule.onNode(hasText(text(R.string.rules)) and !hasTestTag("BlockerNavItem")).assertExists()
-        composeTestRule.onNodeWithText(text(firewallString.feature_globalifwrule_impl_title)).assertDoesNotExist()
-    }
-
-    @Test
-    fun givenAppsMenu_whenOpeningFirewallAndGoingBack_thenTheAppsListReturns() {
-        showApp()
-        val moreMenu = composeTestRule.onNodeWithContentDescription(text(uiString.core_ui_more_menu))
-        moreMenu.performClick()
-
-        composeTestRule.onNodeWithText(text(appsString.feature_applist_api_firewall_rules)).performClick()
-
-        composeTestRule.onNodeWithText(text(firewallString.feature_globalifwrule_impl_title)).assertExists()
-        destination(R.string.apps).assertIsSelected()
-        composeTestRule.onNodeWithContentDescription(text(designString.core_designsystem_back)).performClick()
-        moreMenu.assertExists()
-        composeTestRule.onNodeWithText(text(firewallString.feature_globalifwrule_impl_title)).assertDoesNotExist()
     }
 
     @Test

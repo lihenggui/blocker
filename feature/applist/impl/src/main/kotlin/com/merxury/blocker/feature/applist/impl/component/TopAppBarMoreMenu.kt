@@ -30,7 +30,6 @@ import com.merxury.blocker.core.ui.R as UiR
 @Composable
 fun TopAppBarMoreMenu(
     navigateToAppSlimming: () -> Unit,
-    navigateToFirewallRules: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToFeedback: () -> Unit,
 ) {
@@ -38,10 +37,6 @@ fun TopAppBarMoreMenu(
         DropDownMenuItem(
             R.string.feature_applist_api_app_slimming,
             navigateToAppSlimming,
-        ),
-        DropDownMenuItem(
-            R.string.feature_applist_api_firewall_rules,
-            navigateToFirewallRules,
         ),
         DropDownMenuItem(
             R.string.feature_applist_api_settings,
@@ -67,7 +62,6 @@ private fun MoreMenuPreview() {
         Surface {
             TopAppBarMoreMenu(
                 navigateToAppSlimming = {},
-                navigateToFirewallRules = {},
                 navigateToSettings = {},
                 navigateToFeedback = {},
             )
